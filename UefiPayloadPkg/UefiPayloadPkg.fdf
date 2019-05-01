@@ -153,6 +153,12 @@ INF MdeModulePkg/Universal/MemoryTest/NullMemoryTestDxe/NullMemoryTestDxe.inf
 INF MdeModulePkg/Universal/HiiDatabaseDxe/HiiDatabaseDxe.inf
 INF MdeModulePkg/Universal/SetupBrowserDxe/SetupBrowserDxe.inf
 INF MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
+!ifdef $(FIRMWARE_OPEN_FIRMWARE_SETUP)
+  !if $(ARCH) == IA32
+  !else
+  INF  RuleOverride=BINARY USE = X64 $(FIRMWARE_OPEN_FIRMWARE_SETUP)
+  !endif
+!endif
 INF MdeModulePkg/Universal/PlatformDriOverrideDxe/PlatformDriOverrideDxe.inf
 INF MdeModulePkg/Universal/EbcDxe/EbcDxe.inf
 INF UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
