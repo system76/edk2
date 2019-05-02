@@ -3139,6 +3139,7 @@ BdsLibEnumerateAllBootOption (
   EFI_BLOCK_IO_PROTOCOL         *BlkIo;
   BOOLEAN                       Removable[2];
   UINTN                         RemovableIndex;
+  UINTN                         DPTIndex;
   UINTN                         Index;
   UINTN                         NumOfLoadFileHandles;
   EFI_HANDLE                    *LoadFileHandles;
@@ -3234,6 +3235,7 @@ BdsLibEnumerateAllBootOption (
         );
 
   for (RemovableIndex = 0; RemovableIndex < 2; RemovableIndex++) {
+   for (DPTIndex = 0; DPTIndex < 2; DPTIndex++) {
     for (Index = 0; Index < NumberBlockIoHandles; Index++) {
       Status = gBS->HandleProtocol (
                       BlockIoHandles[Index],
@@ -3255,6 +3257,15 @@ BdsLibEnumerateAllBootOption (
       }
       DevicePath  = DevicePathFromHandle (BlockIoHandles[Index]);
       DevicePathType = BdsGetBootTypeFromDevicePath (DevicePath);
+
+      // Do NVMe devices first, all others second
+      if (DPTIndex == 0) {
+        if (DevicePathType != BDS_EFI_MESSAGE_NVME_BOOT) {
+          continue;
+        }
+      } else if (DevicePathType == BDS_EFI_MESSAGE_NVME_BOOT) {
+        continue;
+      }
 
       //
       // get description for current block handle
@@ -3376,6 +3387,7 @@ BdsLibEnumerateAllBootOption (
         break;
       }
     }
+   }
   }
 
   if (NumberBlockIoHandles != 0) {
