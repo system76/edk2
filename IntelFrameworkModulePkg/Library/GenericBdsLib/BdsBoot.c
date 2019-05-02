@@ -3138,6 +3138,7 @@ BdsLibEnumerateAllBootOption (
   EFI_BLOCK_IO_PROTOCOL         *BlkIo;
   BOOLEAN                       Removable[2];
   UINTN                         RemovableIndex;
+  UINTN                         DPTIndex;
   UINTN                         Index;
   UINTN                         NumOfLoadFileHandles;
   EFI_HANDLE                    *LoadFileHandles;
@@ -3233,6 +3234,7 @@ BdsLibEnumerateAllBootOption (
         );
 
   for (RemovableIndex = 0; RemovableIndex < 2; RemovableIndex++) {
+   for (DPTIndex = 0; DPTIndex < 2; DPTIndex++) {
     for (Index = 0; Index < NumberBlockIoHandles; Index++) {
       Status = gBS->HandleProtocol (
                       BlockIoHandles[Index],
@@ -3254,6 +3256,15 @@ BdsLibEnumerateAllBootOption (
       }
       DevicePath  = DevicePathFromHandle (BlockIoHandles[Index]);
       DevicePathType = BdsGetBootTypeFromDevicePath (DevicePath);
+
+      // Do NVMe devices first, all others second
+      if (DPTIndex == 0) {
+        if (DevicePathType != BDS_EFI_MESSAGE_NVME_BOOT) {
+          continue;
+        }
+      } else if (DevicePathType == BDS_EFI_MESSAGE_NVME_BOOT) {
+        continue;
+      }
 
       switch (DevicePathType) {
       case BDS_EFI_ACPI_FLOPPY_BOOT:
@@ -3329,7 +3340,7 @@ BdsLibEnumerateAllBootOption (
         BdsLibBuildOptionFromHandle (BlockIoHandles[Index], BdsBootOptionList, Buffer);
         SdNumber++;
         break;
-      
+
       case BDS_EFI_MESSAGE_NVME_BOOT:
         if (NvmeNumber != 0) {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI NVMe Device %d", NvmeNumber);
@@ -3350,6 +3361,7 @@ BdsLibEnumerateAllBootOption (
         break;
       }
     }
+   }
   }
 
   if (NumberBlockIoHandles != 0) {
@@ -3995,7 +4007,7 @@ BdsGetBootTypeFromDevicePath (
         case MSG_EMMC_DP:
           BootType = BDS_EFI_MESSAGE_EMMC_BOOT;
           break;
-        
+
         case MSG_SD_DP:
           BootType = BDS_EFI_MESSAGE_SD_BOOT;
           break;
