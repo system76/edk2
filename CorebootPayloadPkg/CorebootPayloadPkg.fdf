@@ -219,10 +219,26 @@ FILE FREEFORM    = PCD(gEfiIntelFrameworkModulePkgTokenSpaceGuid.PcdLogoFile) {
   SECTION RAW = CorebootPayloadPkg/Logo/Logo.bmp
 }
 
+!ifdef $(FIRMWARE_OPEN_GOP_POLICY)
+  # Add PlatformGopPolicy implementation
+  !if $(ARCH) == IA32
+  !else
+  INF  RuleOverride=BINARY USE = X64 $(FIRMWARE_OPEN_GOP_POLICY)
+  !endif
+!endif
+
+!ifdef $(FIRMWARE_OPEN_GOP)
+  # Use IntelGopDriver binary
+  !if $(ARCH) == IA32
+  !else
+  INF  RuleOverride=BINARY USE = X64 $(FIRMWARE_OPEN_GOP)
+  !endif
+!else
 #
 # Framebuffer Gop
 #
 INF CorebootPayloadPkg/FbGop/FbGop.inf
+!endif
 
 ################################################################################
 #
