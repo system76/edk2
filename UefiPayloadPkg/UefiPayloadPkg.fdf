@@ -207,6 +207,20 @@ INF  RuleOverride = BINARY USE = X64 ShellBinPkg/UefiShell/UefiShell.inf
 !endif
 !endif
 
+!ifdef $(FIRMWARE_OPEN_GOP_POLICY)
+  # Add PlatformGopPolicy implementation
+  !if $(ARCH) == IA32
+  !else
+  INF  RuleOverride=BINARY USE = X64 $(FIRMWARE_OPEN_GOP_POLICY)
+  !endif
+!endif
+!ifdef $(FIRMWARE_OPEN_GOP)
+  # Use IntelGopDriver binary
+  !if $(ARCH) == IA32
+  !else
+  INF  RuleOverride=BINARY USE = X64 $(FIRMWARE_OPEN_GOP)
+  !endif
+!endif
 
 ################################################################################
 #
