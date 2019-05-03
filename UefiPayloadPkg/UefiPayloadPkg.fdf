@@ -297,6 +297,21 @@ SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingSize = $(BLOCK_SIZ
 SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase = gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase + gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingSize
 SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareSize = $(BLOCK_SIZE)
 
+!ifdef $(FIRMWARE_OPEN_GOP_POLICY)
+  # Add PlatformGopPolicy implementation
+  !if $(ARCH) == IA32
+  !else
+  INF  RuleOverride=BINARY USE = X64 $(FIRMWARE_OPEN_GOP_POLICY)
+  !endif
+!endif
+!ifdef $(FIRMWARE_OPEN_GOP)
+  # Use IntelGopDriver binary
+  !if $(ARCH) == IA32
+  !else
+  INF  RuleOverride=BINARY USE = X64 $(FIRMWARE_OPEN_GOP)
+  !endif
+!endif
+
 ################################################################################
 #
 # Rules are use with the [FV] section's module INF type to define
