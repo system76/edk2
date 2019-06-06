@@ -851,7 +851,7 @@ GetDeviceNameFromProduct (
     StrCatS (*DeviceName, 0x40 / sizeof (CHAR16), L"CTL Chromebox CBX1");
   } else if (!StrCmp(Product, L"Zako")) {
     StrCatS (*DeviceName, 0x60 / sizeof (CHAR16), L"HP Chromebox CB1");
-  } 
+  }
   //etc etc
 }
 
@@ -890,16 +890,16 @@ UpdateFrontPageStrings (
     SmbiosTable = GetSmbiosTableFromType (EntryPoint, EFI_SMBIOS_TYPE_BIOS_INFORMATION , 0);
     if (SmbiosTable.Raw == NULL) {
     } else {
-      NewString3 = AllocateZeroPool (0x60);
+      NewString3 = AllocateZeroPool (0xC0);
 
       StrIndex = SmbiosTable.Type0->BiosVersion;
       Str2Index = SmbiosTable.Type0->BiosReleaseDate;
       GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), StrIndex, &NewString);
       GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), Str2Index, &NewString2);
-      StrCatS (NewString3, 0x40 / sizeof (CHAR16), L"FW: ");
-      StrCatS (NewString3, 0x40 / sizeof (CHAR16), NewString);
-      StrCatS (NewString3, 0x40 / sizeof (CHAR16), L" ");
-      StrCatS (NewString3, 0x40 / sizeof (CHAR16), NewString2);
+      StrCatS (NewString3, 0x80 / sizeof (CHAR16), L"FW: ");
+      StrCatS (NewString3, 0x80 / sizeof (CHAR16), NewString);
+      StrCatS (NewString3, 0x80 / sizeof (CHAR16), L" ");
+      StrCatS (NewString3, 0x80 / sizeof (CHAR16), NewString2);
       TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION);
       HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, NewString3, NULL);
       FreePool (NewString);
@@ -977,7 +977,7 @@ UpdateFrontPageStrings (
 
   @retval  EFI_SUCCESS      Event fired before Timeout expired.
   @retval  EFI_TIME_OUT     Timout expired before Event fired..
-  
+
 **/
 EFI_STATUS
 WaitForSingleEvent (
@@ -1201,7 +1201,7 @@ PlatformBdsEnterFrontPage (
       //
       mBootHorizontalResolution = GraphicsOutput->Mode->Info->HorizontalResolution;
       mBootVerticalResolution   = GraphicsOutput->Mode->Info->VerticalResolution;
-      
+
       mSetupHorizontalResolution = GraphicsOutput->Mode->Info->HorizontalResolution;
       mSetupVerticalResolution   = GraphicsOutput->Mode->Info->VerticalResolution;
     }
@@ -1224,7 +1224,7 @@ PlatformBdsEnterFrontPage (
 
     mModeInitialized           = TRUE;
   }
-  
+
   AddBGRT();
 
   //
@@ -1616,4 +1616,3 @@ BdsSetConsoleMode (
 
   return EFI_SUCCESS;
 }
-
