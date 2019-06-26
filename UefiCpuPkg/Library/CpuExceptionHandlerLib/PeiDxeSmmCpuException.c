@@ -117,7 +117,7 @@ CommonExceptionHandlerWorker (
     //
     // Enter a dead loop if needn't to execute old IDT handler further
     //
-    if (ReservedVectors[ExceptionType].Attribute != EFI_VECTOR_HANDOFF_HOOK_BEFORE) {
+    if (ReservedVectors[ExceptionType].Attribute != EFI_VECTOR_HANDOFF_HOOK_BEFORE && ExceptionType != EXCEPT_IA32_DEBUG) {
       CpuDeadLoop ();
     }
   }
@@ -299,4 +299,3 @@ RegisterCpuInterruptHandlerWorker (
   ExternalInterruptHandler[InterruptType] = InterruptHandler;
   return EFI_SUCCESS;
 }
-
