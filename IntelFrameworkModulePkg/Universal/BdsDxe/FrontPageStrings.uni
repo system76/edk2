@@ -44,7 +44,7 @@
                                        #language fr-FR  "ACME® EFI BIOS Version 13.5 Release 1039.92"
 #string STR_FRONT_PAGE_BANNER_3_LEFT   #language en-US  "Serial Number: 1Z123456789MARMAR (Need SMBIOS entries)"
                                        #language fr-FR  "Numéro de série: 1Z123456789MARMAR (Les entrées de SMBIOS de besoin)"
-#string STR_CONTINUE_PROMPT            #language en-US  "Boot Current"
+#string STR_CONTINUE_PROMPT            #language en-US  "Boot Default"
                                        #language fr-FR  "Continuer"
 #string STR_CONTINUE_HELP              #language en-US  "This selection will direct the system to continue to booting process"
                                        #language fr-FR  "Cette sélection dirigera le système pour continuer au charger de procédé"
