@@ -26,6 +26,14 @@ formset
     name = BmmData,
     guid = BOOT_MAINT_FORMSET_GUID;
 
+  form formid = FORM_BOOT_CHG_ID,
+       title = STRING_TOKEN(STR_FORM_BOOT_CHG_TITLE);
+
+       label FORM_BOOT_CHG_ID;
+       label LABEL_END;
+
+  endform;
+
   form formid = FORM_MAIN_ID,
        title = STRING_TOKEN(STR_FORM_MAIN_TITLE);
 
@@ -72,14 +80,6 @@ formset
 
        label FORM_BOOT_DEL_ID;
        label LABEL_END;
-  endform;
-
-  form formid = FORM_BOOT_CHG_ID,
-       title = STRING_TOKEN(STR_FORM_BOOT_CHG_TITLE);
-
-       label FORM_BOOT_CHG_ID;
-       label LABEL_END;
-
   endform;
 
   form formid = FORM_DRV_DEL_ID,

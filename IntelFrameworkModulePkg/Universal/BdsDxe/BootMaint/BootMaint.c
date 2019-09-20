@@ -1483,7 +1483,8 @@ FormSetDispatcher (
   EFI_BROWSER_ACTION_REQUEST ActionRequest;
 
   while (TRUE) {
-    UpdatePageId (CallbackData, FORM_MAIN_ID);
+    UpdatePageId (CallbackData, FORM_BOOT_CHG_ID);
+    UpdatePageBody (FORM_BOOT_CHG_ID, CallbackData);
 
     ActionRequest = EFI_BROWSER_ACTION_REQUEST_NONE;
     Status = gFormBrowser2->SendForm (
