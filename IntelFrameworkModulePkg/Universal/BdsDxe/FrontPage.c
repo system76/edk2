@@ -926,7 +926,7 @@ UpdateFrontPageStrings (
           StrCatS (NewString3, 0x60 / sizeof (CHAR16), L" ");
           StrCatS (NewString3, 0x60 / sizeof (CHAR16), NewString);
        }
-      TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL);
+      TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_TITLE);
       HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, NewString3, NULL);
       FreePool (NewString);
     }
