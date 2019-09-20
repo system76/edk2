@@ -18,7 +18,7 @@
 #langdef   en-US "English"
 #langdef   fr-FR "Français"
 
-#string STR_BM_BANNER                  #language en-US  "Boot Menu"
+#string STR_BM_BANNER                  #language en-US  "One Time Boot"
                                        #language fr-FR  "Boot Menu"
 #string STR_HELP_FOOTER                #language en-US  "↑ and ↓ to change option, ENTER to select an option, ESC to exit"
                                        #language fr-FR  "↑ pour ↓ changer l'option, ENTRER choisir une option, ESC pour sortir"

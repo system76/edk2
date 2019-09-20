@@ -232,7 +232,7 @@
                                        #language fr-FR  "Boot system from a file or device"
 #string STR_OPTIONAL_DATA              #language en-US  "Input Optional Data"
                                        #language fr-FR  "Input Optional Data"
-#string STR_CHANGE_ORDER               #language en-US  "Change the order"
+#string STR_CHANGE_ORDER               #language en-US  "Change Boot Order"
                                        #language fr-FR  "Change the order"
 #string STR_BOOT_LEGACY                #language en-US  "Boot Legacy System"
                                        #language fr-FR  "Boot Legacy System"
