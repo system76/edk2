@@ -944,6 +944,7 @@ UpdateVariable (
   UINTN                   VarSize;
   VARIABLE_GLOBAL         *Global;
   UINTN                   NonVolatileVarableStoreSize;
+  BOOLEAN                 Delete = FALSE;
 
   Global = &mVariableModuleGlobal->VariableGlobal[Physical];
 
@@ -976,10 +977,8 @@ UpdateVariable (
     // specified causes it to be deleted.
     //
     if (DataSize == 0 || (Attributes & (EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_BOOTSERVICE_ACCESS)) == 0) {
-      Variable->CurrPtr->State &= VAR_DELETED;
-      UpdateVariableInfo (VariableName, VendorGuid, Variable->Volatile, FALSE, FALSE, TRUE, FALSE);
-      Status = EFI_SUCCESS;
-      goto Done;
+      DataSize = 0;
+      Delete = TRUE;
     }
 
     //
@@ -989,8 +988,12 @@ UpdateVariable (
     if (Variable->CurrPtr->DataSize == DataSize &&
         CompareMem (Data, GetVariableDataPtr (Variable->CurrPtr), DataSize) == 0
           ) {
-      Status = EFI_SUCCESS;
-      goto Done;
+      if (Delete) {
+        goto Update;
+      } else {
+        Status = EFI_SUCCESS;
+        goto Done;
+      }
     } else if (Variable->CurrPtr->State == VAR_ADDED) {
       //
       // Mark the old variable as in delete transition
@@ -1031,6 +1034,10 @@ UpdateVariable (
   VarNameSize   = StrSize (VariableName);
   VarDataOffset = VarNameOffset + VarNameSize + GET_PAD_SIZE (VarNameSize);
   VarSize       = VarDataOffset + DataSize + GET_PAD_SIZE (DataSize);
+
+  if (Delete) {
+    goto Store;
+  }
 
   if ((Attributes & EFI_VARIABLE_NON_VOLATILE) != 0) {
     NonVolatileVarableStoreSize = ((VARIABLE_STORE_HEADER *)(UINTN)(Global->NonVolatileVariableBase))->Size;
@@ -1089,6 +1096,7 @@ UpdateVariable (
     DataSize
     );
 
+Store:
   if (storeInitialized && ((Attributes & EFI_VARIABLE_NON_VOLATILE) != 0)) {
 
     /* TODO: add hook for logging nv changes here */
@@ -1108,6 +1116,13 @@ UpdateVariable (
     CopyMem (keydata + sizeof (EFI_GUID), VariableName, VarNameSize);
     CopyMem (valdata, Data, DataSize);
 
+   DEBUG((
+     EFI_D_INFO,
+     "SMMSTORE %s SIZE %d\n",
+     VariableName,
+     DataSize
+     ));
+
     call_smm(SMMSTORE_APM_CNT, SMMSTORE_CMD_APPEND, (UINT32)rt_buffer_phys);
     /* call into SMM through EFI_ISA_IO_PROTOCOL to write to 0xb2:
      * set registers (how?)
@@ -1116,6 +1131,7 @@ UpdateVariable (
      */
   }
 
+Update:
   //
   // Mark the old variable as deleted
   //
@@ -1123,7 +1139,11 @@ UpdateVariable (
     Variable->CurrPtr->State &= VAR_DELETED;
   }
 
-  UpdateVariableInfo (VariableName, VendorGuid, Variable->Volatile, FALSE, TRUE, FALSE, FALSE);
+  if (Delete) {
+    UpdateVariableInfo (VariableName, VendorGuid, Variable->Volatile, FALSE, FALSE, TRUE, FALSE);
+  } else {
+    UpdateVariableInfo (VariableName, VendorGuid, Variable->Volatile, FALSE, TRUE, FALSE, FALSE);
+  }
 
   Status = EFI_SUCCESS;
 
