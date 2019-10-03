@@ -339,7 +339,7 @@ Done:
     PlatformBdsShowProgress (
       Foreground,
       Background,
-      L"Press ESC for Boot Options/Settings",
+      L"Press ESC for Boot Options/Settings, or SPACE for Pop!_OS Recovery",
       Color,
       100,
       (UINTN) PreviousValue
