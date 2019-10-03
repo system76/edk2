@@ -53,7 +53,7 @@ PlatformBdsShowProgress (
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL  Color;
   UINTN                          BlockNum;
   UINTN                          PosY;
- 
+
   if (Progress > 100) {
     return EFI_INVALID_PARAMETER;
   }
@@ -335,11 +335,11 @@ BdsMemoryTest (
 
 Done:
   if (!FeaturePcdGet(PcdBootlogoOnlyEnable)) {
-    
+
     PlatformBdsShowProgress (
       Foreground,
       Background,
-      L"Press ESC for Boot Options/Settings",
+      L"Press ESC for Boot Options/Settings, or SPACE for Pop!_OS Recovery",
       Color,
       100,
       (UINTN) PreviousValue
