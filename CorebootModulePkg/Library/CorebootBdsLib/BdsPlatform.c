@@ -1317,6 +1317,8 @@ Returns:
 {
   CHAR16  *TmpStr;
 
+  gST->ConOut->ClearScreen(gST->ConOut);
+
   //
   // If Boot returned with EFI_SUCCESS and there is not in the boot device
   // select loop then we need to pop up a UI and wait for user input.
@@ -1359,6 +1361,8 @@ Returns:
 --*/
 {
   CHAR16  *TmpStr;
+
+  gST->ConOut->ClearScreen(gST->ConOut);
 
   //
   // If Boot returned with failed status then we need to pop up a UI and wait
