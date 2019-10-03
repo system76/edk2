@@ -1169,6 +1169,19 @@ InstallReadyToLock (
   return;
 }
 
+static BOOLEAN ESCAPE_KEY_DETECTED = FALSE;
+
+EFI_STATUS
+EFIAPI
+EscapeKeyNotify (
+  EFI_KEY_DATA *KeyData
+  )
+{
+    DEBUG((DEBUG_INFO, "Detected escape key\n"));
+    ESCAPE_KEY_DETECTED = TRUE;
+    return EFI_SUCCESS;
+}
+
 VOID
 EFIAPI
 PlatformBdsPolicyBehavior (
@@ -1198,9 +1211,13 @@ Returns:
 --*/
 {
   EFI_STATUS                         Status;
-  UINT16                             Timeout;
+  EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *SimpleTextInEx;
+  EFI_KEY_DATA                       EscapeKeyData;
+  EFI_HANDLE                         EscapeKeyHandle;
   EFI_EVENT                          UserInputDurationTime;
+  EFI_EVENT                          Events[2];
   UINTN                              Index;
+  UINT16                             Timeout;
   EFI_INPUT_KEY                      Key;
   EFI_BOOT_MODE                      BootMode;
 
@@ -1251,8 +1268,32 @@ Returns:
   //
   BdsLibConnectAll ();
 
+  // Find simple text input extension protocol for console in
+  SimpleTextInEx = NULL;
+  Status = gBS->HandleProtocol(
+      gST->ConsoleInHandle,
+      &gEfiSimpleTextInputExProtocolGuid,
+      (VOID **) &SimpleTextInEx
+  );
+
+  // Register a handler for escape key
+  if (SimpleTextInEx != NULL) {
+      ESCAPE_KEY_DETECTED = FALSE;
+      EscapeKeyData.Key.ScanCode = SCAN_ESC;
+      EscapeKeyData.Key.UnicodeChar = 0;
+      EscapeKeyData.KeyState.KeyShiftState = 0;
+      EscapeKeyData.KeyState.KeyToggleState = 0;
+      Status = SimpleTextInEx->RegisterKeyNotify(
+        SimpleTextInEx,
+        &EscapeKeyData,
+        EscapeKeyNotify,
+        &EscapeKeyHandle
+      );
+      ASSERT (Status == EFI_SUCCESS);
+  }
+
   //
-  // Create a 1s duration event to ensure user has enough input time to enter Setup
+  // Create a 2s duration event to ensure user has enough input time to enter Setup
   //
   Status = gBS->CreateEvent (
                   EVT_TIMER,
@@ -1270,17 +1311,35 @@ Returns:
   // BDS should still give user a chance to enter Setup
   // Check whether the user input after the duration time has expired
   //
-  gBS->WaitForEvent (1, &UserInputDurationTime, &Index);
+  Events[0] = gST->ConIn->WaitForKey;
+  Events[1] = UserInputDurationTime;
+  gBS->WaitForEvent (2, Events, &Index);
   gBS->CloseEvent (UserInputDurationTime);
-  Status = gST->ConIn->ReadKeyStroke (gST->ConIn, &Key);
 
-  if (!EFI_ERROR (Status)) {
-    //
-    // Enter Setup if user input
-    //
-    Timeout = 0xffff;
+  Timeout = 0;
+  if (SimpleTextInEx != NULL) {
+      // Remove escape key handler
+      Status = SimpleTextInEx->UnregisterKeyNotify(
+        SimpleTextInEx,
+        EscapeKeyHandle
+      );
+      ASSERT (Status == EFI_SUCCESS);
+
+      if (ESCAPE_KEY_DETECTED) {
+          Timeout = 0xffff;
+          DEBUG((DEBUG_INFO, "Escape key detected, going to menu\n"));
+
+          // Clear pending keypresses if we are going to the menu
+          while (!EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key))) {}
+      }
   } else {
-    Timeout = 0;
+      Status = gST->ConIn->ReadKeyStroke (gST->ConIn, &Key);
+      if (!EFI_ERROR (Status)) {
+        //
+        // Enter Setup if user input
+        //
+        Timeout = 0xffff;
+      }
   }
 
   BdsLibEnumerateAllBootOption (BootOptionList);
@@ -1315,9 +1374,14 @@ Returns:
 
 --*/
 {
-  CHAR16  *TmpStr;
+  EFI_INPUT_KEY Key;
+  CHAR16       *TmpStr;
 
+  // Clear screen before showing success message
   gST->ConOut->ClearScreen(gST->ConOut);
+
+  // Clear pending keypresses before showing success message
+  while (!EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key))) {}
 
   //
   // If Boot returned with EFI_SUCCESS and there is not in the boot device
@@ -1360,9 +1424,14 @@ Returns:
 
 --*/
 {
-  CHAR16  *TmpStr;
+  EFI_INPUT_KEY Key;
+  CHAR16       *TmpStr;
 
+  // Clear screen before showing fail message
   gST->ConOut->ClearScreen(gST->ConOut);
+
+  // Clear pending keypresses before showing fail message
+  while (!EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key))) {}
 
   //
   // If Boot returned with failed status then we need to pop up a UI and wait
