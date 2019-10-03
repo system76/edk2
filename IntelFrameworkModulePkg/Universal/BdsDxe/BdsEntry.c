@@ -105,6 +105,8 @@ BdsBootDeviceSelect (
   BOOLEAN           BootNextExist;
   LIST_ENTRY        *LinkBootNext;
   EFI_EVENT         ConnectConInEvent;
+  UINTN             Index;
+  EFI_INPUT_KEY     Key;
 
   //
   // Got the latest boot option
@@ -272,6 +274,15 @@ BdsBootDeviceSelect (
       //
       BootOption->StatusString = GetStringById (STRING_TOKEN (STR_BOOT_FAILED));
       PlatformBdsBootFail (BootOption, Status, ExitData, ExitDataSize);
+
+      // Wait for key
+      gST->ConOut->OutputString (
+                    gST->ConOut,
+                    GetStringById (STRING_TOKEN (STR_ANY_KEY_CONTINUE))
+                    );
+      ASSERT_EFI_ERROR (gBS->WaitForEvent (1, &gST->ConIn->WaitForKey, &Index));
+      ASSERT (Index == 0);
+      while (!EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key))) {}
 
       //
       // Check the next boot option
@@ -678,4 +689,3 @@ BdsDxeSetVariableAndReportStatusCodeOnError (
 
   return Status;
 }
-

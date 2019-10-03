@@ -1,13 +1,13 @@
 /*++
 
 Copyright (c) 2006 - 2014, Intel Corporation. All rights reserved.<BR>
-This program and the accompanying materials                          
-are licensed and made available under the terms and conditions of the BSD License         
-which accompanies this distribution.  The full text of the license may be found at        
-http://opensource.org/licenses/bsd-license.php                                            
-                                                                                          
-THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,                     
-WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.             
+This program and the accompanying materials
+are licensed and made available under the terms and conditions of the BSD License
+which accompanies this distribution.  The full text of the license may be found at
+http://opensource.org/licenses/bsd-license.php
+
+THE PROGRAM IS DISTRIBUTED UNDER THE BSD LICENSE ON AN "AS IS" BASIS,
+WITHOUT WARRANTIES OR REPRESENTATIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED.
 
 Module Name:
 
@@ -71,7 +71,7 @@ Returns:
       if (Table != NULL) {
         //
         // Check if Mps Table/Smbios Table/Acpi Table exists in E/F seg,
-        // According to UEFI Spec, we should make sure Smbios table, 
+        // According to UEFI Spec, we should make sure Smbios table,
         // ACPI table and Mps tables kept in memory of specified type
         //
         ConvertSystemTable(gTableGuidArray[Index], (VOID**)&Table);
@@ -114,9 +114,9 @@ PrintMemoryMap (
   for (Index = 0; Index < MemMapSize / DescriptorSize; Index ++) {
     Bytes = LShiftU64 (MemMap->NumberOfPages, 12);
     DEBUG ((EFI_D_ERROR, "%lX-%lX  %lX %lX %X\n",
-          MemMap->PhysicalStart, 
+          MemMap->PhysicalStart,
           MemMap->PhysicalStart + Bytes - 1,
-          MemMap->NumberOfPages, 
+          MemMap->NumberOfPages,
           MemMap->Attribute,
           (UINTN)MemMap->Type));
     MemMap = (EFI_MEMORY_DESCRIPTOR *)((UINTN)MemMap + DescriptorSize);
@@ -138,7 +138,7 @@ UpdateMemoryMap (
   UINTN                           Index;
   EFI_PHYSICAL_ADDRESS            Memory;
   EFI_GCD_MEMORY_SPACE_DESCRIPTOR Descriptor;
-  
+
   GuidHob.Raw = GetFirstGuidHob (&gLdrMemoryDescriptorGuid);
   if (GuidHob.Raw == NULL) {
     DEBUG ((EFI_D_ERROR, "Fail to get gEfiLdrMemoryDescriptorGuid from GUID HOB LIST!\n"));
@@ -259,7 +259,7 @@ UpdateMemoryMap (
       }
     }
   }
-  
+
 }
 
 EFI_STATUS
@@ -271,10 +271,10 @@ DisableUsbLegacySupport(
 Routine Description:
   Disabble the USB legacy Support in all Ehci and Uhci.
   This function assume all PciIo handles have been created in system.
-  
+
 Arguments:
   None
-  
+
 Returns:
   EFI_SUCCESS
   EFI_NOT_FOUND
@@ -291,10 +291,10 @@ Returns:
   UINT32                                ExtendCap;
   UINT32                                Value;
   UINT32                                TimeOut;
-  
+
   //
-  // Find the usb host controller 
-  //   
+  // Find the usb host controller
+  //
   Status = gBS->LocateHandleBuffer (
                   ByProtocol,
                   &gEfiPciIoProtocolGuid,
@@ -335,7 +335,7 @@ Returns:
                                    1,
                                    &HcCapParams
                                    );
-              
+
               ExtendCap = (HcCapParams >> 8) & 0xFF;
               //
               // Disable the SMI in USBLEGCTLSTS firstly
@@ -343,7 +343,7 @@ Returns:
               PciIo->Pci.Read (PciIo, EfiPciIoWidthUint32, ExtendCap + 0x4, 1, &Value);
               Value &= 0xFFFF0000;
               PciIo->Pci.Write (PciIo, EfiPciIoWidthUint32, ExtendCap + 0x4, 1, &Value);
-              
+
               //
               // Get EHCI Ownership from legacy bios
               //
@@ -362,7 +362,7 @@ Returns:
                 }
               }
             }
-          } 
+          }
         }
       }
     }
@@ -397,9 +397,9 @@ Returns:
   GetSystemTablesFromHob ();
 
   UpdateMemoryMap ();
-  
+
   //
-  // Append Usb Keyboard short form DevicePath into "ConInDev" 
+  // Append Usb Keyboard short form DevicePath into "ConInDev"
   //
   BdsLibUpdateConsoleVariable (
     VarConsoleInpDev,
@@ -421,7 +421,7 @@ Routine Description:
 Arguments:
   HostBridgeNumber - The number of HostBridge
   RootBridgeNumber - The number of RootBridge
-    
+
 Returns:
   UINT64 - PciExpressBaseAddress for this HostBridge and RootBridge
 
@@ -460,7 +460,7 @@ Returns:
   //
   // Do not find the PciExpress Base Address in the Hob
   //
-  return 0;  
+  return 0;
 }
 
 VOID
@@ -473,9 +473,9 @@ PatchPciRootBridgeDevicePath (
   UINT64  PciExpressBase;
 
   PciExpressBase = GetPciExpressBaseAddressForRootBridge (HostBridgeNumber, RootBridgeNumber);
-  
+
   DEBUG ((EFI_D_INFO, "Get PciExpress Address from Hob: 0x%X\n", PciExpressBase));
-  
+
   if (PciExpressBase != 0) {
     RootBridge->PciRootBridge.HID = EISA_PNP_ID(0x0A08);
   }
@@ -494,7 +494,7 @@ Routine Description:
 Arguments:
 
   None.
- 
+
 Returns:
 
   EFI_SUCCESS             - Connect RootBridge successfully.
@@ -516,12 +516,12 @@ Returns:
   BdsLibConnectDevicePath (gPlatformRootBridges[0]);
 
   Status = gBS->LocateDevicePath (
-                  &gEfiDevicePathProtocolGuid, 
-                  &gPlatformRootBridges[0], 
+                  &gEfiDevicePathProtocolGuid,
+                  &gPlatformRootBridges[0],
                   &RootHandle
                   );
   DEBUG ((EFI_D_INFO, "Pci Root bridge handle is 0x%X\n", RootHandle));
-  
+
   if (EFI_ERROR (Status)) {
     return Status;
   }
@@ -549,7 +549,7 @@ Routine Description:
 Arguments:
 
   DeviceHandle            - Handle of PCIIO protocol.
- 
+
 Returns:
 
   EFI_SUCCESS             - LPC bridge is added to ConOut, ConIn, and ErrOut.
@@ -627,7 +627,7 @@ GetGopDevicePath (
   if (PciDevicePath == NULL || GopDevicePath == NULL) {
     return EFI_INVALID_PARAMETER;
   }
-  
+
   //
   // Initialize the GopDevicePath to be PciDevicePath
   //
@@ -644,9 +644,9 @@ GetGopDevicePath (
   }
 
   //
-  // Try to connect this handle, so that GOP driver could start on this 
+  // Try to connect this handle, so that GOP driver could start on this
   // device and create child handles with GraphicsOutput Protocol installed
-  // on them, then we get device paths of these child handles and select 
+  // on them, then we get device paths of these child handles and select
   // them as possible console device.
   //
   gBS->ConnectController (PciDeviceHandle, NULL, NULL, FALSE);
@@ -677,7 +677,7 @@ GetGopDevicePath (
         // as console device, i.e. sotre one of the child handle's device
         // path to variable "ConOut"
         // In future, we could select all child handles to be console device
-        //       
+        //
 
         *GopDevicePath = TempDevicePath;
 
@@ -709,7 +709,7 @@ Routine Description:
 Arguments:
 
   DeviceHandle            - Handle of PCIIO protocol.
- 
+
 Returns:
 
   EFI_SUCCESS             - PCI VGA is added to ConOut.
@@ -731,12 +731,12 @@ Returns:
   if (EFI_ERROR (Status)) {
     return Status;
   }
-  
+
   GetGopDevicePath (DevicePath, &GopDevicePath);
   DevicePath = GopDevicePath;
 
   BdsLibUpdateConsoleVariable (VarConsoleOut, DevicePath, NULL);
-  
+
   return EFI_SUCCESS;
 }
 
@@ -754,7 +754,7 @@ Routine Description:
 Arguments:
 
   DeviceHandle            - Handle of PCIIO protocol.
- 
+
 Returns:
 
   EFI_SUCCESS             - PCI Serial is added to ConOut, ConIn, and ErrOut.
@@ -764,7 +764,7 @@ Returns:
 {
   EFI_STATUS                Status;
   EFI_DEVICE_PATH_PROTOCOL  *DevicePath;
-  
+
   DevicePath = NULL;
   Status = gBS->HandleProtocol (
                   DeviceHandle,
@@ -781,7 +781,7 @@ Returns:
   BdsLibUpdateConsoleVariable (VarConsoleOut, DevicePath, NULL);
   BdsLibUpdateConsoleVariable (VarConsoleInp, DevicePath, NULL);
   BdsLibUpdateConsoleVariable (VarErrorOut, DevicePath, NULL);
-  
+
   return EFI_SUCCESS;
 }
 
@@ -798,7 +798,7 @@ Routine Description:
 Arguments:
 
   DetectVgaOnly           - Only detect VGA device if it's TRUE.
- 
+
 Returns:
 
   EFI_SUCCESS             - PCI Device check and Console variable update successfully.
@@ -864,7 +864,7 @@ Returns:
         continue;
       }
       //
-      // Here we decide which Serial device to enable in PCI bus 
+      // Here we decide which Serial device to enable in PCI bus
       //
       if (IS_PCI_16550SERIAL (&Pci)) {
         //
@@ -877,7 +877,7 @@ Returns:
     }
 
     //
-    // Here we decide which VGA device to enable in PCI bus 
+    // Here we decide which VGA device to enable in PCI bus
     //
     if (IS_PCI_VGA (&Pci)) {
       //
@@ -888,9 +888,9 @@ Returns:
       continue;
     }
   }
-  
+
   gBS->FreePool (HandleBuffer);
-  
+
   return EFI_SUCCESS;
 }
 
@@ -908,14 +908,14 @@ Routine Description:
 Arguments:
 
   PlatformConsole         - Predefined platform default console device array.
- 
+
 Returns:
 
-  EFI_SUCCESS             - Success connect at least one ConIn and ConOut 
-                            device, there must have one ConOut device is 
+  EFI_SUCCESS             - Success connect at least one ConIn and ConOut
+                            device, there must have one ConOut device is
                             active vga device.
-  
-  EFI_STATUS              - Return the status of 
+
+  EFI_STATUS              - Return the status of
                             BdsLibConnectAllDefaultConsoles ()
 
 --*/
@@ -941,7 +941,7 @@ Returns:
                &gEfiGlobalVariableGuid,
                &DevicePathSize
                );
-  
+
   if (VarConout == NULL || VarConin == NULL) {
     //
     // Do platform specific PCI Device check and add them to ConOut, ConIn, ErrOut
@@ -973,15 +973,15 @@ Returns:
     //
     DetectAndPreparePlatformPciDevicePath (TRUE);
   }
-  
+
   //
   // The ConIn devices connection will start the USB bus, should disable all
   // Usb legacy support firstly.
-  // Caution: Must ensure the PCI bus driver has been started. Since the 
+  // Caution: Must ensure the PCI bus driver has been started. Since the
   // ConnectRootBridge() will create all the PciIo protocol, it's safe here now
   //
   Status = DisableUsbLegacySupport();
-  
+
   //
   // Connect the all the default console with current cosole variable
   //
@@ -1003,15 +1003,15 @@ Routine Description:
 
   Connect with predefined platform connect sequence,
   the OEM/IBV can customize with their own connect sequence.
-  
+
 Arguments:
 
   None.
- 
+
 Returns:
 
   None.
-  
+
 --*/
 {
   UINTN Index;
@@ -1043,15 +1043,15 @@ Routine Description:
 
   Load the predefined driver option, OEM/IBV can customize this
   to load their own drivers
-  
+
 Arguments:
 
   BdsDriverLists  - The header of the driver option link list.
- 
+
 Returns:
 
   None.
-  
+
 --*/
 {
   UINTN Index;
@@ -1083,19 +1083,19 @@ Routine Description:
 
   Perform the platform diagnostic, such like test memory. OEM/IBV also
   can customize this fuction to support specific platform diagnostic.
-  
+
 Arguments:
 
   MemoryTestLevel  - The memory test intensive level
-  
+
   QuietBoot        - Indicate if need to enable the quiet boot
 
   BaseMemoryTest   - A pointer to BdsMemoryTest()
- 
+
 Returns:
 
   None.
-  
+
 --*/
 {
   EFI_STATUS  Status;
@@ -1184,17 +1184,17 @@ Routine Description:
   The function will execute with as the platform policy, current policy
   is driven by boot mode. IBV/OEM can customize this code for their specific
   policy action.
-  
+
 Arguments:
 
   DriverOptionList - The header of the driver option link list
-  
+
   BootOptionList   - The header of the boot option link list
- 
+
 Returns:
 
   None.
-  
+
 --*/
 {
   EFI_STATUS                         Status;
@@ -1237,7 +1237,7 @@ Returns:
     //
     PlatformBdsNoConsoleAction ();
   }
-  
+
   //
   // Perform some platform specific connect sequence
   //
@@ -1250,7 +1250,7 @@ Returns:
 
   //
   BdsLibConnectAll ();
-  
+
   //
   // Create a 1s duration event to ensure user has enough input time to enter Setup
   //
@@ -1268,25 +1268,25 @@ Returns:
   //
   // To give the User a chance to enter Setup here, if user set TimeOut is 0.
   // BDS should still give user a chance to enter Setup
-  // Check whether the user input after the duration time has expired 
+  // Check whether the user input after the duration time has expired
   //
   gBS->WaitForEvent (1, &UserInputDurationTime, &Index);
   gBS->CloseEvent (UserInputDurationTime);
   Status = gST->ConIn->ReadKeyStroke (gST->ConIn, &Key);
-  
+
   if (!EFI_ERROR (Status)) {
     //
-    // Enter Setup if user input 
+    // Enter Setup if user input
     //
     Timeout = 0xffff;
   } else {
     Timeout = 0;
   }
-  
+
   BdsLibEnumerateAllBootOption (BootOptionList);
   PlatformBdsEnterFrontPage (Timeout, FALSE);
   //not run/reached if Timeout = 0xffff
-  
+
   return ;
 
 }
@@ -1299,7 +1299,7 @@ PlatformBdsBootSuccess (
 /*++
 
 Routine Description:
-  
+
   Hook point after a boot attempt succeeds. We don't expect a boot option to
   return, so the EFI 1.0 specification defines that you will default to an
   interactive mode and stop processing the BootOrder list in this case. This
@@ -1310,12 +1310,14 @@ Arguments:
   Option - Pointer to Boot Option that succeeded to boot.
 
 Returns:
-  
+
   None.
 
 --*/
 {
   CHAR16  *TmpStr;
+
+  gST->ConOut->ClearScreen(gST->ConOut);
 
   //
   // If Boot returned with EFI_SUCCESS and there is not in the boot device
@@ -1339,11 +1341,11 @@ PlatformBdsBootFail (
 /*++
 
 Routine Description:
-  
+
   Hook point after a boot attempt fails.
 
 Arguments:
-  
+
   Option - Pointer to Boot Option that failed to boot.
 
   Status - Status returned from failed boot.
@@ -1353,12 +1355,14 @@ Arguments:
   ExitDataSize - Exit data size returned from failed boot.
 
 Returns:
-  
+
   None.
 
 --*/
 {
   CHAR16  *TmpStr;
+
+  gST->ConOut->ClearScreen(gST->ConOut);
 
   //
   // If Boot returned with failed status then we need to pop up a UI and wait
@@ -1379,16 +1383,16 @@ PlatformBdsNoConsoleAction (
 /*++
 
 Routine Description:
-  
+
   This function is remained for IBV/OEM to do some platform action,
   if there no console device can be connected.
 
 Arguments:
-  
+
   None.
-  
+
 Returns:
-  
+
   EFI_SUCCESS      - Direct return success now.
 
 --*/
@@ -1406,13 +1410,13 @@ ConvertSystemTable (
 Routine Description:
   Convert ACPI Table /Smbios Table /MP Table if its location is lower than Address:0x100000
   Assumption here:
-   As in legacy Bios, ACPI/Smbios/MP table is required to place in E/F Seg, 
-   So here we just check if the range is E/F seg, 
+   As in legacy Bios, ACPI/Smbios/MP table is required to place in E/F Seg,
+   So here we just check if the range is E/F seg,
    and if Not, assume the Memory type is EfiACPIReclaimMemory/EfiACPIMemoryNVS
 
 Arguments:
   TableGuid - Guid of the table
-  Table     - pointer to the table  
+  Table     - pointer to the table
 
 Returns:
   EFI_SUCEESS - Convert Table successfully
@@ -1423,12 +1427,12 @@ Returns:
   EFI_STATUS      Status;
   VOID            *AcpiHeader;
   UINTN           AcpiTableLen;
-  
+
   //
-  // If match acpi guid (1.0, 2.0, or later), Convert ACPI table according to version. 
+  // If match acpi guid (1.0, 2.0, or later), Convert ACPI table according to version.
   //
   AcpiHeader = (VOID*)(UINTN)(*(UINT64 *)(*Table));
-  
+
   if (CompareGuid(TableGuid, &gEfiAcpiTableGuid) || CompareGuid(TableGuid, &gEfiAcpi20TableGuid)){
     if (((EFI_ACPI_1_0_ROOT_SYSTEM_DESCRIPTION_POINTER *)AcpiHeader)->Reserved == 0x00){
       //
@@ -1447,9 +1451,9 @@ Returns:
       return EFI_UNSUPPORTED;
     }
     Status = ConvertAcpiTable (AcpiTableLen, Table);
-    return Status; 
+    return Status;
   }
-  
+
   //
   // If matches smbios guid, convert Smbios table.
   //
@@ -1457,7 +1461,7 @@ Returns:
     Status = ConvertSmbiosTable (Table);
     return Status;
   }
-  
+
   //
   // If the table is MP table?
   //
@@ -1465,9 +1469,9 @@ Returns:
     Status = ConvertMpsTable (Table);
     return Status;
   }
-  
+
   return EFI_UNSUPPORTED;
-}  
+}
 
 
 EFI_STATUS
@@ -1480,13 +1484,13 @@ ConvertAcpiTable (
 Routine Description:
   Convert RSDP of ACPI Table if its location is lower than Address:0x100000
   Assumption here:
-   As in legacy Bios, ACPI table is required to place in E/F Seg, 
-   So here we just check if the range is E/F seg, 
+   As in legacy Bios, ACPI table is required to place in E/F Seg,
+   So here we just check if the range is E/F seg,
    and if Not, assume the Memory type is EfiACPIReclaimMemory/EfiACPIMemoryNVS
 
 Arguments:
   TableLen  - Acpi RSDP length
-  Table     - pointer to the table  
+  Table     - pointer to the table
 
 Returns:
   EFI_SUCEESS - Convert Table successfully
@@ -1499,7 +1503,7 @@ Returns:
   EFI_STATUS            Status;
   EFI_PHYSICAL_ADDRESS  BufferPtr;
 
-  
+
   AcpiTableOri    =  (VOID *)(UINTN)(*(UINT64*)(*Table));
   if (((UINTN)AcpiTableOri < 0x100000) && ((UINTN)AcpiTableOri > 0xE0000)) {
     BufferPtr = EFI_SYSTEM_TABLE_MAX_ADDRESS;
@@ -1519,7 +1523,7 @@ Returns:
   // Change configuration table Pointer
   //
   *Table = AcpiTableNew;
-  
+
   return EFI_SUCCESS;
 }
 
@@ -1533,8 +1537,8 @@ Routine Description:
 
   Convert Smbios Table if the Location of the SMBios Table is lower than Addres 0x100000
   Assumption here:
-   As in legacy Bios, Smbios table is required to place in E/F Seg, 
-   So here we just check if the range is F seg, 
+   As in legacy Bios, Smbios table is required to place in E/F Seg,
+   So here we just check if the range is F seg,
    and if Not, assume the Memory type is EfiACPIMemoryNVS/EfiRuntimeServicesData
 Arguments:
   Table     - pointer to the table
@@ -1551,15 +1555,15 @@ Returns:
   UINT32                   SmbiosEntryLen;
   UINT32                   BufferLen;
   EFI_PHYSICAL_ADDRESS     BufferPtr;
-  
+
   SmbiosTableNew  = NULL;
   SmbiosTableOri  = NULL;
-  
+
   //
-  // Get Smibos configuration Table 
+  // Get Smibos configuration Table
   //
   SmbiosTableOri =  (SMBIOS_TABLE_ENTRY_POINT *)(UINTN)(*(UINT64*)(*Table));
-  
+
   if ((SmbiosTableOri == NULL) ||
       ((UINTN)SmbiosTableOri > 0x100000) ||
       ((UINTN)SmbiosTableOri < 0xF0000)){
@@ -1587,30 +1591,30 @@ Returns:
   ASSERT_EFI_ERROR (Status);
   SmbiosTableNew = (SMBIOS_TABLE_ENTRY_POINT *)(UINTN)BufferPtr;
   CopyMem (
-    SmbiosTableNew, 
+    SmbiosTableNew,
     SmbiosTableOri,
     SmbiosEntryLen
     );
-  // 
+  //
   // Get Smbios Structure table address, and make sure the start address is 32-bit align
   //
   BufferPtr += SmbiosEntryLen + SYS_TABLE_PAD(SmbiosEntryLen);
   CopyMem (
-    (VOID *)(UINTN)BufferPtr, 
+    (VOID *)(UINTN)BufferPtr,
     (VOID *)(UINTN)(SmbiosTableOri->TableAddress),
     SmbiosTableOri->TableLength
     );
   SmbiosTableNew->TableAddress = (UINT32)BufferPtr;
   SmbiosTableNew->IntermediateChecksum = 0;
-  SmbiosTableNew->IntermediateChecksum = 
+  SmbiosTableNew->IntermediateChecksum =
           CalculateCheckSum8 ((UINT8*)SmbiosTableNew + 0x10, SmbiosEntryLen -0x10);
   //
   // Change the SMBIOS pointer
   //
   *Table = SmbiosTableNew;
-  
-  return EFI_SUCCESS;  
-} 
+
+  return EFI_SUCCESS;
+}
 
 EFI_STATUS
 ConvertMpsTable (
@@ -1622,8 +1626,8 @@ Routine Description:
 
   Convert MP Table if the Location of the SMBios Table is lower than Addres 0x100000
   Assumption here:
-   As in legacy Bios, MP table is required to place in E/F Seg, 
-   So here we just check if the range is E/F seg, 
+   As in legacy Bios, MP table is required to place in E/F Seg,
+   So here we just check if the range is E/F seg,
    and if Not, assume the Memory type is EfiACPIMemoryNVS/EfiRuntimeServicesData
 Arguments:
   Table     - pointer to the table
@@ -1644,12 +1648,12 @@ Returns:
   VOID                                         *OemTableNew;
   EFI_STATUS                                   Status;
   EFI_PHYSICAL_ADDRESS                         BufferPtr;
-  
+
   //
-  // Get MP configuration Table 
+  // Get MP configuration Table
   //
   MpsFloatingPointerOri = (EFI_LEGACY_MP_TABLE_FLOATING_POINTER *)(UINTN)(*(UINT64*)(*Table));
-  if (!(((UINTN)MpsFloatingPointerOri <= 0x100000) && 
+  if (!(((UINTN)MpsFloatingPointerOri <= 0x100000) &&
         ((UINTN)MpsFloatingPointerOri >= 0xF0000))){
     return EFI_SUCCESS;
   }
@@ -1679,7 +1683,7 @@ Returns:
                   EFI_SIZE_TO_PAGES(Data32),
                   &BufferPtr
                   );
-  ASSERT_EFI_ERROR (Status); 
+  ASSERT_EFI_ERROR (Status);
   MpsFloatingPointerNew = (EFI_LEGACY_MP_TABLE_FLOATING_POINTER *)(UINTN)BufferPtr;
   CopyMem (MpsFloatingPointerNew, MpsFloatingPointerOri, FPLength);
   //
@@ -1692,7 +1696,7 @@ Returns:
     BufferPtr = BufferPtr + FPLength + SYS_TABLE_PAD (FPLength);
     MpsTableNew = (EFI_LEGACY_MP_TABLE_HEADER *)(UINTN)BufferPtr;
     CopyMem (MpsTableNew, MpsTableOri, MpsTableOri->BaseTableLength + MpsTableOri->ExtendedTableLength);
-    
+
     if ((MpsTableOri->OemTableSize != 0x0000) && (MpsTableOri->OemTablePointer != 0x0000)){
         BufferPtr += MpsTableOri->BaseTableLength + MpsTableOri->ExtendedTableLength;
         BufferPtr += SYS_TABLE_PAD (BufferPtr);
@@ -1711,10 +1715,10 @@ Returns:
   // Change the pointer
   //
   *Table = MpsFloatingPointerNew;
-  
-  return EFI_SUCCESS;  
-} 
-  
+
+  return EFI_SUCCESS;
+}
+
 /**
   Lock the ConsoleIn device in system table. All key
   presses will be ignored until the Password is typed in. The only way to

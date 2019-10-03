@@ -203,6 +203,7 @@ CallBootManager (
   CHAR16                      *ExitData;
   UINTN                       ExitDataSize;
   EFI_STRING_ID               Token;
+  UINTN                       Index;
   EFI_INPUT_KEY               Key;
   CHAR16                      *HelpString;
   UINTN                       HelpSize;
@@ -390,10 +391,14 @@ CallBootManager (
   } else {
     gOption->StatusString = GetStringById (STRING_TOKEN (STR_BOOT_FAILED));
     PlatformBdsBootFail (gOption, Status, ExitData, ExitDataSize);
+
+    // Wait for key
     gST->ConOut->OutputString (
                   gST->ConOut,
                   GetStringById (STRING_TOKEN (STR_ANY_KEY_CONTINUE))
                   );
-    gST->ConIn->ReadKeyStroke (gST->ConIn, &Key);
+    ASSERT_EFI_ERROR (gBS->WaitForEvent (1, &gST->ConIn->WaitForKey, &Index));
+    ASSERT (Index == 0);
+    while (!EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key))) {}
   }
 }

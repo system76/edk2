@@ -77,6 +77,8 @@ HotkeyBoot (
   EFI_STATUS           Status;
   UINTN                ExitDataSize;
   CHAR16               *ExitData;
+  UINTN                Index;
+  EFI_INPUT_KEY        Key;
 
   if (mHotkeyBootOption == NULL) {
     return EFI_NOT_FOUND;
@@ -97,6 +99,15 @@ HotkeyBoot (
     //
     mHotkeyBootOption->StatusString = GetStringById (STRING_TOKEN (STR_BOOT_FAILED));
     PlatformBdsBootFail (mHotkeyBootOption, Status, ExitData, ExitDataSize);
+
+    // Wait for key
+    gST->ConOut->OutputString (
+                  gST->ConOut,
+                  GetStringById (STRING_TOKEN (STR_ANY_KEY_CONTINUE))
+                  );
+    ASSERT_EFI_ERROR (gBS->WaitForEvent (1, &gST->ConIn->WaitForKey, &Index));
+    ASSERT (Index == 0);
+    while (!EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key))) {}
   } else {
     //
     // Call platform action to indicate the boot success
@@ -594,4 +605,3 @@ InitializeHotkeyService (
 
   return Status;
 }
-
