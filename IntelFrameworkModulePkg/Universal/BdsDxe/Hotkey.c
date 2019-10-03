@@ -105,7 +105,8 @@ HotkeyBoot (
                   gST->ConOut,
                   GetStringById (STRING_TOKEN (STR_ANY_KEY_CONTINUE))
                   );
-    ASSERT_EFI_ERROR (gBS->WaitForEvent (1, &gST->ConIn->WaitForKey, &Index));
+    Status = gBS->WaitForEvent (1, &gST->ConIn->WaitForKey, &Index);
+    ASSERT_EFI_ERROR (Status);
     ASSERT (Index == 0);
     while (!EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key))) {}
   } else {
