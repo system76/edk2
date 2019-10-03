@@ -1097,7 +1097,15 @@ UpdateVariable (
     );
 
 Store:
-  if (storeInitialized && ((Attributes & EFI_VARIABLE_NON_VOLATILE) != 0)) {
+  // If the store is initialized
+  // And we are storing or deleting a non volatile variable
+  // Send the new data to SMMSTORE
+  if (storeInitialized && (
+      (Attributes & EFI_VARIABLE_NON_VOLATILE) != 0 || (
+        Delete &&
+        (Variable->CurrPtr->Attributes & EFI_VARIABLE_NON_VOLATILE) != 0
+      )
+    )) {
 
     /* TODO: add hook for logging nv changes here */
 
@@ -1115,13 +1123,6 @@ Store:
     CopyMem (keydata, VendorGuid, sizeof (EFI_GUID));
     CopyMem (keydata + sizeof (EFI_GUID), VariableName, VarNameSize);
     CopyMem (valdata, Data, DataSize);
-
-   DEBUG((
-     EFI_D_INFO,
-     "SMMSTORE %s SIZE %d\n",
-     VariableName,
-     DataSize
-     ));
 
     call_smm(SMMSTORE_APM_CNT, SMMSTORE_CMD_APPEND, (UINT32)rt_buffer_phys);
     /* call into SMM through EFI_ISA_IO_PROTOCOL to write to 0xb2:
