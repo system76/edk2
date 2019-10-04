@@ -45,25 +45,29 @@ formset
   form formid = FRONT_PAGE_FORM_ID,
        title  = STRING_TOKEN(STR_FRONT_PAGE_TITLE);
 
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_COMPUTER_MODEL),
-      line  1,
-      align center;
+    subtitle text = STRING_TOKEN(STR_FRONT_PAGE_COMPUTER_MODEL);
+    subtitle text = STRING_TOKEN(STR_FRONT_PAGE_BIOS_VERSION);
+    subtitle text = STRING_TOKEN(STR_NULL_STRING);
 
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_BIOS_VERSION),
-      line  3,
-      align left;
+    //banner
+    //  title = STRING_TOKEN(STR_FRONT_PAGE_COMPUTER_MODEL),
+    //  line  1,
+    //  align center;
 
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_CPU_MODEL),
-      line  4,
-      align left;
+    //banner
+    //  title = STRING_TOKEN(STR_FRONT_PAGE_BIOS_VERSION),
+    //  line  3,
+    //  align left;
 
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_MEMORY_SIZE),
-      line  5,
-      align left;
+    //banner
+    //  title = STRING_TOKEN(STR_FRONT_PAGE_CPU_MODEL),
+    //  line  4,
+    //  align left;
+
+    //banner
+    //  title = STRING_TOKEN(STR_FRONT_PAGE_MEMORY_SIZE),
+    //  line  5,
+    //  align left;
 
     subtitle text = STRING_TOKEN(STR_NULL_STRING);
 
@@ -73,7 +77,7 @@ formset
       flags   = INTERACTIVE,
       key     = FRONT_PAGE_KEY_CONTINUE;
 
-    subtitle text = STRING_TOKEN(STR_NULL_STRING);
+    //subtitle text = STRING_TOKEN(STR_NULL_STRING);
 
     goto FRONT_PAGE_ITEM_THREE,
       prompt  = STRING_TOKEN(STR_BOOT_MANAGER),
@@ -81,7 +85,7 @@ formset
       flags   = INTERACTIVE,
       key     = FRONT_PAGE_KEY_BOOT_MANAGER;
 
-    subtitle text = STRING_TOKEN(STR_NULL_STRING);
+    //subtitle text = STRING_TOKEN(STR_NULL_STRING);
 
     goto FRONT_PAGE_ITEM_FIVE,
       prompt  = STRING_TOKEN(STR_BOOT_MAINT_MANAGER),
