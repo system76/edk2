@@ -44,31 +44,34 @@ formset
 
   form formid = FRONT_PAGE_FORM_ID,
        title  = STRING_TOKEN(STR_FRONT_PAGE_TITLE);
+       subtitle text = STRING_TOKEN(STR_FRONT_PAGE_COMPUTER_MODEL);
+       subtitle text = STRING_TOKEN(STR_FRONT_PAGE_BIOS_VERSION);
+       subtitle text = STRING_TOKEN(STR_NULL_STRING);
 
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_COMPUTER_MODEL),
-      line  1,
-      align left;
-
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_CPU_MODEL),
-      line  2,
-      align left;
-
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_CPU_SPEED),
-      line  2,
-      align right;
-
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_BIOS_VERSION),
-      line  3,
-      align left;
-
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_MEMORY_SIZE),
-      line  3,
-      align right;
+    // banner
+    //   title = STRING_TOKEN(STR_FRONT_PAGE_COMPUTER_MODEL),
+    //   line  1,
+    //   align left;
+    //
+    // banner
+    //   title = STRING_TOKEN(STR_FRONT_PAGE_CPU_MODEL),
+    //   line  2,
+    //   align left;
+    //
+    // banner
+    //   title = STRING_TOKEN(STR_FRONT_PAGE_CPU_SPEED),
+    //   line  2,
+    //   align right;
+    //
+    // banner
+    //   title = STRING_TOKEN(STR_FRONT_PAGE_BIOS_VERSION),
+    //   line  3,
+    //   align left;
+    //
+    // banner
+    //   title = STRING_TOKEN(STR_FRONT_PAGE_MEMORY_SIZE),
+    //   line  3,
+    //   align right;
 
 //    banner
 //      title = STRING_TOKEN(STR_FRONT_PAGE_BANNER_0_LEFT),
