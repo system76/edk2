@@ -3277,7 +3277,7 @@ BdsLibEnumerateAllBootOption (
         if (DevName != NULL) {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"Floppy: %s", DevName);
         } else if (FloppyNumber != 0) {
-          UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_FLOPPY)), FloppyNumber);
+          UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_FLOPPY)), FloppyNumber + 1);
         } else {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_FLOPPY)));
         }
@@ -3294,7 +3294,7 @@ BdsLibEnumerateAllBootOption (
           if (DevName != NULL) {
             UnicodeSPrint (Buffer, sizeof (Buffer), L"CD/DVD: %s", DevName);
           } else if (CdromNumber != 0) {
-            UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_CD_DVD)), CdromNumber);
+            UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_CD_DVD)), CdromNumber + 1);
           } else {
             UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_CD_DVD)));
           }
@@ -3307,7 +3307,7 @@ BdsLibEnumerateAllBootOption (
               UnicodeSPrint (Buffer, sizeof (Buffer), L"SATA: %s", DevName);
             }
           } else if (HarddriveNumber != 0) {
-            UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_HARDDRIVE)), HarddriveNumber);
+            UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_HARDDRIVE)), HarddriveNumber + 1);
           } else {
             UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_HARDDRIVE)));
           }
@@ -3321,7 +3321,7 @@ BdsLibEnumerateAllBootOption (
         if (DevName != NULL) {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"USB: %s", DevName);
         } else if (UsbNumber != 0) {
-          UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_USB)), UsbNumber);
+          UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_USB)), UsbNumber + 1);
         } else {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_USB)));
         }
@@ -3333,7 +3333,7 @@ BdsLibEnumerateAllBootOption (
         if (DevName != NULL) {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"SCSI: %s", DevName);
         } else if (ScsiNumber != 0) {
-          UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_SCSI)), ScsiNumber);
+          UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_SCSI)), ScsiNumber + 1);
         } else {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_SCSI)));
         }
@@ -3345,7 +3345,7 @@ BdsLibEnumerateAllBootOption (
         if (DevName != NULL) {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"eMMC: %s", DevName);
         } else if (MiscNumber != 0) {
-          UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI eMMC Device %d", MiscNumber);
+          UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI eMMC Device %d", MiscNumber + 1);
         } else {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI eMMC Device");
         }
@@ -3357,7 +3357,7 @@ BdsLibEnumerateAllBootOption (
         if (DevName != NULL) {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"SD: %s", DevName);
         } else if (SdNumber != 0) {
-          UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI SD Device %d", SdNumber);
+          UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI SD Device %d", SdNumber + 1);
         } else {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI SD Device");
         }
@@ -3369,7 +3369,7 @@ BdsLibEnumerateAllBootOption (
         if (DevName != NULL) {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"NVMe: %s", DevName);
         } else if (NvmeNumber != 0) {
-          UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI NVMe Device %d", NvmeNumber);
+          UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI NVMe Device %d", NvmeNumber + 1);
         } else {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI NVMe Device");
         }
@@ -3443,7 +3443,7 @@ BdsLibEnumerateAllBootOption (
       BdsLibDeleteOptionFromHandle (FileSystemHandles[Index]);
     } else {
       if (NonBlockNumber != 0) {
-        UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_NON_BLOCK)), NonBlockNumber);
+        UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_NON_BLOCK)), NonBlockNumber + 1);
       } else {
         UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_NON_BLOCK)));
       }
