@@ -3072,6 +3072,81 @@ BdsDeleteAllInvalidEfiBootOption (
   return Status;
 }
 
+// This is very ineffecient, retrieving all handles to do its calculation
+CHAR16 * HackDevName(EFI_HANDLE Handle) {
+    DEBUG((DEBUG_INFO, "HackDevName(%d)\n", Handle));
+
+    EFI_STATUS Status;
+    EFI_HANDLE *AllHandlesBuffer;
+    UINTN NumAllHandles;
+    EFI_HANDLE *ProtocolHandlesBuffer;
+    UINTN NumProtocolHandles;
+    UINTN Index1;
+    EFI_COMPONENT_NAME2_PROTOCOL *ComponentName;
+    UINTN Index2;
+    CHAR16 *DevName = NULL;
+
+    Status = gBS->LocateHandleBuffer(
+        AllHandles,
+        NULL,
+        NULL,
+        &NumAllHandles,
+        &AllHandlesBuffer
+    );
+    if (!EFI_ERROR(Status)) {
+        Status = gBS->LocateHandleBuffer(
+            ByProtocol,
+            &gEfiComponentName2ProtocolGuid,
+            NULL,
+            &NumProtocolHandles,
+            &ProtocolHandlesBuffer
+        );
+        if (!EFI_ERROR(Status)) {
+            for (Index1 = 0; Index1 < NumProtocolHandles; Index1++) {
+                Status = gBS->OpenProtocol(
+                    ProtocolHandlesBuffer[Index1],
+                    &gEfiComponentName2ProtocolGuid,
+                    (VOID**)&ComponentName,
+                    gImageHandle,
+                    NULL,
+                    EFI_OPEN_PROTOCOL_GET_PROTOCOL
+                );
+                if (EFI_ERROR(Status)) {
+                    continue;
+                }
+
+                for (Index2 = 0; Index2 < NumAllHandles; Index2++) {
+                    DevName = NULL;
+                    Status = ComponentName->GetControllerName(
+                        ComponentName,
+                        AllHandlesBuffer[Index2],
+                        Handle,
+                        "en",
+                        &DevName
+                    );
+                    if (EFI_ERROR(Status)) {
+                        continue;
+                    }
+                    if (DevName != NULL) {
+                        DEBUG((DEBUG_INFO, "DevName: %s\n", DevName));
+                        break;
+                    }
+                }
+
+                if (DevName != NULL) {
+                    break;
+                }
+            }
+
+            FreePool(ProtocolHandlesBuffer);
+        }
+
+        FreePool(AllHandlesBuffer);
+    }
+
+    return DevName;
+}
+
 
 /**
   For EFI boot option, BDS separate them as six types:
@@ -3241,6 +3316,7 @@ BdsLibEnumerateAllBootOption (
                       &gEfiBlockIoProtocolGuid,
                       (VOID **) &BlkIo
                       );
+
       //
       // skip the logical partition
       //
@@ -3263,6 +3339,13 @@ BdsLibEnumerateAllBootOption (
           continue;
         }
       } else if (DevicePathType == BDS_EFI_MESSAGE_NVME_BOOT) {
+        continue;
+      }
+
+      CHAR16 * DevName = HackDevName(BlockIoHandles[Index]);
+      if (DevName != NULL) {
+        UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", DevName);
+        BdsLibBuildOptionFromHandle (BlockIoHandles[Index], BdsBootOptionList, Buffer);
         continue;
       }
 
