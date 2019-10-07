@@ -3269,7 +3269,7 @@ BdsLibEnumerateAllBootOption (
       switch (DevicePathType) {
       case BDS_EFI_ACPI_FLOPPY_BOOT:
         if (FloppyNumber != 0) {
-          UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_FLOPPY)), FloppyNumber);
+          UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_FLOPPY)), FloppyNumber + 1);
         } else {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_FLOPPY)));
         }
@@ -3284,14 +3284,14 @@ BdsLibEnumerateAllBootOption (
       case BDS_EFI_MESSAGE_SATA_BOOT:
         if (BlkIo->Media->RemovableMedia) {
           if (CdromNumber != 0) {
-            UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_CD_DVD)), CdromNumber);
+            UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_CD_DVD)), CdromNumber + 1);
           } else {
             UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_CD_DVD)));
           }
           CdromNumber++;
         } else {
           if (HarddriveNumber != 0) {
-            UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_HARDDRIVE)), HarddriveNumber);
+            UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_HARDDRIVE)), HarddriveNumber + 1);
           } else {
             UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_HARDDRIVE)));
           }
@@ -3303,7 +3303,7 @@ BdsLibEnumerateAllBootOption (
 
       case BDS_EFI_MESSAGE_USB_DEVICE_BOOT:
         if (UsbNumber != 0) {
-          UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_USB)), UsbNumber);
+          UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_USB)), UsbNumber + 1);
         } else {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_USB)));
         }
@@ -3313,7 +3313,7 @@ BdsLibEnumerateAllBootOption (
 
       case BDS_EFI_MESSAGE_SCSI_BOOT:
         if (ScsiNumber != 0) {
-          UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_SCSI)), ScsiNumber);
+          UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_SCSI)), ScsiNumber + 1);
         } else {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_SCSI)));
         }
@@ -3323,7 +3323,7 @@ BdsLibEnumerateAllBootOption (
 
       case BDS_EFI_MESSAGE_EMMC_BOOT:
         if (MiscNumber != 0) {
-          UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI eMMC Device %d", MiscNumber);
+          UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI eMMC Device %d", MiscNumber + 1);
         } else {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI eMMC Device");
         }
@@ -3333,7 +3333,7 @@ BdsLibEnumerateAllBootOption (
 
       case BDS_EFI_MESSAGE_SD_BOOT:
         if (SdNumber != 0) {
-          UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI SD Device %d", SdNumber);
+          UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI SD Device %d", SdNumber + 1);
         } else {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI SD Device");
         }
@@ -3343,7 +3343,7 @@ BdsLibEnumerateAllBootOption (
 
       case BDS_EFI_MESSAGE_NVME_BOOT:
         if (NvmeNumber != 0) {
-          UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI NVMe Device %d", NvmeNumber);
+          UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI NVMe Device %d", NvmeNumber + 1);
         } else {
           UnicodeSPrint (Buffer, sizeof (Buffer), L"EFI NVMe Device");
         }
@@ -3417,7 +3417,7 @@ BdsLibEnumerateAllBootOption (
       BdsLibDeleteOptionFromHandle (FileSystemHandles[Index]);
     } else {
       if (NonBlockNumber != 0) {
-        UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_NON_BLOCK)), NonBlockNumber);
+        UnicodeSPrint (Buffer, sizeof (Buffer), L"%s %d", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_NON_BLOCK)), NonBlockNumber + 1);
       } else {
         UnicodeSPrint (Buffer, sizeof (Buffer), L"%s", BdsLibGetStringById (STRING_TOKEN (STR_DESCRIPTION_NON_BLOCK)));
       }
