@@ -3226,7 +3226,7 @@ BdsLibEnumerateAllBootOption (
   EFI_FIRMWARE_VOLUME2_PROTOCOL *Fv;
   EFI_DEVICE_PATH_PROTOCOL      *DevicePath;
   UINTN                         DevicePathType;
-  CHAR16                        Buffer[40];
+  CHAR16                        Buffer[80];
   EFI_HANDLE                    *FileSystemHandles;
   UINTN                         NumberFileSystemHandles;
   BOOLEAN                       NeedDelete;
