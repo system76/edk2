@@ -1943,7 +1943,7 @@ VariableCommonInitialize (
   while (i < read_cmd.bufsize) {
     // assume native endian
     UINT32 keysz = ((UINT32 *)(buf + i))[0];
-    if (keysz == 0xffffffff)
+    if (keysz == 0 || keysz == 0xffffffff)
       break; // no more entries
     UINTN valsz = ((UINT32 *)(buf + i))[1];
 
