@@ -1255,19 +1255,6 @@ Returns:
     PlatformBdsNoConsoleAction ();
   }
 
-  //
-  // Perform some platform specific connect sequence
-  //
-  PlatformBdsConnectSequence ();
-
-  //
-  // Memory test and Logo show
-  //
-  PlatformBdsDiagnostics (IGNORE, TRUE, BaseMemoryTest);
-
-  //
-  BdsLibConnectAll ();
-
   // Find simple text input extension protocol for console in
   SimpleTextInEx = NULL;
   Status = gBS->HandleProtocol(
@@ -1277,8 +1264,8 @@ Returns:
   );
 
   // Register a handler for escape key
+  ESCAPE_KEY_DETECTED = FALSE;
   if (SimpleTextInEx != NULL) {
-      ESCAPE_KEY_DETECTED = FALSE;
       EscapeKeyData.Key.ScanCode = SCAN_ESC;
       EscapeKeyData.Key.UnicodeChar = 0;
       EscapeKeyData.KeyState.KeyShiftState = 0;
@@ -1291,6 +1278,16 @@ Returns:
       );
       ASSERT (Status == EFI_SUCCESS);
   }
+
+  //
+  // Perform some platform specific connect sequence
+  //
+  PlatformBdsConnectSequence ();
+
+  //
+  // Memory test and Logo show
+  //
+  PlatformBdsDiagnostics (IGNORE, TRUE, BaseMemoryTest);
 
   //
   // Create a 2s duration event to ensure user has enough input time to enter Setup
@@ -1306,17 +1303,22 @@ Returns:
   Status = gBS->SetTimer (UserInputDurationTime, TimerRelative, 20000000);
   ASSERT (Status == EFI_SUCCESS);
 
-  //
-  // To give the User a chance to enter Setup here, if user set TimeOut is 0.
-  // BDS should still give user a chance to enter Setup
-  // Check whether the user input after the duration time has expired
-  //
-  Events[0] = gST->ConIn->WaitForKey;
-  Events[1] = UserInputDurationTime;
-  gBS->WaitForEvent (2, Events, &Index);
+  // Connect all drivers, could be delayed
+  BdsLibConnectAll ();
+
+  // The escape key could have been pressed already
+  if (!ESCAPE_KEY_DETECTED) {
+      //
+      // To give the User a chance to enter Setup here, if user set TimeOut is 0.
+      // BDS should still give user a chance to enter Setup
+      // Check whether the user input after the duration time has expired
+      //
+      Events[0] = gST->ConIn->WaitForKey;
+      Events[1] = UserInputDurationTime;
+      gBS->WaitForEvent (2, Events, &Index);
+  }
   gBS->CloseEvent (UserInputDurationTime);
 
-  Timeout = 0;
   if (SimpleTextInEx != NULL) {
       // Remove escape key handler
       Status = SimpleTextInEx->UnregisterKeyNotify(
@@ -1324,22 +1326,24 @@ Returns:
         EscapeKeyHandle
       );
       ASSERT (Status == EFI_SUCCESS);
-
-      if (ESCAPE_KEY_DETECTED) {
-          Timeout = 0xffff;
-          DEBUG((DEBUG_INFO, "Escape key detected, going to menu\n"));
-
-          // Clear pending keypresses if we are going to the menu
-          while (!EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key))) {}
-      }
   } else {
       Status = gST->ConIn->ReadKeyStroke (gST->ConIn, &Key);
       if (!EFI_ERROR (Status)) {
         //
         // Enter Setup if user input
         //
-        Timeout = 0xffff;
+        ESCAPE_KEY_DETECTED = TRUE;
       }
+  }
+
+  if (ESCAPE_KEY_DETECTED) {
+      Timeout = 0xffff;
+      DEBUG((DEBUG_INFO, "Escape key detected, going to menu\n"));
+
+      // Clear pending keypresses if we are going to the menu
+      while (!EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key))) {}
+  } else {
+      Timeout = 0;
   }
 
   BdsLibEnumerateAllBootOption (BootOptionList);
