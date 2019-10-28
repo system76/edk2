@@ -99,6 +99,12 @@ INF MdeModulePkg/Universal/CapsuleRuntimeDxe/CapsuleRuntimeDxe.inf
 INF MdeModulePkg/Universal/MonotonicCounterRuntimeDxe/MonotonicCounterRuntimeDxe.inf
 INF MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf
 INF PcAtChipsetPkg/PcatRealTimeClockRuntimeDxe/PcatRealTimeClockRuntimeDxe.inf
+!ifdef $(FIRMWARE_OPEN_FIRMWARE_SMMSTORE)
+  !if $(ARCH) == IA32
+  !else
+  INF  RuleOverride=BINARY USE = X64 $(FIRMWARE_OPEN_FIRMWARE_SMMSTORE)
+  !endif
+!endif
 INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
 
 INF UefiCpuPkg/CpuIo2Dxe/CpuIo2Dxe.inf
