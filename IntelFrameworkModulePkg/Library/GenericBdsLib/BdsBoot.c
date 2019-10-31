@@ -2963,6 +2963,7 @@ BdsDeleteAllInvalidEfiBootOption (
   UINTN                     Index2;
   UINT16                    BootOption[BOOT_OPTION_MAX_CHAR];
   EFI_DEVICE_PATH_PROTOCOL  *OptionDevicePath;
+  EFI_DEVICE_PATH_PROTOCOL  *WorkingDevicePath;
   UINT8                     *TempPtr;
   CHAR16                    *Description;
   BOOLEAN                   Corrupted;
@@ -3016,6 +3017,21 @@ BdsDeleteAllInvalidEfiBootOption (
         FreePool (BootOptionVar);
         Index++;
         continue;
+      }
+
+      //
+      // If it's Device Path that starts with a hard drive path, append it with the front part to compose a
+      // full device path
+      //
+      WorkingDevicePath = NULL;
+      if ((DevicePathType (OptionDevicePath) == MEDIA_DEVICE_PATH) &&
+          (DevicePathSubType (OptionDevicePath) == MEDIA_HARDDRIVE_DP)) {
+        WorkingDevicePath = BdsExpandPartitionPartialDevicePathToFull (
+                              (HARDDRIVE_DEVICE_PATH *)OptionDevicePath
+                              );
+        if (WorkingDevicePath != NULL) {
+          OptionDevicePath = WorkingDevicePath;
+        }
       }
     }
 
