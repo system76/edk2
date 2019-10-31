@@ -380,6 +380,8 @@ CallBootManager (
   //
   BdsSetConsoleMode (FALSE);
 
+  PlatformBdsPreBoot (gOption);
+
   //
   // parse the selected option
   //

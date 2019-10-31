@@ -91,6 +91,12 @@ PlatformBdsPolicyBehavior (
   IN BASEM_MEMORY_TEST               BaseMemoryTest
   );
 
+VOID
+EFIAPI
+PlatformBdsPreBoot (
+  IN  BDS_COMMON_OPTION  *Option
+  );
+
 /**
   Hook point for a user-provided function, for after a boot attempt fails.
 

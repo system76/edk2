@@ -1359,6 +1359,42 @@ Returns:
 
 VOID
 EFIAPI
+PlatformBdsPreBoot (
+  IN  BDS_COMMON_OPTION  *Option
+  )
+{
+    EFI_STATUS                         Status;
+    EFI_EVENT                          UserInputDurationTime;
+    EFI_EVENT                          Events[2];
+    UINTN                              Index;
+
+    if (!ESCAPE_KEY_DETECTED) {
+        // Did not enter menu, return immediately
+        return;
+    }
+
+    // Clear screen before waiting for input
+    gST->ConOut->ClearScreen(gST->ConOut);
+
+    // Create a 1s duration event to ensure user has enough input time to provide a key to boot option
+    Status = gBS->CreateEvent (
+                    EVT_TIMER,
+                    0,
+                    NULL,
+                    NULL,
+                    &UserInputDurationTime
+                    );
+    ASSERT (Status == EFI_SUCCESS);
+    Status = gBS->SetTimer (UserInputDurationTime, TimerRelative, 10000000);
+    ASSERT (Status == EFI_SUCCESS);
+
+    Events[0] = gST->ConIn->WaitForKey;
+    Events[1] = UserInputDurationTime;
+    gBS->WaitForEvent (2, Events, &Index);
+}
+
+VOID
+EFIAPI
 PlatformBdsBootSuccess (
   IN  BDS_COMMON_OPTION *Option
   )
