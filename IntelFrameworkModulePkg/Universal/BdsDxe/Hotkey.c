@@ -91,6 +91,8 @@ HotkeyBoot (
   //
   gST->ConOut->Reset (gST->ConOut, FALSE);
 
+  PlatformBdsPreBoot (mHotkeyBootOption);
+
   Status = BdsLibBootViaBootOption (mHotkeyBootOption, mHotkeyBootOption->DevicePath, &ExitDataSize, &ExitData);
 
   if (EFI_ERROR (Status)) {

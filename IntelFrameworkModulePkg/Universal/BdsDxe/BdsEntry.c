@@ -263,6 +263,8 @@ BdsBootDeviceSelect (
     //
     BdsSetConsoleMode (FALSE);
 
+    PlatformBdsPreBoot (BootOption);
+
     //
     // All the driver options should have been processed since
     // now boot will be performed.
