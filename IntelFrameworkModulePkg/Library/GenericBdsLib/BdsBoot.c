@@ -3031,8 +3031,9 @@ BdsDeleteAllInvalidEfiBootOption (
                               );
         if (WorkingDevicePath != NULL) {
           OptionDevicePath = WorkingDevicePath;
-      } else {
+        } else {
           Corrupted = TRUE;
+        }
       }
     }
 
