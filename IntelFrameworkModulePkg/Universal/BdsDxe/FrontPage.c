@@ -1325,7 +1325,12 @@ PlatformBdsEnterFrontPage (
     //
     UpdateFrontPageStrings ();
 
-    gCallbackKey = 0;
+    //
+    // Default to continuing booting so the user can boot the default entry by
+    // exiting the form using the Escape key.
+    //
+    //gCallbackKey = 0;
+    gCallbackKey = FRONT_PAGE_KEY_CONTINUE;
     CallFrontPage ();
 
     //
