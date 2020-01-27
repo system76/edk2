@@ -3277,6 +3277,13 @@ BdsLibEnumerateAllBootOption (
       DevicePath  = DevicePathFromHandle (BlockIoHandles[Index]);
       DevicePathType = BdsGetBootTypeFromDevicePath (DevicePath);
 
+      //
+      // Skip devices that do not have an EFI volume
+      //
+      if (BdsLibGetBootableHandle (DevicePath) == NULL) {
+        continue;
+      }
+
       // Do NVMe devices first, all others second
       if (DPTIndex == 0) {
         if (DevicePathType != BDS_EFI_MESSAGE_NVME_BOOT) {
