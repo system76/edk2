@@ -205,6 +205,7 @@ CallBootManager (
   EFI_STRING_ID               Token;
   UINTN                       Index;
   EFI_INPUT_KEY               Key;
+  CHAR16                      *WarningString;
   CHAR16                      *HelpString;
   UINTN                       HelpSize;
   EFI_STRING_ID               HelpToken;
@@ -265,6 +266,14 @@ CallBootManager (
   EndLabel = (EFI_IFR_GUID_LABEL *) HiiCreateGuidOpCode (EndOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
   EndLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
   EndLabel->Number       = LABEL_BOOT_OPTION_END;
+
+  if (IsListEmpty (&mBootOptionsList)) {
+    WarningString = AllocateZeroPool (0x60);
+    StrCatS (WarningString, 0x60 / sizeof (CHAR16), L"No bootable media found");
+    Token = HiiSetString (HiiHandle, STRING_TOKEN (STR_NO_BOOTABLE_MEDIA), WarningString, NULL);
+    FreePool (WarningString);
+    HiiCreateSubTitleOpCode (StartOpCodeHandle, Token, 0, 0, 0);
+  }
 
   mKeyInput = 0;
   NeedEndOp = FALSE;
