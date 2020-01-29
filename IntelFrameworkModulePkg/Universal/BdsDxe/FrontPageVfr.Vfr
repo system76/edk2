@@ -93,6 +93,9 @@ formset
       flags   = INTERACTIVE,
       key     = FRONT_PAGE_KEY_BOOT_MAINTAIN;
 
+    subtitle text = STRING_TOKEN(STR_NULL_STRING);
+    subtitle text = STRING_TOKEN(STR_NO_BOOTABLE_MEDIA);
+
   endform;
 
 endformset;

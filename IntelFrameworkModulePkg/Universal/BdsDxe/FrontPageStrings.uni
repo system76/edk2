@@ -68,3 +68,4 @@
                                        #language fr-FR  "Le procédé de botte continuera dans %d secondes"
 #string STR_MISSING_STRING             #language en-US  "Missing String"
                                        #language fr-FR  "Missing String"
+#string STR_NO_BOOTABLE_MEDIA          #language en-US  ""

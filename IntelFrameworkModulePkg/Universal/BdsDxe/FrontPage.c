@@ -885,6 +885,30 @@ GetDeviceNameFromProduct (
   //etc etc
 }
 
+VOID
+WarnNoBootableMedia (
+  VOID
+  )
+{
+  CHAR16              *NewString;
+  EFI_STRING_ID       TokenToUpdate;
+  LIST_ENTRY          BootList;
+
+  InitializeListHead (&BootList);
+  BdsLibBuildOptionFromVar (&BootList, L"BootOrder");
+
+  NewString = AllocateZeroPool (0x60);
+
+  if (IsListEmpty (&BootList)) {
+    StrCatS (NewString, 0x60 / sizeof (CHAR16), L"Warning: No bootable media found");
+  } else {
+    StrCatS (NewString, 0x60 / sizeof (CHAR16), L"");
+  }
+
+  TokenToUpdate = STRING_TOKEN (STR_NO_BOOTABLE_MEDIA);
+  HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, NewString, NULL);
+  FreePool (NewString);
+}
 
 /**
   Update the banner information for the Front Page based on DataHub information.
@@ -908,6 +932,8 @@ UpdateFrontPageStrings (
   UINT64                            InstalledMemory;
 
   InstalledMemory = 0;
+
+  WarnNoBootableMedia ();
 
   //
   // Update Front Page strings
