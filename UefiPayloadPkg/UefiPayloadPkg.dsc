@@ -34,7 +34,7 @@
   # SBL:      UEFI payload for Slim Bootloader
   # COREBOOT: UEFI payload for coreboot
   #
-  DEFINE   BOOTLOADER = SBL
+  DEFINE   BOOTLOADER = COREBOOT
 
   #
   # CPU options
