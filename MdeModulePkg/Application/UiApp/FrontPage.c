@@ -70,11 +70,11 @@ HII_VENDOR_DEVICE_PATH  mFrontPageHiiVendorDevicePath = {
 };
 
 /**
-  Update the banner information for the Front Page based on Smbios information.
+  Update the information for the Front Page based on Smbios information.
 
 **/
 VOID
-UpdateFrontPageBannerStrings (
+UpdateFrontPageStrings (
   VOID
   );
 
@@ -286,9 +286,9 @@ InitializeFrontPage (
   ASSERT (gFrontPagePrivate.HiiHandle != NULL);
 
   //
-  //Updata Front Page banner strings
+  //Updata Front Page strings
   //
-  UpdateFrontPageBannerStrings ();
+  UpdateFrontPageStrings ();
 
   //
   // Update front page menus.
@@ -487,73 +487,111 @@ GetOptionalStringByIndex (
 }
 
 
+UINT16 SmbiosTableLength (SMBIOS_STRUCTURE_POINTER SmbiosTableN)
+{
+  CHAR8  *AChar;
+  UINT16  Length;
+
+  AChar = (CHAR8 *)(SmbiosTableN.Raw + SmbiosTableN.Hdr->Length);
+  while ((*AChar != 0) || (*(AChar + 1) != 0)) {
+    AChar ++; //stop at 00 - first 0
+  }
+  Length = (UINT16)((UINTN)AChar - (UINTN)SmbiosTableN.Raw + 2); //length includes 00
+  return Length;
+}
+
+SMBIOS_STRUCTURE_POINTER GetSmbiosTableFromType (
+  SMBIOS_TABLE_ENTRY_POINT *SmbiosPoint, UINT8 SmbiosType, UINTN IndexTable)
+{
+  SMBIOS_STRUCTURE_POINTER SmbiosTableN;
+  UINTN                    SmbiosTypeIndex;
+
+  SmbiosTypeIndex = 0;
+  SmbiosTableN.Raw = (UINT8 *)((UINTN)SmbiosPoint->TableAddress);
+  if (SmbiosTableN.Raw == NULL) {
+    return SmbiosTableN;
+  }
+  while ((SmbiosTypeIndex != IndexTable) || (SmbiosTableN.Hdr->Type != SmbiosType)) {
+    if (SmbiosTableN.Hdr->Type == SMBIOS_TYPE_END_OF_TABLE) {
+      SmbiosTableN.Raw = NULL;
+      return SmbiosTableN;
+    }
+    if (SmbiosTableN.Hdr->Type == SmbiosType) {
+      SmbiosTypeIndex++;
+    }
+    SmbiosTableN.Raw = (UINT8 *)(SmbiosTableN.Raw + SmbiosTableLength (SmbiosTableN));
+  }
+  return SmbiosTableN;
+}
+
 /**
 
-  Update the banner information for the Front Page based on Smbios information.
+  Update the information for the Front Page based on Smbios information.
 
 **/
 VOID
-UpdateFrontPageBannerStrings (
+UpdateFrontPageStrings (
   VOID
   )
 {
   UINT8                             StrIndex;
+  UINT8                             Str2Index;
   CHAR16                            *NewString;
-  CHAR16                            *FirmwareVersionString;
+  CHAR16                            *NewString2;
+  CHAR16                            *NewString3;
   EFI_STATUS                        Status;
-  EFI_SMBIOS_HANDLE                 SmbiosHandle;
-  EFI_SMBIOS_PROTOCOL               *Smbios;
-  SMBIOS_TABLE_TYPE0                *Type0Record;
-  SMBIOS_TABLE_TYPE1                *Type1Record;
-  EFI_SMBIOS_TABLE_HEADER           *Record;
+  EFI_STRING_ID                     TokenToUpdate;
+  EFI_PHYSICAL_ADDRESS              *Table;
+  SMBIOS_TABLE_ENTRY_POINT          *EntryPoint;
+  SMBIOS_STRUCTURE_POINTER          SmbiosTable;
 
-  //
-  // Update Front Page banner strings base on SmBios Table.
-  //
-  Status = gBS->LocateProtocol (&gEfiSmbiosProtocolGuid, NULL, (VOID **) &Smbios);
-  if (EFI_ERROR (Status)) {
-    //
-    // Smbios protocol not found, get the default value.
-    //
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), NULL);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), NewString, NULL);
-    FreePool (NewString);
-
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NULL);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NewString, NULL);
-    FreePool (NewString);
-
-    return;
+  Status = EfiGetSystemConfigurationTable (&gEfiSmbiosTableGuid, (VOID **)  &Table);
+  if (EFI_ERROR (Status) || Table == NULL) {
+      return;
   }
 
-  SmbiosHandle = SMBIOS_HANDLE_PI_RESERVED;
-  Status = Smbios->GetNext (Smbios, &SmbiosHandle, NULL, &Record, NULL);
-  while (!EFI_ERROR(Status)) {
-    if (Record->Type == SMBIOS_TYPE_BIOS_INFORMATION) {
-      Type0Record = (SMBIOS_TABLE_TYPE0 *) Record;
-      StrIndex = Type0Record->BiosVersion;
-      GetOptionalStringByIndex ((CHAR8*)((UINT8*)Type0Record + Type0Record->Hdr.Length), StrIndex, &NewString);
+  EntryPoint = (SMBIOS_TABLE_ENTRY_POINT*)Table;
 
-      FirmwareVersionString = (CHAR16 *) PcdGetPtr (PcdFirmwareVersionString);
-      if (*FirmwareVersionString != 0x0000 ) {
-        FreePool (NewString);
-        NewString = (CHAR16 *) PcdGetPtr (PcdFirmwareVersionString);
-        HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NewString, NULL);
-      } else {
-        HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NewString, NULL);
-        FreePool (NewString);
-      }
-    }
+  SmbiosTable = GetSmbiosTableFromType (EntryPoint, EFI_SMBIOS_TYPE_BIOS_INFORMATION , 0);
+  if (SmbiosTable.Raw != NULL) {
+    NewString2 = AllocateZeroPool (0xC0);
 
-    if (Record->Type == SMBIOS_TYPE_SYSTEM_INFORMATION) {
-      Type1Record = (SMBIOS_TABLE_TYPE1 *) Record;
-      StrIndex = Type1Record->ProductName;
-      GetOptionalStringByIndex ((CHAR8*)((UINT8*)Type1Record + Type1Record->Hdr.Length), StrIndex, &NewString);
-      HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), NewString, NULL);
-      FreePool (NewString);
-    }
+    StrIndex = SmbiosTable.Type0->BiosVersion;
+    GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), StrIndex, &NewString);
+    StrCatS (NewString2, 0x80 / sizeof (CHAR16), L"Version: ");
+    StrCatS (NewString2, 0x80 / sizeof (CHAR16), NewString);
+    TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION);
+    HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, NewString2, NULL);
+    FreePool (NewString);
+    FreePool (NewString2);
+  }
 
-    Status = Smbios->GetNext (Smbios, &SmbiosHandle, NULL, &Record, NULL);
+  SmbiosTable = GetSmbiosTableFromType (EntryPoint, SMBIOS_TYPE_SYSTEM_INFORMATION , 0);
+  if (SmbiosTable.Raw != NULL) {
+    NewString3 = AllocateZeroPool (0x60);
+
+    StrIndex = SmbiosTable.Type1->ProductName;
+    Str2Index = SmbiosTable.Type1->Manufacturer;
+    GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), StrIndex, &NewString);
+    GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), Str2Index, &NewString2);
+    StrCatS (NewString3, 0x60 / sizeof (CHAR16), NewString2);
+    StrCatS (NewString3, 0x60 / sizeof (CHAR16), L" ");
+    StrCatS (NewString3, 0x60 / sizeof (CHAR16), NewString);
+    TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_TITLE);
+    HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, NewString3, NULL);
+    FreePool (NewString);
+
+    NewString3 = AllocateZeroPool (0x60);
+
+    StrIndex = SmbiosTable.Type1->Version;
+    GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), StrIndex, &NewString);
+    StrCatS (NewString3, 0x60 / sizeof (CHAR16), L"Model: ");
+    StrCatS (NewString3, 0x60 / sizeof (CHAR16), NewString);
+    TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL);
+    HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, NewString3, NULL);
+    FreePool (NewString);
+    FreePool (NewString2);
+    FreePool (NewString3);
   }
 }
 
