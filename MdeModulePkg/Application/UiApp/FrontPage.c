@@ -17,7 +17,6 @@ EFI_GUID   mFrontPageGuid      = FRONT_PAGE_FORMSET_GUID;
 BOOLEAN   mResetRequired  = FALSE;
 
 EFI_FORM_BROWSER2_PROTOCOL      *gFormBrowser2;
-CHAR8     *mLanguageString;
 BOOLEAN   mModeInitialized = FALSE;
 //
 // Boot video resolution and text mode.
@@ -36,7 +35,6 @@ UINT32    mSetupVerticalResolution     = 0;
 
 FRONT_PAGE_CALLBACK_DATA  gFrontPagePrivate = {
   FRONT_PAGE_CALLBACK_DATA_SIGNATURE,
-  NULL,
   NULL,
   NULL,
   {
@@ -211,7 +209,7 @@ UpdateFrontPageForm (
   //
   StartGuidLabel = (EFI_IFR_GUID_LABEL *) HiiCreateGuidOpCode (StartOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
   StartGuidLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
-  StartGuidLabel->Number       = LABEL_FRANTPAGE_INFORMATION;
+  StartGuidLabel->Number       = LABEL_FRONTPAGE_INFORMATION;
   //
   // Create Hii Extend Label OpCode as the end opcode
   //
@@ -367,10 +365,6 @@ FreeFrontPage(
   // Publish our HII data
   //
   HiiRemovePackages (gFrontPagePrivate.HiiHandle);
-  if (gFrontPagePrivate.LanguageToken != NULL) {
-    FreePool (gFrontPagePrivate.LanguageToken);
-    gFrontPagePrivate.LanguageToken = NULL;
-  }
 }
 
 /**
@@ -511,37 +505,7 @@ UpdateFrontPageBannerStrings (
   EFI_SMBIOS_PROTOCOL               *Smbios;
   SMBIOS_TABLE_TYPE0                *Type0Record;
   SMBIOS_TABLE_TYPE1                *Type1Record;
-  SMBIOS_TABLE_TYPE4                *Type4Record;
-  SMBIOS_TABLE_TYPE19               *Type19Record;
   EFI_SMBIOS_TABLE_HEADER           *Record;
-  UINT64                            InstalledMemory;
-  BOOLEAN                           FoundCpu;
-
-  InstalledMemory = 0;
-  FoundCpu = 0;
-
-  //
-  // Update default banner string.
-  //
-  NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE4_LEFT), NULL);
-  UiCustomizeFrontPageBanner (4, TRUE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE4_LEFT), NewString, NULL);
-  FreePool (NewString);
-
-  NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE4_RIGHT), NULL);
-  UiCustomizeFrontPageBanner (4, FALSE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE4_RIGHT), NewString, NULL);
-  FreePool (NewString);
-
-  NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE5_LEFT), NULL);
-  UiCustomizeFrontPageBanner (5, TRUE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE5_LEFT), NewString, NULL);
-  FreePool (NewString);
-
-  NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE5_RIGHT), NULL);
-  UiCustomizeFrontPageBanner (5, FALSE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE5_RIGHT), NewString, NULL);
-  FreePool (NewString);
 
   //
   // Update Front Page banner strings base on SmBios Table.
@@ -552,28 +516,11 @@ UpdateFrontPageBannerStrings (
     // Smbios protocol not found, get the default value.
     //
     NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), NULL);
-    UiCustomizeFrontPageBanner (1, TRUE, &NewString);
     HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), NewString, NULL);
     FreePool (NewString);
 
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_MODEL), NULL);
-    UiCustomizeFrontPageBanner (2, TRUE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_MODEL), NewString, NULL);
-    FreePool (NewString);
-
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_SPEED), NULL);
-    UiCustomizeFrontPageBanner (2, FALSE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_SPEED), NewString, NULL);
-    FreePool (NewString);
-
     NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NULL);
-    UiCustomizeFrontPageBanner (3, TRUE, &NewString);
     HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NewString, NULL);
-    FreePool (NewString);
-
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_MEMORY_SIZE), NULL);
-    UiCustomizeFrontPageBanner (3, FALSE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_MEMORY_SIZE), NewString, NULL);
     FreePool (NewString);
 
     return;
@@ -591,10 +538,8 @@ UpdateFrontPageBannerStrings (
       if (*FirmwareVersionString != 0x0000 ) {
         FreePool (NewString);
         NewString = (CHAR16 *) PcdGetPtr (PcdFirmwareVersionString);
-        UiCustomizeFrontPageBanner (3, TRUE, &NewString);
         HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NewString, NULL);
       } else {
-        UiCustomizeFrontPageBanner (3, TRUE, &NewString);
         HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NewString, NULL);
         FreePool (NewString);
       }
@@ -604,53 +549,12 @@ UpdateFrontPageBannerStrings (
       Type1Record = (SMBIOS_TABLE_TYPE1 *) Record;
       StrIndex = Type1Record->ProductName;
       GetOptionalStringByIndex ((CHAR8*)((UINT8*)Type1Record + Type1Record->Hdr.Length), StrIndex, &NewString);
-      UiCustomizeFrontPageBanner (1, TRUE, &NewString);
       HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), NewString, NULL);
       FreePool (NewString);
     }
 
-    if ((Record->Type == SMBIOS_TYPE_PROCESSOR_INFORMATION) && !FoundCpu) {
-      Type4Record = (SMBIOS_TABLE_TYPE4 *) Record;
-      //
-      // The information in the record should be only valid when the CPU Socket is populated.
-      //
-      if ((Type4Record->Status & SMBIOS_TYPE4_CPU_SOCKET_POPULATED) == SMBIOS_TYPE4_CPU_SOCKET_POPULATED) {
-        StrIndex = Type4Record->ProcessorVersion;
-        GetOptionalStringByIndex ((CHAR8*)((UINT8*)Type4Record + Type4Record->Hdr.Length), StrIndex, &NewString);
-        UiCustomizeFrontPageBanner (2, TRUE, &NewString);
-        HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_MODEL), NewString, NULL);
-        FreePool (NewString);
-
-        ConvertProcessorToString(Type4Record->CurrentSpeed, 6, &NewString);
-        UiCustomizeFrontPageBanner (2, FALSE, &NewString);
-        HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_SPEED), NewString, NULL);
-        FreePool (NewString);
-
-        FoundCpu = TRUE;
-      }
-    }
-
-    if ( Record->Type == SMBIOS_TYPE_MEMORY_ARRAY_MAPPED_ADDRESS ) {
-      Type19Record = (SMBIOS_TABLE_TYPE19 *) Record;
-      if (Type19Record->StartingAddress != 0xFFFFFFFF ) {
-        InstalledMemory += RShiftU64(Type19Record->EndingAddress -
-                                     Type19Record->StartingAddress + 1, 10);
-      } else {
-        InstalledMemory += RShiftU64(Type19Record->ExtendedEndingAddress -
-                                     Type19Record->ExtendedStartingAddress + 1, 20);
-      }
-    }
-
     Status = Smbios->GetNext (Smbios, &SmbiosHandle, NULL, &Record, NULL);
   }
-
-  //
-  // Now update the total installed RAM size
-  //
-  ConvertMemorySizeToString ((UINT32)InstalledMemory, &NewString );
-  UiCustomizeFrontPageBanner (3, FALSE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_MEMORY_SIZE), NewString, NULL);
-  FreePool (NewString);
 }
 
 /**
@@ -1017,11 +921,6 @@ UiEntry (
 
   FreeFrontPage ();
 
-  if (mLanguageString != NULL) {
-    FreePool (mLanguageString);
-    mLanguageString = NULL;
-  }
-
   //
   //Will leave browser, check any reset required change is applied? if yes, reset system
   //
@@ -1033,10 +932,6 @@ UiEntry (
 //  Setup Browser reset reminder feature is that an reset reminder will be given before user leaves the setup browser  if
 //  user change any option setting which needs a reset to be effective, and  the reset will be applied according to  the user selection.
 //
-
-
-
-
 
 /**
   Record the info that  a reset is required.
@@ -1051,10 +946,6 @@ EnableResetRequired (
 {
   mResetRequired = TRUE;
 }
-
-
-
-
 
 /**
   Check if  user changed any option setting which needs a system reset to be effective.
