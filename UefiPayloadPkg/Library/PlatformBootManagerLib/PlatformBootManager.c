@@ -193,12 +193,6 @@ PlatformBootManagerAfterConsole (
   VOID
 )
 {
-  EFI_GRAPHICS_OUTPUT_BLT_PIXEL  Black;
-  EFI_GRAPHICS_OUTPUT_BLT_PIXEL  White;
-
-  Black.Blue = Black.Green = Black.Red = Black.Reserved = 0;
-  White.Blue = White.Green = White.Red = White.Reserved = 0xFF;
-
   gST->ConOut->ClearScreen (gST->ConOut);
   BootLogoEnableLogo ();
 
@@ -209,8 +203,6 @@ PlatformBootManagerAfterConsole (
   // Register UEFI Shell
   //
   //PlatformRegisterFvBootOption (PcdGetPtr (PcdShellFile), L"UEFI Shell", LOAD_OPTION_ACTIVE);
-
-  Print (L"Pess ESC to enter Boot Manager Menu.\n");
 }
 
 /**
@@ -224,7 +216,20 @@ PlatformBootManagerWaitCallback (
   UINT16          TimeoutRemain
 )
 {
-  return;
+  EFI_GRAPHICS_OUTPUT_BLT_PIXEL   Black;
+  EFI_GRAPHICS_OUTPUT_BLT_PIXEL   White;
+
+  Black.Blue = Black.Green = Black.Red = Black.Reserved = 0;
+  White.Blue = White.Green = White.Red = White.Reserved = 0xFF;
+
+  BootLogoUpdateProgress (
+      White,
+      Black,
+      L"Press ESC for Boot Options/Settings, or SPACE for Pop!_OS Recovery",
+      White,
+      0,
+      0
+      );
 }
 
 /**
