@@ -1155,9 +1155,4 @@ UpdatePageId (
   } else if ((NewPageId >= TERMINAL_OPTION_OFFSET) && (NewPageId < CONSOLE_OPTION_OFFSET)) {
     NewPageId = FORM_CON_COM_SETUP_ID;
   }
-
-  if ((NewPageId > 0) && (NewPageId < MAXIMUM_FORM_ID)) {
-    Private->BmmPreviousPageId = Private->BmmCurrentPageId;
-    Private->BmmCurrentPageId  = NewPageId;
-  }
 }
