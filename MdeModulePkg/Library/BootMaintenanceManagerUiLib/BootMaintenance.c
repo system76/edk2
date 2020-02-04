@@ -1104,7 +1104,9 @@ BootMaintCallback (
         // 1. Update the menus (including legacy munu) show in BootMiantenanceManager page.
         // 2. Re-scan the BootOption menus (including the legacy boot option).
         //
-        CustomizeMenus ();
+        //CustomizeMenus ();
+        UpdatePageId (Private, FORM_BOOT_CHG_ID);
+        UpdatePageBody (FORM_BOOT_CHG_ID, Private);
         EfiBootManagerRefreshAllBootOption ();
         BOpt_GetBootOptions (Private);
         mFirstEnterBMMForm = TRUE;
@@ -1705,8 +1707,8 @@ BootMaintenanceManagerUiLibConstructor (
 
   mBmmCallbackInfo->MenuEntry     = (BM_MENU_ENTRY *) Ptr;
 
-  mBmmCallbackInfo->BmmPreviousPageId  = FORM_MAIN_ID;
-  mBmmCallbackInfo->BmmCurrentPageId   = FORM_MAIN_ID;
+  mBmmCallbackInfo->BmmPreviousPageId  = FORM_BOOT_CHG_ID;
+  mBmmCallbackInfo->BmmCurrentPageId   = FORM_BOOT_CHG_ID;
 
   InitAllMenu (mBmmCallbackInfo);
 
