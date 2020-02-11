@@ -34,6 +34,9 @@ formset
     //
     label LABEL_END;
 
+    subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
+    subtitle text = STRING_TOKEN(STR_NO_BOOTABLE_MEDIA);
+
   endform;
 
 endformset;
