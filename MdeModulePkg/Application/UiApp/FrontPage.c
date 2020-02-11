@@ -527,6 +527,46 @@ SMBIOS_STRUCTURE_POINTER GetSmbiosTableFromType (
   return SmbiosTableN;
 }
 
+STATIC
+VOID
+WarnNoBootableMedia (
+  VOID
+  )
+{
+  CHAR16                        *String;
+  EFI_STRING_ID                 Token;
+  EFI_BOOT_MANAGER_LOAD_OPTION  *BootOption;
+  UINTN                         BootOptionCount;
+  UINTN                         Index;
+  UINTN                         Count = 0;
+
+  String = AllocateZeroPool (0x60);
+  BootOption = EfiBootManagerGetLoadOptions (&BootOptionCount, LoadOptionTypeBoot);
+
+  for (Index = 0; Index < BootOptionCount; Index++) {
+    //
+    // Don't count the hidden/inactive boot option
+    //
+    if (((BootOption[Index].Attributes & LOAD_OPTION_HIDDEN) != 0) || ((BootOption[Index].Attributes & LOAD_OPTION_ACTIVE) == 0)) {
+      continue;
+    }
+
+    Count++;
+  }
+
+  EfiBootManagerFreeLoadOptions (BootOption, BootOptionCount);
+
+  if (Count == 0) {
+    StrCatS (String, 0x60 / sizeof (CHAR16), L"Warning: No bootable media found");
+  } else {
+    StrCatS (String, 0x60 / sizeof (CHAR16), L"");
+  }
+
+  Token = STRING_TOKEN (STR_NO_BOOTABLE_MEDIA);
+  HiiSetString (gFrontPagePrivate.HiiHandle, Token, String, NULL);
+  FreePool(String);
+}
+
 /**
 
   Update the banner information for the Front Page based on Smbios information.
@@ -542,6 +582,8 @@ UpdateFrontPageBannerStrings (
   EFI_PHYSICAL_ADDRESS              *Table;
   SMBIOS_TABLE_ENTRY_POINT          *EntryPoint;
   SMBIOS_STRUCTURE_POINTER          SmbiosTable;
+
+  WarnNoBootableMedia ();
 
   Status = EfiGetSystemConfigurationTable (&gEfiSmbiosTableGuid, (VOID **)  &Table);
   if (EFI_ERROR (Status) || Table == NULL) {
