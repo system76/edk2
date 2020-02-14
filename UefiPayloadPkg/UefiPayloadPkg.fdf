@@ -105,7 +105,8 @@ INF PcAtChipsetPkg/PcatRealTimeClockRuntimeDxe/PcatRealTimeClockRuntimeDxe.inf
   INF  RuleOverride=BINARY USE = X64 $(FIRMWARE_OPEN_FIRMWARE_SMMSTORE)
   !endif
 !endif
-INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
+INF MdeModulePkg/Universal/Variable/EmuRuntimeDxe/EmuVariableRuntimeDxe.inf
+#INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
 
 INF UefiCpuPkg/CpuIo2Dxe/CpuIo2Dxe.inf
 INF MdeModulePkg/Universal/DevicePathDxe/DevicePathDxe.inf
