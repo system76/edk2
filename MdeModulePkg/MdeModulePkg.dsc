@@ -455,6 +455,9 @@
   MdeModulePkg/Universal/Variable/RuntimeDxe/VariableStandaloneMm.inf
 !endif
 
+[Components.IA32, Components.X64, Components.Ebc]
+  MdeModulePkg/Universal/Variable/EmuRuntimeDxe/EmuVariableRuntimeDxe.inf
+
 [Components.IA32, Components.X64]
   MdeModulePkg/Universal/DebugSupportDxe/DebugSupportDxe.inf
   MdeModulePkg/Application/SmiHandlerProfileInfo/SmiHandlerProfileInfo.inf
