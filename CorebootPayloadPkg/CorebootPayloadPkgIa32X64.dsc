@@ -34,6 +34,11 @@
   DEFINE SOURCE_DEBUG_ENABLE     = FALSE
 
   #
+  # Send logs to System76 EC
+  #
+  DEFINE SYSTEM76_EC_LOGGING     = FALSE
+
+  #
   # CPU options
   #
   DEFINE MAX_LOGICAL_PROCESSORS  = 64
@@ -207,6 +212,12 @@
   LockBoxLib|MdeModulePkg/Library/LockBoxNullLib/LockBoxNullLib.inf
   FileExplorerLib|MdeModulePkg/Library/FileExplorerLib/FileExplorerLib.inf
 
+!if $(SYSTEM76_EC_LOGGING) == TRUE
+  System76EcLib|CorebootModulePkg/Library/System76EcLib/System76EcLib.inf
+!else
+  System76EcLib|CorebootModulePkg/Library/System76EcLibNull/System76EcLibNull.inf
+!endif
+
 [LibraryClasses.IA32.SEC]
   DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
@@ -224,6 +235,10 @@
 !if $(SOURCE_DEBUG_ENABLE)
   DebugAgentLib|SourceLevelDebugPkg/Library/DebugAgent/SecPeiDebugAgentLib.inf
 !endif
+
+  # XXX: AcpiTimerLib breaks boot if enabled during PEI
+  TimerLib|MdePkg/Library/BaseTimerLibNullTemplate/BaseTimerLibNullTemplate.inf
+  System76EcLib|CorebootModulePkg/Library/System76EcLibNull/System76EcLibNull.inf
 
 [LibraryClasses.common.DXE_CORE]
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf

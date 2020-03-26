@@ -24,12 +24,14 @@
 [Packages]
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
+  CorebootModulePkg/CorebootModulePkg.dec
 
 [LibraryClasses]
   PcdLib
   IoLib
   PlatformHookLib
   PciLib
+  System76EcLib
 
 [Sources]
   BaseSerialPortLib16550.c
