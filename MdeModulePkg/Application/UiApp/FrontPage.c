@@ -492,6 +492,42 @@ GetOptionalStringByIndex (
   return EFI_SUCCESS;
 }
 
+UINT16 SmbiosTableLength (SMBIOS_STRUCTURE_POINTER SmbiosTableN)
+{
+  CHAR8  *AChar;
+  UINT16  Length;
+
+  AChar = (CHAR8 *)(SmbiosTableN.Raw + SmbiosTableN.Hdr->Length);
+  while ((*AChar != 0) || (*(AChar + 1) != 0)) {
+    AChar ++; //stop at 00 - first 0
+  }
+  Length = (UINT16)((UINTN)AChar - (UINTN)SmbiosTableN.Raw + 2); //length includes 00
+  return Length;
+}
+
+SMBIOS_STRUCTURE_POINTER GetSmbiosTableFromType (
+  SMBIOS_TABLE_ENTRY_POINT *SmbiosPoint, UINT8 SmbiosType, UINTN IndexTable)
+{
+  SMBIOS_STRUCTURE_POINTER SmbiosTableN;
+  UINTN                    SmbiosTypeIndex;
+
+  SmbiosTypeIndex = 0;
+  SmbiosTableN.Raw = (UINT8 *)((UINTN)SmbiosPoint->TableAddress);
+  if (SmbiosTableN.Raw == NULL) {
+    return SmbiosTableN;
+  }
+  while ((SmbiosTypeIndex != IndexTable) || (SmbiosTableN.Hdr->Type != SmbiosType)) {
+    if (SmbiosTableN.Hdr->Type == SMBIOS_TYPE_END_OF_TABLE) {
+      SmbiosTableN.Raw = NULL;
+      return SmbiosTableN;
+    }
+    if (SmbiosTableN.Hdr->Type == SmbiosType) {
+      SmbiosTypeIndex++;
+    }
+    SmbiosTableN.Raw = (UINT8 *)(SmbiosTableN.Raw + SmbiosTableLength (SmbiosTableN));
+  }
+  return SmbiosTableN;
+}
 
 /**
 
@@ -503,154 +539,130 @@ UpdateFrontPageBannerStrings (
   VOID
   )
 {
-  UINT8                             StrIndex;
-  CHAR16                            *NewString;
-  CHAR16                            *FirmwareVersionString;
+  CHAR16                            *MemoryStr;
   EFI_STATUS                        Status;
-  EFI_SMBIOS_HANDLE                 SmbiosHandle;
-  EFI_SMBIOS_PROTOCOL               *Smbios;
-  SMBIOS_TABLE_TYPE0                *Type0Record;
-  SMBIOS_TABLE_TYPE1                *Type1Record;
-  SMBIOS_TABLE_TYPE4                *Type4Record;
-  SMBIOS_TABLE_TYPE19               *Type19Record;
-  EFI_SMBIOS_TABLE_HEADER           *Record;
+  EFI_STRING_ID                     TokenToUpdate;
+  EFI_PHYSICAL_ADDRESS              *Table;
+  SMBIOS_TABLE_ENTRY_POINT          *EntryPoint;
+  SMBIOS_STRUCTURE_POINTER          SmbiosTable;
   UINT64                            InstalledMemory;
-  BOOLEAN                           FoundCpu;
 
   InstalledMemory = 0;
-  FoundCpu = 0;
 
   //
-  // Update default banner string.
+  // Update Front Page strings
   //
-  NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE4_LEFT), NULL);
-  UiCustomizeFrontPageBanner (4, TRUE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE4_LEFT), NewString, NULL);
-  FreePool (NewString);
+  Status = EfiGetSystemConfigurationTable (&gEfiSmbiosTableGuid, (VOID **)  &Table);
+  if (EFI_ERROR (Status) || Table == NULL) {
+  } else {
+    EntryPoint = (SMBIOS_TABLE_ENTRY_POINT*)Table;
 
-  NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE4_RIGHT), NULL);
-  UiCustomizeFrontPageBanner (4, FALSE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE4_RIGHT), NewString, NULL);
-  FreePool (NewString);
+    SmbiosTable = GetSmbiosTableFromType (EntryPoint, EFI_SMBIOS_TYPE_BIOS_INFORMATION , 0);
 
-  NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE5_LEFT), NULL);
-  UiCustomizeFrontPageBanner (5, TRUE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE5_LEFT), NewString, NULL);
-  FreePool (NewString);
+	if (SmbiosTable.Raw != NULL) {
+	  CHAR16 *FwVersion;
+	  CHAR16 *FwDate;
+	  CHAR16 *TmpBuffer;
+	  UINT8 VersionIdx;
+	  UINT8 DateIdx;
 
-  NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE5_RIGHT), NULL);
-  UiCustomizeFrontPageBanner (5, FALSE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE5_RIGHT), NewString, NULL);
-  FreePool (NewString);
+      TmpBuffer = AllocateZeroPool (0x60);
 
-  //
-  // Update Front Page banner strings base on SmBios Table.
-  //
-  Status = gBS->LocateProtocol (&gEfiSmbiosProtocolGuid, NULL, (VOID **) &Smbios);
-  if (EFI_ERROR (Status)) {
-    //
-    // Smbios protocol not found, get the default value.
-    //
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), NULL);
-    UiCustomizeFrontPageBanner (1, TRUE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), NewString, NULL);
-    FreePool (NewString);
+      VersionIdx = SmbiosTable.Type0->BiosVersion;
+      DateIdx = SmbiosTable.Type0->BiosReleaseDate;
 
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_MODEL), NULL);
-    UiCustomizeFrontPageBanner (2, TRUE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_MODEL), NewString, NULL);
-    FreePool (NewString);
+      GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), VersionIdx, &FwVersion);
+      GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), DateIdx, &FwDate);
+      
+	  StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), L"FW: ");
+      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), FwVersion);
+      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), L" ");
+      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), FwDate);
+      
+	  TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION);
+      HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, TmpBuffer, NULL);
 
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_SPEED), NULL);
-    UiCustomizeFrontPageBanner (2, FALSE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_SPEED), NewString, NULL);
-    FreePool (NewString);
+	  FreePool (FwVersion);
+	  FreePool (FwDate);
+	  FreePool (TmpBuffer);
+    }
 
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NULL);
-    UiCustomizeFrontPageBanner (3, TRUE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NewString, NULL);
-    FreePool (NewString);
+    SmbiosTable = GetSmbiosTableFromType (EntryPoint, SMBIOS_TYPE_SYSTEM_INFORMATION , 0);
+    
+	if (SmbiosTable.Raw != NULL) {
+      CHAR16 *ProductName;
+	  CHAR16 *Manufacturer;
+	  CHAR16 *DeviceName;
+	  CHAR16 *TmpBuffer;
+	  UINT8 ProductIdx;
+	  UINT8 ManIdx;
 
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_MEMORY_SIZE), NULL);
-    UiCustomizeFrontPageBanner (3, FALSE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_MEMORY_SIZE), NewString, NULL);
-    FreePool (NewString);
+	  TmpBuffer = AllocateZeroPool (0x60);
+	  DeviceName = AllocateZeroPool (0x60);
 
-    return;
-  }
+      ProductIdx = SmbiosTable.Type1->ProductName;
+      ManIdx = SmbiosTable.Type1->Manufacturer;
+      
+	  GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), ProductIdx, &ProductName);
+      GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), ManIdx, &Manufacturer);
 
-  SmbiosHandle = SMBIOS_HANDLE_PI_RESERVED;
-  Status = Smbios->GetNext (Smbios, &SmbiosHandle, NULL, &Record, NULL);
-  while (!EFI_ERROR(Status)) {
-    if (Record->Type == SMBIOS_TYPE_BIOS_INFORMATION) {
-      Type0Record = (SMBIOS_TABLE_TYPE0 *) Record;
-      StrIndex = Type0Record->BiosVersion;
-      GetOptionalStringByIndex ((CHAR8*)((UINT8*)Type0Record + Type0Record->Hdr.Length), StrIndex, &NewString);
+      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), Manufacturer);
+      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), L" ");
+      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), ProductName);
+      
+	  TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL);
+      HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, TmpBuffer, NULL);
+      
+	  FreePool (ProductName);
+	  FreePool (Manufacturer);
+	  FreePool (DeviceName);
+	  FreePool (TmpBuffer);
+	  
+    }
 
-      FirmwareVersionString = (CHAR16 *) PcdGetPtr (PcdFirmwareVersionString);
-      if (*FirmwareVersionString != 0x0000 ) {
-        FreePool (NewString);
-        NewString = (CHAR16 *) PcdGetPtr (PcdFirmwareVersionString);
-        UiCustomizeFrontPageBanner (3, TRUE, &NewString);
-        HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NewString, NULL);
+    SmbiosTable = GetSmbiosTableFromType (EntryPoint, SMBIOS_TYPE_PROCESSOR_INFORMATION , 0);
+    if (SmbiosTable.Raw != NULL) {
+	  CHAR16 *ProcessorVersion;
+	  CHAR16 *TmpBuffer;
+	  UINT8 CpuIdx;
+
+      TmpBuffer = AllocateZeroPool (0x60);
+
+	  CpuIdx = SmbiosTable.Type4->ProcessorVersion;
+
+      GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), CpuIdx, &ProcessorVersion);
+      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), ProcessorVersion);
+      
+	  // Trim leading spaces
+	  while (TmpBuffer[0] == 0x20) {
+        TmpBuffer = &TmpBuffer[1];
+      }
+      
+	  TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_CPU_MODEL);
+      HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, TmpBuffer, NULL);
+      
+	  FreePool (ProcessorVersion);
+	  FreePool (TmpBuffer);
+    }
+
+    SmbiosTable = GetSmbiosTableFromType (EntryPoint, SMBIOS_TYPE_MEMORY_ARRAY_MAPPED_ADDRESS , 0);
+    if (SmbiosTable.Raw != NULL) {
+      if (SmbiosTable.Type19->StartingAddress != 0xFFFFFFFF ) {
+        InstalledMemory += RShiftU64(SmbiosTable.Type19->EndingAddress -
+                                     SmbiosTable.Type19->StartingAddress + 1, 10);
       } else {
-        UiCustomizeFrontPageBanner (3, TRUE, &NewString);
-        HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NewString, NULL);
-        FreePool (NewString);
+        InstalledMemory += RShiftU64(SmbiosTable.Type19->ExtendedEndingAddress -
+                                     SmbiosTable.Type19->ExtendedStartingAddress + 1, 20);
       }
+
+      // now update the total installed RAM size
+      ConvertMemorySizeToString ((UINT32)InstalledMemory, &MemoryStr );
+      TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_MEMORY_SIZE);
+      HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, MemoryStr, NULL);
+      
+	  FreePool (MemoryStr);
     }
-
-    if (Record->Type == SMBIOS_TYPE_SYSTEM_INFORMATION) {
-      Type1Record = (SMBIOS_TABLE_TYPE1 *) Record;
-      StrIndex = Type1Record->ProductName;
-      GetOptionalStringByIndex ((CHAR8*)((UINT8*)Type1Record + Type1Record->Hdr.Length), StrIndex, &NewString);
-      UiCustomizeFrontPageBanner (1, TRUE, &NewString);
-      HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), NewString, NULL);
-      FreePool (NewString);
-    }
-
-    if ((Record->Type == SMBIOS_TYPE_PROCESSOR_INFORMATION) && !FoundCpu) {
-      Type4Record = (SMBIOS_TABLE_TYPE4 *) Record;
-      //
-      // The information in the record should be only valid when the CPU Socket is populated.
-      //
-      if ((Type4Record->Status & SMBIOS_TYPE4_CPU_SOCKET_POPULATED) == SMBIOS_TYPE4_CPU_SOCKET_POPULATED) {
-        StrIndex = Type4Record->ProcessorVersion;
-        GetOptionalStringByIndex ((CHAR8*)((UINT8*)Type4Record + Type4Record->Hdr.Length), StrIndex, &NewString);
-        UiCustomizeFrontPageBanner (2, TRUE, &NewString);
-        HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_MODEL), NewString, NULL);
-        FreePool (NewString);
-
-        ConvertProcessorToString(Type4Record->CurrentSpeed, 6, &NewString);
-        UiCustomizeFrontPageBanner (2, FALSE, &NewString);
-        HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_SPEED), NewString, NULL);
-        FreePool (NewString);
-
-        FoundCpu = TRUE;
-      }
-    }
-
-    if ( Record->Type == SMBIOS_TYPE_MEMORY_ARRAY_MAPPED_ADDRESS ) {
-      Type19Record = (SMBIOS_TABLE_TYPE19 *) Record;
-      if (Type19Record->StartingAddress != 0xFFFFFFFF ) {
-        InstalledMemory += RShiftU64(Type19Record->EndingAddress -
-                                     Type19Record->StartingAddress + 1, 10);
-      } else {
-        InstalledMemory += RShiftU64(Type19Record->ExtendedEndingAddress -
-                                     Type19Record->ExtendedStartingAddress + 1, 20);
-      }
-    }
-
-    Status = Smbios->GetNext (Smbios, &SmbiosHandle, NULL, &Record, NULL);
   }
-
-  //
-  // Now update the total installed RAM size
-  //
-  ConvertMemorySizeToString ((UINT32)InstalledMemory, &NewString );
-  UiCustomizeFrontPageBanner (3, FALSE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_MEMORY_SIZE), NewString, NULL);
-  FreePool (NewString);
 }
 
 /**
