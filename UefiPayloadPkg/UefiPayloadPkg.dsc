@@ -34,6 +34,11 @@
   DEFINE SECURITY_STUB_ENABLE         = TRUE
   DEFINE SMM_SUPPORT                  = FALSE
   #
+  # Send logs to System76 EC
+  #
+  DEFINE SYSTEM76_EC_LOGGING          = FALSE
+
+  #
   # SBL:      UEFI payload for Slim Bootloader
   # COREBOOT: UEFI payload for coreboot
   #
@@ -229,8 +234,13 @@
   TimerLib|UefiPayloadPkg/Library/AcpiTimerLib/AcpiTimerLib.inf
 !endif
   ResetSystemLib|UefiPayloadPkg/Library/ResetSystemLib/ResetSystemLib.inf
+!if $(SYSTEM76_EC_LOGGING) == TRUE
+  SerialPortLib|UefiPayloadPkg/Library/System76EcLib/System76EcLib.inf
+  PlatformHookLib|UefiPayloadPkg/Library/System76EcLib/System76EcLib.inf
+!else
   SerialPortLib|MdeModulePkg/Library/BaseSerialPortLib16550/BaseSerialPortLib16550.inf
   PlatformHookLib|UefiPayloadPkg/Library/PlatformHookLib/PlatformHookLib.inf
+!endif
   PlatformBootManagerLib|UefiPayloadPkg/Library/PlatformBootManagerLib/PlatformBootManagerLib.inf
   IoApicLib|PcAtChipsetPkg/Library/BaseIoApicLib/BaseIoApicLib.inf
 
