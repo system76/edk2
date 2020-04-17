@@ -18,12 +18,14 @@
 [Packages]
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
+  UefiPayloadPkg/UefiPayloadPkg.dec
 
 [LibraryClasses]
   PcdLib
   IoLib
   PlatformHookLib
   PciLib
+  System76EcLib
 
 [Sources]
   BaseSerialPortLib16550.c
