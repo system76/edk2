@@ -28,6 +28,11 @@
   DEFINE PS2_KEYBOARD_ENABLE          = TRUE
 
   #
+  # Send logs to System76 EC
+  #
+  DEFINE SYSTEM76_EC_LOGGING          = FALSE
+
+  #
   # SBL:      UEFI payload for Slim Bootloader
   # COREBOOT: UEFI payload for coreboot
   #
@@ -207,6 +212,12 @@
   TpmMeasurementLib|MdeModulePkg/Library/TpmMeasurementLibNull/TpmMeasurementLibNull.inf
   VarCheckLib|MdeModulePkg/Library/VarCheckLib/VarCheckLib.inf
 
+!if $(SYSTEM76_EC_LOGGING) == TRUE
+  System76EcLib|UefiPayloadPkg/Library/System76EcLib/System76EcLib.inf
+!else
+  System76EcLib|UefiPayloadPkg/Library/System76EcLibNull/System76EcLibNull.inf
+!endif
+
 [LibraryClasses.IA32.SEC]
   DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
@@ -224,6 +235,8 @@
 !if $(SOURCE_DEBUG_ENABLE)
   DebugAgentLib|SourceLevelDebugPkg/Library/DebugAgent/SecPeiDebugAgentLib.inf
 !endif
+
+  System76EcLib|UefiPayloadPkg/Library/System76EcLibNull/System76EcLibNull.inf
 
 [LibraryClasses.common.DXE_CORE]
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
