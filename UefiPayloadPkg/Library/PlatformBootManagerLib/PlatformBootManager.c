@@ -238,6 +238,9 @@ PlatformBootManagerAfterConsole (
       0,
       0
       );
+
+  // Inject boot logo into BGRT table
+  AddBGRT();
 }
 
 /**
