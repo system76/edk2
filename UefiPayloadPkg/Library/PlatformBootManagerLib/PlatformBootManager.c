@@ -203,6 +203,9 @@ PlatformBootManagerAfterConsole (
   // Register UEFI Shell
   //
   //PlatformRegisterFvBootOption (PcdGetPtr (PcdShellFile), L"UEFI Shell", LOAD_OPTION_ACTIVE);
+
+  // Inject boot logo into BGRT table
+  AddBGRT();
 }
 
 /**
