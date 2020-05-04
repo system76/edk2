@@ -1,7 +1,7 @@
 ## @file
 # Bootloader Payload Package
 #
-# Provides drivers and definitions to create uefi payload for bootloaders.
+# Provides drivers and definitions to create a UEFI payload for bootloaders.
 #
 # Copyright (c) 2014 - 2019, Intel Corporation. All rights reserved.<BR>
 # SPDX-License-Identifier: BSD-2-Clause-Patent
@@ -96,6 +96,10 @@
   GCC:RELEASE_*_*_CC_FLAGS       = -DMDEPKG_NDEBUG
   INTEL:RELEASE_*_*_CC_FLAGS     = /D MDEPKG_NDEBUG
   MSFT:RELEASE_*_*_CC_FLAGS      = /D MDEPKG_NDEBUG
+
+[BuildOptions.common.EDKII.DXE_RUNTIME_DRIVER]
+  GCC:*_*_*_DLINK_FLAGS = -z common-page-size=0x1000
+  CLANGPDB:*_*_*_DLINK_FLAGS = /ALIGN:4096
 
 
 ################################################################################

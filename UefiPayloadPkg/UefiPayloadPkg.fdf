@@ -1,7 +1,7 @@
 ## @file
 # Bootloader Payload Package
 #
-# Provides drivers and definitions to create uefi payload for bootloaders.
+# Provides drivers and definitions to create a UEFI payload for bootloaders.
 #
 # Copyright (c) 2014 - 2019, Intel Corporation. All rights reserved.<BR>
 # SPDX-License-Identifier: BSD-2-Clause-Patent
