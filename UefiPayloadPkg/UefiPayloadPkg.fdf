@@ -213,6 +213,10 @@ INF MdeModulePkg/Bus/Usb/UsbMassStorageDxe/UsbMassStorageDxe.inf
 #
 INF  MdeModulePkg/Universal/Acpi/AcpiTableDxe/AcpiTableDxe.inf
 
+# Random Number Generator
+#
+INF SecurityPkg/RandomNumberGenerator/RngDxe/RngDxe.inf
+
 #
 # Shell
 #
