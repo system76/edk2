@@ -11,15 +11,15 @@
 ################################################################################
 [FD.UefiPayload]
 BaseAddress   = 0x800000|gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemBase
-Size          = 0x410000|gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemSize
+Size          = 0x800000|gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemSize
 ErasePolarity = 1
 BlockSize     = 0x1000
-NumBlocks     = 0x410
+NumBlocks     = 0x800
 
-0x00000000|0x030000
+0x00000000|0x040000
 FV = PEIFV
 
-0x00030000|0x3E0000
+0x00040000|0x7C0000
 FV = DXEFV
 
 ################################################################################
@@ -50,6 +50,12 @@ INF MdeModulePkg/Universal/ReportStatusCodeRouter/Pei/ReportStatusCodeRouterPei.
 INF MdeModulePkg/Universal/StatusCodeHandler/Pei/StatusCodeHandlerPei.inf
 INF UefiPayloadPkg/BlSupportPei/BlSupportPei.inf
 INF MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
+
+!if $(TPM_ENABLE) == TRUE
+INF  UefiPayloadPkg/Tcg/Tcg2Config/Tcg2ConfigPei.inf
+INF  SecurityPkg/Tcg/TcgPei/TcgPei.inf
+INF  SecurityPkg/Tcg/Tcg2Pei/Tcg2Pei.inf
+!endif
 
 ################################################################################
 
@@ -194,6 +200,11 @@ INF MdeModulePkg/Bus/Usb/UsbBusDxe/UsbBusDxe.inf
 INF MdeModulePkg/Bus/Usb/UsbKbDxe/UsbKbDxe.inf
 INF MdeModulePkg/Bus/Usb/UsbMassStorageDxe/UsbMassStorageDxe.inf
 
+!if $(TPM_ENABLE) == TRUE
+INF  SecurityPkg/Tcg/TcgDxe/TcgDxe.inf
+INF  SecurityPkg/Tcg/Tcg2Dxe/Tcg2Dxe.inf
+INF  SecurityPkg/Tcg/Tcg2Config/Tcg2ConfigDxe.inf
+!endif
 
 #
 # Shell
