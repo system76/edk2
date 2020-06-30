@@ -1312,11 +1312,11 @@ LibUpdateFileExplorePage (
   MENU_ENTRY    *NewMenuEntry;
   FILE_CONTEXT  *NewFileContext;
   MENU_OPTION   *MenuOption;
-  BOOLEAN       CreateNewFile;
+  //BOOLEAN       CreateNewFile;
 
   NewMenuEntry   = NULL;
   NewFileContext = NULL;
-  CreateNewFile  = FALSE;
+  //CreateNewFile  = FALSE;
 
   LibRefreshUpdateData ();
   MenuOption = gFileExplorerPrivate.FsOptionMenu;
@@ -1327,6 +1327,7 @@ LibUpdateFileExplorePage (
     NewMenuEntry   = LibGetMenuEntry (MenuOption, Index);
     NewFileContext = (FILE_CONTEXT *)NewMenuEntry->VariableContext;
 
+    /*
     if (!NewFileContext->IsRoot && !CreateNewFile) {
       HiiCreateGotoOpCode (
         mLibStartOpCodeHandle,
@@ -1352,6 +1353,7 @@ LibUpdateFileExplorePage (
         );
       CreateNewFile = TRUE;
     }
+    */
 
     if (!NewFileContext->IsDir) {
       //
