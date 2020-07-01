@@ -416,7 +416,6 @@
 
   MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
 
-
 [Components.X64]
   #
   # DXE Core

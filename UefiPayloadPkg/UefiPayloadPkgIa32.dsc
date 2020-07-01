@@ -409,6 +409,7 @@
   UefiPayloadPkg/BlSupportPei/BlSupportPei.inf
 
 !if $(HDD_PASSWORD_ENABLE) == TRUE
+  MdeModulePkg/Bus/Ata/AhciPei/AhciPei.inf
   SecurityPkg/HddPassword/HddPasswordPei.inf
 !endif
 
