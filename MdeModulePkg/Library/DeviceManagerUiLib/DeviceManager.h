@@ -36,9 +36,9 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #define LABEL_END                            0xffff
 #define LABEL_FORM_ID_OFFSET                 0x0100
 
-#define DEVICE_MANAGER_FORM_ID               0x1000
-#define NETWORK_DEVICE_LIST_FORM_ID          0x1001
-#define NETWORK_DEVICE_FORM_ID               0x1002
+#define DEVICE_MANAGER_FORM_ID               0x1001
+#define NETWORK_DEVICE_LIST_FORM_ID          0x1002
+#define NETWORK_DEVICE_FORM_ID               0x1003
 #define DEVICE_KEY_OFFSET                    0x4000
 #define NETWORK_DEVICE_LIST_KEY_OFFSET       0x2000
 
