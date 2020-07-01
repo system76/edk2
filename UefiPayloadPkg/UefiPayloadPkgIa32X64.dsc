@@ -408,6 +408,7 @@
   MdeModulePkg/Universal/StatusCodeHandler/Pei/StatusCodeHandlerPei.inf
 
 !if $(HDD_PASSWORD_ENABLE) == TRUE
+  MdeModulePkg/Bus/Ata/AhciPei/AhciPei.inf
   SecurityPkg/HddPassword/HddPasswordPei.inf
 !endif
 
