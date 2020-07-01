@@ -14,9 +14,9 @@
 #define LABEL_NETWORK_DEVICE_ID            0x1102
 #define LABEL_END                          0xffff
 
-#define DEVICE_MANAGER_FORM_ID             0x1001
-#define NETWORK_DEVICE_LIST_FORM_ID        0x1002
-#define NETWORK_DEVICE_FORM_ID             0x1003
+#define DEVICE_MANAGER_FORM_ID             0x1000
+#define NETWORK_DEVICE_LIST_FORM_ID        0x1001
+#define NETWORK_DEVICE_FORM_ID             0x1002
 
 formset
   guid      = FORMSET_GUID,
@@ -26,14 +26,9 @@ formset
 
   form formid = DEVICE_MANAGER_FORM_ID,
     title  = STRING_TOKEN(STR_EDKII_MENU_TITLE);
-    subtitle text = STRING_TOKEN(STR_DEVICES_LIST);
 
     label LABEL_DEVICES_LIST;
     label LABEL_END;
-
-    subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
-    subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
-    subtitle text = STRING_TOKEN(STR_EXIT_STRING);
   endform;
 
   form formid = NETWORK_DEVICE_LIST_FORM_ID,
