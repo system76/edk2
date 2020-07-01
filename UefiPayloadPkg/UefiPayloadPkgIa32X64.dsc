@@ -266,8 +266,6 @@
   OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLib.inf
   IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
-  SmbusLib|MdePkg/Library/BaseSmbusLibNull/BaseSmbusLibNull.inf
-  S3BootScriptLib|MdeModulePkg/Library/PiDxeS3BootScriptLib/DxeS3BootScriptLib.inf
 !endif
 
 [LibraryClasses.common.DXE_RUNTIME_DRIVER]
@@ -319,7 +317,7 @@
 
 [PcdsPatchableInModule.common]
   gEfiMdePkgTokenSpaceGuid.PcdReportStatusCodePropertyMask|0x7
-  gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x8000004F
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x800000CF
 !if $(SOURCE_DEBUG_ENABLE)
   gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x17
 !else
@@ -409,12 +407,12 @@
   MdeModulePkg/Universal/ReportStatusCodeRouter/Pei/ReportStatusCodeRouterPei.inf
   MdeModulePkg/Universal/StatusCodeHandler/Pei/StatusCodeHandlerPei.inf
 
-  UefiPayloadPkg/BlSupportPei/BlSupportPei.inf
-  MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
-
 !if $(HDD_PASSWORD_ENABLE) == TRUE
   SecurityPkg/HddPassword/HddPasswordPei.inf
 !endif
+
+  UefiPayloadPkg/BlSupportPei/BlSupportPei.inf
+  MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
 
 [Components.X64]
   #
@@ -466,6 +464,10 @@
   MdeModulePkg/Universal/HiiDatabaseDxe/HiiDatabaseDxe.inf
   MdeModulePkg/Universal/SetupBrowserDxe/SetupBrowserDxe.inf
   MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
+
+!if $(HDD_PASSWORD_ENABLE) == TRUE
+  SecurityPkg/HddPassword/HddPasswordDxe.inf
+!endif
 
   UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
 
@@ -538,10 +540,6 @@
   MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
   MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
   UefiPayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
-
-!if $(HDD_PASSWORD_ENABLE) == TRUE
-  SecurityPkg/HddPassword/HddPasswordDxe.inf
-!endif
 
   #------------------------------
   #  Build the shell
