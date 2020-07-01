@@ -317,7 +317,7 @@
 
 [PcdsPatchableInModule.common]
   gEfiMdePkgTokenSpaceGuid.PcdReportStatusCodePropertyMask|0x7
-  gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x800000CF
+  gEfiMdePkgTokenSpaceGuid.PcdDebugPrintErrorLevel|0x8000004F
 !if $(SOURCE_DEBUG_ENABLE)
   gEfiMdePkgTokenSpaceGuid.PcdDebugPropertyMask|0x17
 !else
@@ -407,13 +407,15 @@
   MdeModulePkg/Universal/ReportStatusCodeRouter/Pei/ReportStatusCodeRouterPei.inf
   MdeModulePkg/Universal/StatusCodeHandler/Pei/StatusCodeHandlerPei.inf
 
+  UefiPayloadPkg/BlSupportPei/BlSupportPei.inf
+
 !if $(HDD_PASSWORD_ENABLE) == TRUE
   MdeModulePkg/Bus/Ata/AhciPei/AhciPei.inf
   SecurityPkg/HddPassword/HddPasswordPei.inf
 !endif
 
-  UefiPayloadPkg/BlSupportPei/BlSupportPei.inf
   MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
+
 
 [Components.X64]
   #
@@ -465,10 +467,6 @@
   MdeModulePkg/Universal/HiiDatabaseDxe/HiiDatabaseDxe.inf
   MdeModulePkg/Universal/SetupBrowserDxe/SetupBrowserDxe.inf
   MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
-
-!if $(HDD_PASSWORD_ENABLE) == TRUE
-  SecurityPkg/HddPassword/HddPasswordDxe.inf
-!endif
 
   UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
 
@@ -531,6 +529,10 @@
 !if $(PS2_KEYBOARD_ENABLE) == TRUE
   OvmfPkg/SioBusDxe/SioBusDxe.inf
   MdeModulePkg/Bus/Isa/Ps2KeyboardDxe/Ps2KeyboardDxe.inf
+!endif
+
+!if $(HDD_PASSWORD_ENABLE) == TRUE
+  SecurityPkg/HddPassword/HddPasswordDxe.inf
 !endif
 
   #

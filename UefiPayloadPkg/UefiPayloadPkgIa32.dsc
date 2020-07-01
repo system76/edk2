@@ -266,8 +266,6 @@
   OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLib.inf
   IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
-  SmbusLib|MdePkg/Library/BaseSmbusLibNull/BaseSmbusLibNull.inf
-  S3BootScriptLib|MdeModulePkg/Library/PiDxeS3BootScriptLib/DxeS3BootScriptLib.inf
 !endif
 
 [LibraryClasses.common.DXE_RUNTIME_DRIVER]
@@ -409,11 +407,12 @@
   MdeModulePkg/Universal/StatusCodeHandler/Pei/StatusCodeHandlerPei.inf
 
   UefiPayloadPkg/BlSupportPei/BlSupportPei.inf
-  MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
 
 !if $(HDD_PASSWORD_ENABLE) == TRUE
   SecurityPkg/HddPassword/HddPasswordPei.inf
 !endif
+
+  MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
 
 [Components.IA32]
   #
@@ -529,6 +528,10 @@
   MdeModulePkg/Bus/Isa/Ps2KeyboardDxe/Ps2KeyboardDxe.inf
 !endif
 
+!if $(HDD_PASSWORD_ENABLE) == TRUE
+  SecurityPkg/HddPassword/HddPasswordDxe.inf
+!endif
+
   #
   # Console Support
   #
@@ -537,10 +540,6 @@
   MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
   MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
   UefiPayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
-
-!if $(HDD_PASSWORD_ENABLE) == TRUE
-  SecurityPkg/HddPassword/HddPasswordDxe.inf
-!endif
 
   #------------------------------
   #  Build the shell
