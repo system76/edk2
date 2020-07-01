@@ -26,6 +26,7 @@
 
   DEFINE SOURCE_DEBUG_ENABLE          = FALSE
   DEFINE PS2_KEYBOARD_ENABLE          = TRUE
+  DEFINE TCG_OPAL_ENABLE              = TRUE
 
   #
   # Send logs to System76 EC
@@ -218,6 +219,14 @@
   System76EcLib|UefiPayloadPkg/Library/System76EcLibNull/System76EcLibNull.inf
 !endif
 
+!if $(TCG_OPAL_ENABLE) == TRUE
+  Tpm2CommandLib|SecurityPkg/Library/Tpm2CommandLib/Tpm2CommandLib.inf
+  Tcg2PhysicalPresenceLib|SecurityPkg/Library/DxeTcg2PhysicalPresenceLib/DxeTcg2PhysicalPresenceLib.inf
+  Tcg2PpVendorLib|SecurityPkg/Library/Tcg2PpVendorLibNull/Tcg2PpVendorLibNull.inf
+  TcgStorageCoreLib|SecurityPkg/Library/TcgStorageCoreLib/TcgStorageCoreLib.inf
+  TcgStorageOpalLib|SecurityPkg/Library/TcgStorageOpalLib/TcgStorageOpalLib.inf
+!endif
+
 [LibraryClasses.IA32.SEC]
   DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
@@ -234,6 +243,10 @@
   ExtractGuidedSectionLib|MdePkg/Library/PeiExtractGuidedSectionLib/PeiExtractGuidedSectionLib.inf
 !if $(SOURCE_DEBUG_ENABLE)
   DebugAgentLib|SourceLevelDebugPkg/Library/DebugAgent/SecPeiDebugAgentLib.inf
+!endif
+
+!if $(TCG_OPAL_ENABLE) == TRUE
+  Tcg2PhysicalPresenceLib|SecurityPkg/Library/PeiTcg2PhysicalPresenceLib/PeiTcg2PhysicalPresenceLib.inf
 !endif
 
   System76EcLib|UefiPayloadPkg/Library/System76EcLibNull/System76EcLibNull.inf
@@ -260,6 +273,10 @@
 !endif
   CpuExceptionHandlerLib|UefiCpuPkg/Library/CpuExceptionHandlerLib/DxeCpuExceptionHandlerLib.inf
   MpInitLib|UefiCpuPkg/Library/MpInitLib/DxeMpInitLib.inf
+
+!if $(TCG_OPAL_ENABLE) == TRUE
+  Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibTcg2/Tpm2DeviceLibTcg2.inf
+!endif
 
 [LibraryClasses.common.DXE_RUNTIME_DRIVER]
   PcdLib|MdePkg/Library/DxePcdLib/DxePcdLib.inf
@@ -401,6 +418,11 @@
   MdeModulePkg/Universal/StatusCodeHandler/Pei/StatusCodeHandlerPei.inf
 
   UefiPayloadPkg/BlSupportPei/BlSupportPei.inf
+
+!if $(TCG_OPAL_ENABLE) == TRUE
+  SecurityPkg/Tcg/Opal/OpalPassword/OpalPasswordPei.inf
+!endif
+
   MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
 
 [Components.X64]
@@ -514,6 +536,10 @@
 !if $(PS2_KEYBOARD_ENABLE) == TRUE
   OvmfPkg/SioBusDxe/SioBusDxe.inf
   MdeModulePkg/Bus/Isa/Ps2KeyboardDxe/Ps2KeyboardDxe.inf
+!endif
+
+!if $(TCG_OPAL_ENABLE) == TRUE
+  SecurityPkg/Tcg/Opal/OpalPassword/OpalPasswordDxe.inf
 !endif
 
   #
