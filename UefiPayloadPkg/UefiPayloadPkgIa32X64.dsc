@@ -26,7 +26,7 @@
 
   DEFINE SOURCE_DEBUG_ENABLE          = FALSE
   DEFINE PS2_KEYBOARD_ENABLE          = TRUE
-  DEFINE TCG_OPAL_ENABLE              = TRUE
+  DEFINE HDD_PASSWORD_ENABLE          = TRUE
 
   #
   # Send logs to System76 EC
@@ -219,11 +219,6 @@
   System76EcLib|UefiPayloadPkg/Library/System76EcLibNull/System76EcLibNull.inf
 !endif
 
-!if $(TCG_OPAL_ENABLE) == TRUE
-  TcgStorageCoreLib|SecurityPkg/Library/TcgStorageCoreLib/TcgStorageCoreLib.inf
-  TcgStorageOpalLib|SecurityPkg/Library/TcgStorageOpalLib/TcgStorageOpalLib.inf
-!endif
-
 [LibraryClasses.IA32.SEC]
   DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
@@ -243,10 +238,6 @@
 !endif
 
   System76EcLib|UefiPayloadPkg/Library/System76EcLibNull/System76EcLibNull.inf
-
-!if $(TCG_OPAL_ENABLE) == TRUE
-  Tcg2PhysicalPresenceLib|SecurityPkg/Library/PeiTcg2PhysicalPresenceLib/PeiTcg2PhysicalPresenceLib.inf
-!endif
 
 [LibraryClasses.common.DXE_CORE]
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
@@ -271,11 +262,12 @@
   CpuExceptionHandlerLib|UefiCpuPkg/Library/CpuExceptionHandlerLib/DxeCpuExceptionHandlerLib.inf
   MpInitLib|UefiCpuPkg/Library/MpInitLib/DxeMpInitLib.inf
 
-!if $(TCG_OPAL_ENABLE) == TRUE
-  Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibTcg2/Tpm2DeviceLibTcg2.inf
-  Tpm2CommandLib|SecurityPkg/Library/Tpm2CommandLib/Tpm2CommandLib.inf
-  Tcg2PhysicalPresenceLib|SecurityPkg/Library/DxeTcg2PhysicalPresenceLib/DxeTcg2PhysicalPresenceLib.inf
-  Tcg2PpVendorLib|SecurityPkg/Library/Tcg2PpVendorLibNull/Tcg2PpVendorLibNull.inf
+!if $(HDD_PASSWORD_ENABLE) == TRUE
+  OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLib.inf
+  IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
+  BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
+  SmbusLib|MdePkg/Library/BaseSmbusLibNull/BaseSmbusLibNull.inf
+  S3BootScriptLib|MdeModulePkg/Library/PiDxeS3BootScriptLib/DxeS3BootScriptLib.inf
 !endif
 
 [LibraryClasses.common.DXE_RUNTIME_DRIVER]
@@ -420,8 +412,8 @@
   UefiPayloadPkg/BlSupportPei/BlSupportPei.inf
   MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
 
-!if $(TCG_OPAL_ENABLE) == TRUE
-  SecurityPkg/Tcg/Opal/OpalPassword/OpalPasswordPei.inf
+!if $(HDD_PASSWORD_ENABLE) == TRUE
+  SecurityPkg/HddPassword/HddPasswordPei.inf
 !endif
 
 [Components.X64]
@@ -547,8 +539,8 @@
   MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
   UefiPayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
 
-!if $(TCG_OPAL_ENABLE) == TRUE
-  SecurityPkg/Tcg/Opal/OpalPassword/OpalPasswordDxe.inf
+!if $(HDD_PASSWORD_ENABLE) == TRUE
+  SecurityPkg/HddPassword/HddPasswordDxe.inf
 !endif
 
   #------------------------------

@@ -51,7 +51,7 @@ INF MdeModulePkg/Universal/StatusCodeHandler/Pei/StatusCodeHandlerPei.inf
 INF UefiPayloadPkg/BlSupportPei/BlSupportPei.inf
 INF MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
 
-INF SecurityPkg/Tcg/Opal/OpalPassword/OpalPasswordPei.inf
+INF SecurityPkg/HddPassword/HddPasswordPei.inf
 
 ################################################################################
 
@@ -195,7 +195,7 @@ INF MdeModulePkg/Bus/Usb/UsbBusDxe/UsbBusDxe.inf
 INF MdeModulePkg/Bus/Usb/UsbKbDxe/UsbKbDxe.inf
 INF MdeModulePkg/Bus/Usb/UsbMassStorageDxe/UsbMassStorageDxe.inf
 
-INF SecurityPkg/Tcg/Opal/OpalPassword/OpalPasswordDxe.inf
+INF SecurityPkg/HddPassword/HddPasswordDxe.inf
 
 #
 # Shell
