@@ -36,7 +36,6 @@
 #include <Library/PrintLib.h>
 #include <Library/UefiLib.h>
 #include <Library/LockBoxLib.h>
-#include <Library/S3BootScriptLib.h>
 #include <Library/PciLib.h>
 #include <Library/BaseCryptLib.h>
 
@@ -132,10 +131,5 @@ typedef struct {
 // Time out value for ATA pass through protocol
 //
 #define ATA_TIMEOUT        EFI_TIMER_PERIOD_SECONDS (3)
-
-typedef struct {
-  UINT32                   Address;
-  S3_BOOT_SCRIPT_LIB_WIDTH Width;
-} HDD_HC_PCI_REGISTER_SAVE;
 
 #endif
