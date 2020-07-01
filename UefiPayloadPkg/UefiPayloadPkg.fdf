@@ -49,6 +49,7 @@ INF MdeModulePkg/Universal/PCD/Pei/Pcd.inf
 INF MdeModulePkg/Universal/ReportStatusCodeRouter/Pei/ReportStatusCodeRouterPei.inf
 INF MdeModulePkg/Universal/StatusCodeHandler/Pei/StatusCodeHandlerPei.inf
 INF UefiPayloadPkg/BlSupportPei/BlSupportPei.inf
+INF SecurityPkg/Tcg/Opal/OpalPassword/OpalPasswordPei.inf
 INF MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
 
 ################################################################################
@@ -145,6 +146,8 @@ INF MdeModulePkg/Universal/SerialDxe/SerialDxe.inf
 INF OvmfPkg/SioBusDxe/SioBusDxe.inf
 INF MdeModulePkg/Bus/Isa/Ps2KeyboardDxe/Ps2KeyboardDxe.inf
 !endif
+
+INF SecurityPkg/Tcg/Opal/OpalPassword/OpalPasswordDxe.inf
 
 #
 # Console Support
