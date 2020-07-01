@@ -2819,5 +2819,5 @@ HddPasswordDxeInit (
     ASSERT_EFI_ERROR (Status);
   }
 
-  return Status;
+  return EFI_SUCCESS;
 }
