@@ -26,6 +26,12 @@
 
   DEFINE SOURCE_DEBUG_ENABLE          = FALSE
   DEFINE PS2_KEYBOARD_ENABLE          = TRUE
+  DEFINE TCG_OPAL_ENABLE              = TRUE
+
+  #
+  # Send logs to System76 EC
+  #
+  DEFINE SYSTEM76_EC_LOGGING          = FALSE
 
   #
   # SBL:      UEFI payload for Slim Bootloader
@@ -207,6 +213,17 @@
   TpmMeasurementLib|MdeModulePkg/Library/TpmMeasurementLibNull/TpmMeasurementLibNull.inf
   VarCheckLib|MdeModulePkg/Library/VarCheckLib/VarCheckLib.inf
 
+!if $(SYSTEM76_EC_LOGGING) == TRUE
+  System76EcLib|UefiPayloadPkg/Library/System76EcLib/System76EcLib.inf
+!else
+  System76EcLib|UefiPayloadPkg/Library/System76EcLibNull/System76EcLibNull.inf
+!endif
+
+!if $(TCG_OPAL_ENABLE) == TRUE
+  TcgStorageCoreLib|SecurityPkg/Library/TcgStorageCoreLib/TcgStorageCoreLib.inf
+  TcgStorageOpalLib|SecurityPkg/Library/TcgStorageOpalLib/TcgStorageOpalLib.inf
+!endif
+
 [LibraryClasses.IA32.SEC]
   DebugLib|MdePkg/Library/BaseDebugLibNull/BaseDebugLibNull.inf
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
@@ -223,6 +240,12 @@
   ExtractGuidedSectionLib|MdePkg/Library/PeiExtractGuidedSectionLib/PeiExtractGuidedSectionLib.inf
 !if $(SOURCE_DEBUG_ENABLE)
   DebugAgentLib|SourceLevelDebugPkg/Library/DebugAgent/SecPeiDebugAgentLib.inf
+!endif
+
+  System76EcLib|UefiPayloadPkg/Library/System76EcLibNull/System76EcLibNull.inf
+
+!if $(TCG_OPAL_ENABLE) == TRUE
+  Tcg2PhysicalPresenceLib|SecurityPkg/Library/PeiTcg2PhysicalPresenceLib/PeiTcg2PhysicalPresenceLib.inf
 !endif
 
 [LibraryClasses.common.DXE_CORE]
@@ -247,6 +270,13 @@
 !endif
   CpuExceptionHandlerLib|UefiCpuPkg/Library/CpuExceptionHandlerLib/DxeCpuExceptionHandlerLib.inf
   MpInitLib|UefiCpuPkg/Library/MpInitLib/DxeMpInitLib.inf
+
+!if $(TCG_OPAL_ENABLE) == TRUE
+  Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibTcg2/Tpm2DeviceLibTcg2.inf
+  Tpm2CommandLib|SecurityPkg/Library/Tpm2CommandLib/Tpm2CommandLib.inf
+  Tcg2PhysicalPresenceLib|SecurityPkg/Library/DxeTcg2PhysicalPresenceLib/DxeTcg2PhysicalPresenceLib.inf
+  Tcg2PpVendorLib|SecurityPkg/Library/Tcg2PpVendorLibNull/Tcg2PpVendorLibNull.inf
+!endif
 
 [LibraryClasses.common.DXE_RUNTIME_DRIVER]
   PcdLib|MdePkg/Library/DxePcdLib/DxePcdLib.inf
@@ -389,6 +419,10 @@
   UefiPayloadPkg/BlSupportPei/BlSupportPei.inf
   MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
 
+!if $(TCG_OPAL_ENABLE) == TRUE
+  SecurityPkg/Tcg/Opal/OpalPassword/OpalPasswordPei.inf
+!endif
+
 [Components.IA32]
   #
   # DXE Core
@@ -409,6 +443,7 @@
     <LibraryClasses>
       NULL|MdeModulePkg/Library/BootManagerUiLib/BootManagerUiLib.inf
       NULL|MdeModulePkg/Library/BootMaintenanceManagerUiLib/BootMaintenanceManagerUiLib.inf
+      NULL|MdeModulePkg/Library/DeviceManagerUiLib/DeviceManagerUiLib.inf
   }
 
   PcAtChipsetPkg/HpetTimerDxe/HpetTimerDxe.inf
@@ -510,6 +545,10 @@
   MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
   MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
   UefiPayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
+
+!if $(TCG_OPAL_ENABLE) == TRUE
+  SecurityPkg/Tcg/Opal/OpalPassword/OpalPasswordDxe.inf
+!endif
 
   #------------------------------
   #  Build the shell
