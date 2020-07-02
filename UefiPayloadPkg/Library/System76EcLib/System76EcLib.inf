@@ -21,7 +21,6 @@
 
 [LibraryClasses]
   IoLib
-  TimerLib
 
 [Sources]
   System76EcLib.c
