@@ -6,9 +6,11 @@
 
 **/
 
-#include <Library/System76EcLib.h>
 #include <Library/IoLib.h>
+#include <Library/SerialPortLib.h>
 #include <Library/TimerLib.h>
+
+#include <Library/System76EcLib.h>
 
 // From coreboot/src/drivers/system76_ec/system76_ec.c {
 #define SYSTEM76_EC_BASE 0x0E00
@@ -57,3 +59,77 @@ void system76_ec_print(UINT8 byte) {
     }
 }
 // } From coreboot/src/drivers/system76_ec/system76_ec.c
+
+RETURN_STATUS
+EFIAPI
+SerialPortInitialize (
+  VOID
+  )
+{
+    system76_ec_init();
+    return RETURN_SUCCESS;
+}
+
+UINTN
+EFIAPI
+SerialPortWrite (
+  IN UINT8     *Buffer,
+  IN UINTN     NumberOfBytes
+  )
+{
+    if (Buffer == NULL) {
+        return 0;
+    }
+
+    if (NumberOfBytes == 0) {
+        system76_ec_flush();
+        return 0;
+    }
+
+    for(UINTN i = 0; i < NumberOfBytes; i++) {
+        system76_ec_print(Buffer[i]);
+    }
+
+    return NumberOfBytes;
+}
+
+BOOLEAN
+EFIAPI
+SerialPortPoll (
+  VOID
+  )
+{
+    return FALSE;
+}
+
+RETURN_STATUS
+EFIAPI
+SerialPortGetControl (
+  OUT UINT32 *Control
+  )
+{
+    return RETURN_UNSUPPORTED;
+}
+
+RETURN_STATUS
+EFIAPI
+SerialPortSetControl (
+  IN UINT32 Control
+  )
+{
+    return RETURN_UNSUPPORTED;
+}
+
+RETURN_STATUS
+EFIAPI
+SerialPortSetAttributes (
+  IN OUT UINT64             *BaudRate,
+  IN OUT UINT32             *ReceiveFifoDepth,
+  IN OUT UINT32             *Timeout,
+  IN OUT EFI_PARITY_TYPE    *Parity,
+  IN OUT UINT8              *DataBits,
+  IN OUT EFI_STOP_BITS_TYPE *StopBits
+  )
+{
+    return RETURN_UNSUPPORTED;
+}
