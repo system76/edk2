@@ -10,8 +10,6 @@
 #include <Library/SerialPortLib.h>
 #include <Library/TimerLib.h>
 
-#include <Library/System76EcLib.h>
-
 // From coreboot/src/drivers/system76_ec/system76_ec.c {
 #define SYSTEM76_EC_BASE 0x0E00
 
