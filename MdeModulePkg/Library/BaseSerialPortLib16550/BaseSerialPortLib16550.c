@@ -17,7 +17,6 @@
 #include <Library/PciLib.h>
 #include <Library/PlatformHookLib.h>
 #include <Library/BaseLib.h>
-#include <Library/System76EcLib.h>
 
 //
 // PCI Defintions.
@@ -602,8 +601,6 @@ SerialPortWrite (
   UINTN  Result;
   UINTN  Index;
   UINTN  FifoSize;
-  UINT8  *BufPtr = Buffer;
-  UINTN  Bytes = NumberOfBytes;
 
   if (Buffer == NULL) {
     return 0;
@@ -666,9 +663,6 @@ SerialPortWrite (
       SerialPortWriteRegister (SerialRegisterBase, R_UART_TXBUF, *Buffer);
     }
   }
-
-  System76EcWrite(BufPtr, Bytes);
-
   return Result;
 }
 
