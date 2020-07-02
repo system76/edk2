@@ -2576,8 +2576,9 @@ HddPasswordNotificationEvent (
   UINTN                             FuncNum;
 
   if (mHddPasswordEndOfDxe) {
-    gBS->CloseEvent (Event);
-    return;
+    DEBUG ((DEBUG_INFO, "HddPasswordNotificationEvent EndOfDxe\n"));
+    //gBS->CloseEvent (Event);
+    //return;
   }
 
   Private = (HDD_PASSWORD_DXE_PRIVATE_DATA *)Context;
@@ -2593,6 +2594,7 @@ HddPasswordNotificationEvent (
                   &HandleBuffer
                   );
   if (EFI_ERROR (Status)) {
+    DEBUG ((DEBUG_INFO, "HddPasswordNotificationEvent LocateHandleBuffer EfiAtaPassThruProtocol error %X\n", Status));
     return ;
   }
 
@@ -2607,6 +2609,7 @@ HddPasswordNotificationEvent (
                     (VOID **) &AtaPassThru
                     );
     if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_INFO, "HddPasswordNotificationEvent %d HandleProtocol EfiAtaPassThruProtocol error %X\n", Index, Status));
       break;
     }
 
@@ -2614,6 +2617,7 @@ HddPasswordNotificationEvent (
     // Ignore those logical ATA_PASS_THRU instance.
     //
     if ((AtaPassThru->Mode->Attributes & EFI_ATA_PASS_THRU_ATTRIBUTES_PHYSICAL) == 0) {
+      DEBUG ((DEBUG_INFO, "HddPasswordNotificationEvent %d is not physical\n", Index));
       continue;
     }
 
@@ -2624,6 +2628,7 @@ HddPasswordNotificationEvent (
                     );
     ASSERT_EFI_ERROR (Status);
     if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_INFO, "HddPasswordNotificationEvent %d HandleProtocol PciIoProtocol error %x\n", Index, Status));
       break;
     }
 

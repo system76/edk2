@@ -499,6 +499,9 @@
   FatPkg/EnhancedFatDxe/Fat.inf
   MdeModulePkg/Bus/Pci/SataControllerDxe/SataControllerDxe.inf
   MdeModulePkg/Bus/Ata/AtaBusDxe/AtaBusDxe.inf
+!if $(HDD_PASSWORD_ENABLE) == TRUE
+  SecurityPkg/HddPassword/HddPasswordDxe.inf
+!endif
   MdeModulePkg/Bus/Ata/AtaAtapiPassThru/AtaAtapiPassThru.inf
   MdeModulePkg/Bus/Pci/NvmExpressDxe/NvmExpressDxe.inf
   MdeModulePkg/Bus/Scsi/ScsiBusDxe/ScsiBusDxe.inf
@@ -528,10 +531,6 @@
 !if $(PS2_KEYBOARD_ENABLE) == TRUE
   OvmfPkg/SioBusDxe/SioBusDxe.inf
   MdeModulePkg/Bus/Isa/Ps2KeyboardDxe/Ps2KeyboardDxe.inf
-!endif
-
-!if $(HDD_PASSWORD_ENABLE) == TRUE
-  SecurityPkg/HddPassword/HddPasswordDxe.inf
 !endif
 
   #
