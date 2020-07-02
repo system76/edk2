@@ -11,7 +11,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 #include "FormGuid.h"
 
-#include <Guid/TtyTerm.h>
 #include <Guid/MdeModuleHii.h>
 #include <Guid/FileSystemVolumeLabelInfo.h>
 #include <Guid/GlobalVariable.h>
@@ -20,7 +19,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Protocol/LoadFile.h>
 #include <Protocol/HiiConfigAccess.h>
 #include <Protocol/SimpleFileSystem.h>
-#include <Protocol/SerialIo.h>
 #include <Protocol/DevicePathToText.h>
 #include <Protocol/FormBrowserEx2.h>
 
@@ -50,12 +48,6 @@ typedef struct {
 #pragma pack()
 
 //
-// Constants which are variable names used to access variables
-//
-
-#define VAR_CON_OUT_MODE L"ConOutMode"
-
-//
 // Variable created with this flag will be "Efi:...."
 //
 #define VAR_FLAG  EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE
@@ -68,15 +60,6 @@ extern CHAR16   mBootMaintStorageName[];
 extern UINT8    BootMaintenanceManagerBin[];
 
 //
-// Below are the number of options in Baudrate, Databits,
-// Parity and Stopbits selection for serial ports.
-//
-#define BM_COM_ATTR_BUADRATE  19
-#define BM_COM_ATTR_DATABITS  4
-#define BM_COM_ATTR_PARITY    5
-#define BM_COM_ATTR_STOPBITS  3
-
-//
 // Callback function helper
 //
 #define BMM_CALLBACK_DATA_SIGNATURE     SIGNATURE_32 ('C', 'b', 'c', 'k')
@@ -87,38 +70,18 @@ extern UINT8    BootMaintenanceManagerBin[];
 //
 typedef UINT8 BBS_TYPE;
 
-typedef enum _TYPE_OF_TERMINAL {
-  TerminalTypePcAnsi                = 0,
-  TerminalTypeVt100,
-  TerminalTypeVt100Plus,
-  TerminalTypeVtUtf8,
-  TerminalTypeTtyTerm,
-  TerminalTypeLinux,
-  TerminalTypeXtermR6,
-  TerminalTypeVt400,
-  TerminalTypeSCO
-} TYPE_OF_TERMINAL;
-
 //
 // All of the signatures that will be used in list structure
 //
 #define BM_MENU_OPTION_SIGNATURE      SIGNATURE_32 ('m', 'e', 'n', 'u')
 #define BM_LOAD_OPTION_SIGNATURE      SIGNATURE_32 ('l', 'o', 'a', 'd')
-#define BM_CONSOLE_OPTION_SIGNATURE   SIGNATURE_32 ('c', 'n', 's', 'l')
 #define BM_FILE_OPTION_SIGNATURE      SIGNATURE_32 ('f', 'i', 'l', 'e')
 #define BM_HANDLE_OPTION_SIGNATURE    SIGNATURE_32 ('h', 'n', 'd', 'l')
-#define BM_TERMINAL_OPTION_SIGNATURE  SIGNATURE_32 ('t', 'r', 'm', 'l')
 #define BM_MENU_ENTRY_SIGNATURE       SIGNATURE_32 ('e', 'n', 't', 'r')
 
 #define BM_LOAD_CONTEXT_SELECT        0x0
-#define BM_CONSOLE_CONTEXT_SELECT     0x1
 #define BM_FILE_CONTEXT_SELECT        0x2
 #define BM_HANDLE_CONTEXT_SELECT      0x3
-#define BM_TERMINAL_CONTEXT_SELECT    0x5
-
-#define BM_CONSOLE_IN_CONTEXT_SELECT  0x6
-#define BM_CONSOLE_OUT_CONTEXT_SELECT 0x7
-#define BM_CONSOLE_ERR_CONTEXT_SELECT 0x8
 
 //
 // Buffer size for update data
@@ -137,8 +100,6 @@ typedef enum _TYPE_OF_TERMINAL {
 #define FILE_OPTION_OFFSET      0x8000
 #define FILE_OPTION_MASK        0x7FFF
 #define HANDLE_OPTION_OFFSET    0x7000
-#define CONSOLE_OPTION_OFFSET   0x6000
-#define TERMINAL_OPTION_OFFSET  0x5000
 #define CONFIG_OPTION_OFFSET    0x1200
 #define KEY_VALUE_OFFSET        0x1100
 #define FORM_ID_OFFSET          0x1000
@@ -157,114 +118,29 @@ typedef enum _TYPE_OF_TERMINAL {
 
 #define BOOT_TIME_OUT_VAR_OFFSET        VAR_OFFSET (BootTimeOut)
 #define BOOT_NEXT_VAR_OFFSET            VAR_OFFSET (BootNext)
-#define COM1_BAUD_RATE_VAR_OFFSET       VAR_OFFSET (COM1BaudRate)
-#define COM1_DATA_RATE_VAR_OFFSET       VAR_OFFSET (COM1DataRate)
-#define COM1_STOP_BITS_VAR_OFFSET       VAR_OFFSET (COM1StopBits)
-#define COM1_PARITY_VAR_OFFSET          VAR_OFFSET (COM1Parity)
-#define COM1_TERMINAL_VAR_OFFSET        VAR_OFFSET (COM2TerminalType)
-#define COM2_BAUD_RATE_VAR_OFFSET       VAR_OFFSET (COM2BaudRate)
-#define COM2_DATA_RATE_VAR_OFFSET       VAR_OFFSET (COM2DataRate)
-#define COM2_STOP_BITS_VAR_OFFSET       VAR_OFFSET (COM2StopBits)
-#define COM2_PARITY_VAR_OFFSET          VAR_OFFSET (COM2Parity)
-#define COM2_TERMINAL_VAR_OFFSET        VAR_OFFSET (COM2TerminalType)
 #define DRV_ADD_HANDLE_DESC_VAR_OFFSET  VAR_OFFSET (DriverAddHandleDesc)
 #define DRV_ADD_ACTIVE_VAR_OFFSET       VAR_OFFSET (DriverAddActive)
 #define DRV_ADD_RECON_VAR_OFFSET        VAR_OFFSET (DriverAddForceReconnect)
-#define CON_IN_COM1_VAR_OFFSET          VAR_OFFSET (ConsoleInputCOM1)
-#define CON_IN_COM2_VAR_OFFSET          VAR_OFFSET (ConsoleInputCOM2)
-#define CON_OUT_COM1_VAR_OFFSET         VAR_OFFSET (ConsoleOutputCOM1)
-#define CON_OUT_COM2_VAR_OFFSET         VAR_OFFSET (ConsoleOutputCOM2)
-#define CON_ERR_COM1_VAR_OFFSET         VAR_OFFSET (ConsoleErrorCOM1)
-#define CON_ERR_COM2_VAR_OFFSET         VAR_OFFSET (ConsoleErrorCOM2)
-#define CON_MODE_VAR_OFFSET             VAR_OFFSET (ConsoleOutMode)
-#define CON_DEVICE_VAR_OFFSET           VAR_OFFSET (ConsoleCheck)
-#define CON_IN_DEVICE_VAR_OFFSET        VAR_OFFSET (ConsoleInCheck)
-#define CON_OUT_DEVICE_VAR_OFFSET       VAR_OFFSET (ConsoleOutCheck)
-#define CON_ERR_DEVICE_VAR_OFFSET       VAR_OFFSET (ConsoleErrCheck)
 #define BOOT_OPTION_ORDER_VAR_OFFSET    VAR_OFFSET (BootOptionOrder)
 #define DRIVER_OPTION_ORDER_VAR_OFFSET  VAR_OFFSET (DriverOptionOrder)
 #define BOOT_OPTION_DEL_VAR_OFFSET      VAR_OFFSET (BootOptionDel)
 #define DRIVER_OPTION_DEL_VAR_OFFSET    VAR_OFFSET (DriverOptionDel)
 #define DRIVER_ADD_OPTION_VAR_OFFSET    VAR_OFFSET (DriverAddHandleOptionalData)
-#define COM_BAUD_RATE_VAR_OFFSET        VAR_OFFSET (COMBaudRate)
-#define COM_DATA_RATE_VAR_OFFSET        VAR_OFFSET (COMDataRate)
-#define COM_STOP_BITS_VAR_OFFSET        VAR_OFFSET (COMStopBits)
-#define COM_PARITY_VAR_OFFSET           VAR_OFFSET (COMParity)
-#define COM_TERMINAL_VAR_OFFSET         VAR_OFFSET (COMTerminalType)
-#define COM_FLOWCONTROL_VAR_OFFSET      VAR_OFFSET (COMFlowControl)
 
 #define BOOT_TIME_OUT_QUESTION_ID       QUESTION_ID (BootTimeOut)
 #define BOOT_NEXT_QUESTION_ID           QUESTION_ID (BootNext)
-#define COM1_BAUD_RATE_QUESTION_ID      QUESTION_ID (COM1BaudRate)
-#define COM1_DATA_RATE_QUESTION_ID      QUESTION_ID (COM1DataRate)
-#define COM1_STOP_BITS_QUESTION_ID      QUESTION_ID (COM1StopBits)
-#define COM1_PARITY_QUESTION_ID         QUESTION_ID (COM1Parity)
-#define COM1_TERMINAL_QUESTION_ID       QUESTION_ID (COM2TerminalType)
-#define COM2_BAUD_RATE_QUESTION_ID      QUESTION_ID (COM2BaudRate)
-#define COM2_DATA_RATE_QUESTION_ID      QUESTION_ID (COM2DataRate)
-#define COM2_STOP_BITS_QUESTION_ID      QUESTION_ID (COM2StopBits)
-#define COM2_PARITY_QUESTION_ID         QUESTION_ID (COM2Parity)
-#define COM2_TERMINAL_QUESTION_ID       QUESTION_ID (COM2TerminalType)
 #define DRV_ADD_HANDLE_DESC_QUESTION_ID QUESTION_ID (DriverAddHandleDesc)
 #define DRV_ADD_ACTIVE_QUESTION_ID      QUESTION_ID (DriverAddActive)
 #define DRV_ADD_RECON_QUESTION_ID       QUESTION_ID (DriverAddForceReconnect)
-#define CON_IN_COM1_QUESTION_ID         QUESTION_ID (ConsoleInputCOM1)
-#define CON_IN_COM2_QUESTION_ID         QUESTION_ID (ConsoleInputCOM2)
-#define CON_OUT_COM1_QUESTION_ID        QUESTION_ID (ConsoleOutputCOM1)
-#define CON_OUT_COM2_QUESTION_ID        QUESTION_ID (ConsoleOutputCOM2)
-#define CON_ERR_COM1_QUESTION_ID        QUESTION_ID (ConsoleErrorCOM1)
-#define CON_ERR_COM2_QUESTION_ID        QUESTION_ID (ConsoleErrorCOM2)
-#define CON_MODE_QUESTION_ID            QUESTION_ID (ConsoleOutMode)
-#define CON_DEVICE_QUESTION_ID          QUESTION_ID (ConsoleCheck)
-#define CON_IN_DEVICE_QUESTION_ID       QUESTION_ID (ConsoleInCheck)
-#define CON_OUT_DEVICE_QUESTION_ID      QUESTION_ID (ConsoleOutCheck)
-#define CON_ERR_DEVICE_QUESTION_ID      QUESTION_ID (ConsoleErrCheck)
 #define BOOT_OPTION_ORDER_QUESTION_ID   QUESTION_ID (BootOptionOrder)
 #define DRIVER_OPTION_ORDER_QUESTION_ID QUESTION_ID (DriverOptionOrder)
 #define BOOT_OPTION_DEL_QUESTION_ID     QUESTION_ID (BootOptionDel)
 #define DRIVER_OPTION_DEL_QUESTION_ID   QUESTION_ID (DriverOptionDel)
 #define DRIVER_ADD_OPTION_QUESTION_ID   QUESTION_ID (DriverAddHandleOptionalData)
-#define COM_BAUD_RATE_QUESTION_ID       QUESTION_ID (COMBaudRate)
-#define COM_DATA_RATE_QUESTION_ID       QUESTION_ID (COMDataRate)
-#define COM_STOP_BITS_QUESTION_ID       QUESTION_ID (COMStopBits)
-#define COM_PARITY_QUESTION_ID          QUESTION_ID (COMParity)
-#define COM_TERMINAL_QUESTION_ID        QUESTION_ID (COMTerminalType)
-#define COM_FLOWCONTROL_QUESTION_ID     QUESTION_ID (COMFlowControl)
 
 #define STRING_DEPOSITORY_NUMBER        8
 
 #define NONE_BOOTNEXT_VALUE             (0xFFFF + 1)
-
-///
-/// Serial Ports attributes, first one is the value for
-/// return from callback function, stringtoken is used to
-/// display the value properly
-///
-typedef struct {
-  UINTN   Value;
-  UINT16  StringToken;
-} COM_ATTR;
-
-typedef struct {
-  UINT64                    BaudRate;
-  UINT8                     DataBits;
-  UINT8                     Parity;
-  UINT8                     StopBits;
-
-  UINT8                     BaudRateIndex;
-  UINT8                     DataBitsIndex;
-  UINT8                     ParityIndex;
-  UINT8                     StopBitsIndex;
-
-  UINT8                     FlowControl;
-
-  UINT8                     IsConIn;
-  UINT8                     IsConOut;
-  UINT8                     IsStdErr;
-  UINT8                     TerminalType;
-
-  EFI_DEVICE_PATH_PROTOCOL  *DevicePath;
-} BM_TERMINAL_CONTEXT;
 
 typedef struct {
   BOOLEAN                   IsBootNext;
@@ -278,20 +154,6 @@ typedef struct {
   EFI_DEVICE_PATH_PROTOCOL  *FilePathList;
   UINT8                     *OptionalData;
 } BM_LOAD_CONTEXT;
-
-typedef struct {
-
-  BOOLEAN                   IsActive;
-
-  BOOLEAN                   IsTerminal;
-
-  EFI_DEVICE_PATH_PROTOCOL  *DevicePath;
-} BM_CONSOLE_CONTEXT;
-
-typedef struct {
-  UINTN   Column;
-  UINTN   Row;
-} CONSOLE_OUT_MODE;
 
 typedef struct {
   EFI_HANDLE                        Handle;
@@ -346,8 +208,6 @@ typedef struct {
   BM_HANDLE_CONTEXT              *HandleContext;
   BM_FILE_CONTEXT                *FileContext;
   BM_LOAD_CONTEXT                *LoadContext;
-  BM_TERMINAL_CONTEXT            *TerminalContext;
-  UINTN                          CurrentTerminal;
   BBS_TYPE                       BbsType;
 
   //
@@ -525,92 +385,6 @@ GetDriverOrder (
   );
 
 //
-// Locate all serial io devices for console
-//
-/**
-  Build a list containing all serial devices.
-
-  @retval EFI_SUCCESS The function complete successfully.
-  @retval EFI_UNSUPPORTED No serial ports present.
-
-**/
-EFI_STATUS
-LocateSerialIo (
-  VOID
-  );
-
-//
-// Initializing Console menu
-//
-/**
-  Build up ConsoleOutMenu, ConsoleInpMenu and ConsoleErrMenu
-
-  @retval EFI_SUCCESS    The function always complete successfully.
-
-**/
-EFI_STATUS
-GetAllConsoles(
-  VOID
-  );
-
-//
-// Get current mode information
-//
-/**
-  Get mode number according to column and row
-
-  @param CallbackData    The BMM context data.
-**/
-VOID
-GetConsoleOutMode (
-  IN  BMM_CALLBACK_DATA    *CallbackData
-  );
-
-//
-// Cleaning up console menu
-//
-/**
-  Free ConsoleOutMenu, ConsoleInpMenu and ConsoleErrMenu
-
-  @retval EFI_SUCCESS    The function always complete successfully.
-**/
-EFI_STATUS
-FreeAllConsoles (
-  VOID
-  );
-
-/**
-  Update the device path that describing a terminal device
-  based on the new BaudRate, Data Bits, parity and Stop Bits
-  set.
-
-  @param DevicePath     The devicepath protocol instance wanted to be updated.
-
-**/
-VOID
-ChangeVariableDevicePath (
-  IN OUT EFI_DEVICE_PATH_PROTOCOL  *DevicePath
-  );
-
-/**
-  Update the multi-instance device path of Terminal Device based on
-  the global TerminalMenu. If ChangeTernimal is TRUE, the terminal
-  device path in the Terminal Device in TerminalMenu is also updated.
-
-  @param DevicePath      The multi-instance device path.
-  @param ChangeTerminal  TRUE, then device path in the Terminal Device
-                         in TerminalMenu is also updated; FALSE, no update.
-
-  @return EFI_SUCCESS    The function completes successfully.
-
-**/
-EFI_STATUS
-ChangeTerminalDevicePath (
-  IN OUT EFI_DEVICE_PATH_PROTOCOL  *DevicePath,
-  IN BOOLEAN                   ChangeTerminal
-  );
-
-//
 // Variable operation by menu selection
 //
 /**
@@ -682,53 +456,6 @@ Var_DelDriverOption (
   );
 
 /**
-  This function delete and build multi-instance device path ConIn
-  console device.
-
-  @retval EFI_SUCCESS    The function complete successfully.
-  @return The EFI variable can not be saved. See gRT->SetVariable for detail return information.
-**/
-EFI_STATUS
-Var_UpdateConsoleInpOption (
-  VOID
-  );
-
-/**
-  This function delete and build multi-instance device path ConOut console device.
-
-  @retval EFI_SUCCESS    The function complete successfully.
-  @return The EFI variable can not be saved. See gRT->SetVariable for detail return information.
-**/
-EFI_STATUS
-Var_UpdateConsoleOutOption (
-  VOID
-  );
-
-/**
-  This function delete and build multi-instance device path ErrOut console device.
-
-  @retval EFI_SUCCESS    The function complete successfully.
-  @return The EFI variable can not be saved. See gRT->SetVariable for detail return information.
-**/
-EFI_STATUS
-Var_UpdateErrorOutOption (
-  VOID
-  );
-
-/**
-  This function delete and build Out of Band console device.
-
-  @param   MenuIndex   Menu index which user select in the terminal menu list.
-
-  @retval EFI_SUCCESS    The function complete successfully.
-  @return The EFI variable can not be saved. See gRT->SetVariable for detail return information.
-**/
-EFI_STATUS
-Var_UpdateOutOfBandOption (
-  IN  UINT16           MenuIndex
-  );
-
-/**
   This function update the "BootNext" EFI Variable. If there is no "BootNex" specified in BMM,
   this EFI Variable is deleted.
   It also update the BMM context data specified the "BootNext" value.
@@ -774,20 +501,6 @@ Var_UpdateBootOrder (
 **/
 EFI_STATUS
 Var_UpdateDriverOrder (
-  IN BMM_CALLBACK_DATA            *CallbackData
-  );
-
-/**
-  Update the Text Mode of Console.
-
-  @param CallbackData  The context data for BMM.
-
-  @retval EFI_SUCCSS If the Text Mode of Console is updated.
-  @return Other value if the Text Mode of Console is not updated.
-
-**/
-EFI_STATUS
-Var_UpdateConMode (
   IN BMM_CALLBACK_DATA            *CallbackData
   );
 
@@ -879,38 +592,6 @@ UpdateDriverAddHandleDescPage (
 VOID
 UpdatePageBody (
   IN UINT16                           UpdatePageId,
-  IN BMM_CALLBACK_DATA                *CallbackData
-  );
-
-/**
-  Create the dynamic page which allows user to set the property such as Baud Rate, Data Bits,
-  Parity, Stop Bits, Terminal Type.
-
-  @param CallbackData    The BMM context data.
-**/
-VOID
-UpdateTerminalPage (
-  IN BMM_CALLBACK_DATA                *CallbackData
-  );
-
-/**
-  Refresh the text mode page
-
-  @param CallbackData    The BMM context data.
-**/
-VOID
-UpdateConModePage (
-  IN BMM_CALLBACK_DATA                *CallbackData
-  );
-
-/**
-  Create a list of Goto Opcode for all terminal devices logged
-  by TerminaMenu. This list will be inserted to form FORM_CON_COM_SETUP_ID.
-
-  @param CallbackData    The BMM context data.
-**/
-VOID
-UpdateConCOMPage (
   IN BMM_CALLBACK_DATA                *CallbackData
   );
 
@@ -1055,74 +736,6 @@ VOID
 InitBootMaintenance(
   VOID
   );
-
-/**
-
-  Initialize console input device check box to ConsoleInCheck[MAX_MENU_NUMBER]
-  in BMM_FAKE_NV_DATA structure.
-
-  @param CallbackData    The BMM context data.
-
-**/
-VOID
-GetConsoleInCheck (
-  IN  BMM_CALLBACK_DATA    *CallbackData
-  );
-
-/**
-
-  Initialize console output device check box to ConsoleOutCheck[MAX_MENU_NUMBER]
-  in BMM_FAKE_NV_DATA structure.
-
-  @param CallbackData    The BMM context data.
-
-**/
-VOID
-GetConsoleOutCheck (
-  IN  BMM_CALLBACK_DATA    *CallbackData
-  );
-
-/**
-
-  Initialize standard error output device check box to ConsoleErrCheck[MAX_MENU_NUMBER]
-  in BMM_FAKE_NV_DATA structure.
-
-  @param CallbackData    The BMM context data.
-
-**/
-VOID
-GetConsoleErrCheck (
-  IN  BMM_CALLBACK_DATA    *CallbackData
-  );
-
-/**
-
-  Initialize terminal attributes (baudrate, data rate, stop bits, parity and terminal type)
-  to BMM_FAKE_NV_DATA structure.
-
-  @param CallbackData    The BMM context data.
-
-**/
-VOID
-GetTerminalAttribute (
-  IN  BMM_CALLBACK_DATA    *CallbackData
-  );
-
-/**
-  This function will change video resolution and text mode
-  according to defined setup mode or defined boot mode
-
-  @param  IsSetupMode   Indicate mode is changed to setup mode or boot mode.
-
-  @retval  EFI_SUCCESS  Mode is changed successfully.
-  @retval  Others             Mode failed to be changed.
-
-**/
-EFI_STATUS
-BmmSetConsoleMode (
-  BOOLEAN  IsSetupMode
-  );
-
 
 /**
   This function converts an input device structure to a Unicode string.
@@ -1300,20 +913,7 @@ BootFromFile (
 //
 extern BM_MENU_OPTION             BootOptionMenu;
 extern BM_MENU_OPTION             DriverOptionMenu;
-extern BM_MENU_OPTION             ConsoleInpMenu;
-extern BM_MENU_OPTION             ConsoleOutMenu;
-extern BM_MENU_OPTION             ConsoleErrMenu;
 extern BM_MENU_OPTION             DriverMenu;
-extern BM_MENU_OPTION             TerminalMenu;
-extern UINT16                     TerminalType[9];
-extern COM_ATTR                   BaudRateList[19];
-extern COM_ATTR                   DataBitsList[4];
-extern COM_ATTR                   ParityList[5];
-extern COM_ATTR                   StopBitsList[3];
-extern EFI_GUID                   TerminalTypeGuid[9];
-extern EFI_DEVICE_PATH_PROTOCOL   EndDevicePath[];
-extern UINT16                     mFlowControlType[2];
-extern UINT32                     mFlowControlValue[2];
 
 //
 // Shared IFR form update data

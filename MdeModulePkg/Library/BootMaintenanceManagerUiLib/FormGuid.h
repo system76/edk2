@@ -20,10 +20,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #define FORM_DRV_ADD_ID                      0x1005
 #define FORM_DRV_DEL_ID                      0x1006
 #define FORM_DRV_CHG_ID                      0x1007
-#define FORM_CON_MAIN_ID                     0x1008
-#define FORM_CON_IN_ID                       0x1009
-#define FORM_CON_OUT_ID                      0x100A
-#define FORM_CON_ERR_ID                      0x100B
 #define FORM_FILE_SEEK_ID                    0x100C
 #define FORM_FILE_NEW_SEEK_ID                0x100D
 #define FORM_DRV_ADD_FILE_ID                 0x100E
@@ -34,21 +30,13 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #define FORM_BOOT_SETUP_ID                   0x1014
 #define FORM_DRIVER_SETUP_ID                 0x1015
 #define FORM_BOOT_LEGACY_DEVICE_ID           0x1016
-#define FORM_CON_COM_ID                      0x1017
-#define FORM_CON_COM_SETUP_ID                0x1018
 #define FORM_BOOT_ADD_DESCRIPTION_ID         0x101F
 #define FORM_DRIVER_ADD_FILE_DESCRIPTION_ID  0x1020
-#define FORM_CON_MODE_ID                     0x1021
 #define FORM_BOOT_FROM_FILE_ID               0x1024
 
 
 #define MAXIMUM_FORM_ID                      0x10FF
 
-#define KEY_VALUE_COM_SET_BAUD_RATE          0x1101
-#define KEY_VALUE_COM_SET_DATA_BITS          0x1102
-#define KEY_VALUE_COM_SET_STOP_BITS          0x1103
-#define KEY_VALUE_COM_SET_PARITY             0x1104
-#define KEY_VALUE_COM_SET_TERMI_TYPE         0x1105
 #define KEY_VALUE_MAIN_BOOT_NEXT             0x1106
 #define KEY_VALUE_BOOT_ADD_DESC_DATA         0x1107
 #define KEY_VALUE_BOOT_ADD_OPT_DATA          0x1108
@@ -103,52 +91,12 @@ typedef struct {
   UINT32  BootNext;
 
   //
-  // This is the COM1 Attributes value storage
-  //
-  UINT8   COM1BaudRate;
-  UINT8   COM1DataRate;
-  UINT8   COM1StopBits;
-  UINT8   COM1Parity;
-  UINT8   COM1TerminalType;
-
-  //
-  // This is the COM2 Attributes value storage
-  //
-  UINT8   COM2BaudRate;
-  UINT8   COM2DataRate;
-  UINT8   COM2StopBits;
-  UINT8   COM2Parity;
-  UINT8   COM2TerminalType;
-
-  //
   // Driver Option Add Handle page storage
   //
   UINT16  DriverAddHandleDesc[MAX_MENU_NUMBER];
   UINT16  DriverAddHandleOptionalData[MAX_MENU_NUMBER];
   UINT8   DriverAddActive;
   UINT8   DriverAddForceReconnect;
-
-  //
-  // Console Input/Output/Errorout using COM port check storage
-  //
-  UINT8   ConsoleInputCOM1;
-  UINT8   ConsoleInputCOM2;
-  UINT8   ConsoleOutputCOM1;
-  UINT8   ConsoleOutputCOM2;
-  UINT8   ConsoleErrorCOM1;
-  UINT8   ConsoleErrorCOM2;
-
-  //
-  // At most 100 input/output/errorout device for console storage
-  //
-  UINT8   ConsoleCheck[MAX_MENU_NUMBER];
-
-  //
-  // At most 100 input/output/errorout device for console storage
-  //
-  UINT8   ConsoleInCheck[MAX_MENU_NUMBER];
-  UINT8   ConsoleOutCheck[MAX_MENU_NUMBER];
-  UINT8   ConsoleErrCheck[MAX_MENU_NUMBER];
 
   //
   // Boot or Driver Option Order storage
@@ -166,27 +114,12 @@ typedef struct {
   BOOLEAN DriverOptionDelMark[MAX_MENU_NUMBER];
 
   //
-  // This is the Terminal Attributes value storage
-  //
-  UINT8   COMBaudRate[MAX_MENU_NUMBER];
-  UINT8   COMDataRate[MAX_MENU_NUMBER];
-  UINT8   COMStopBits[MAX_MENU_NUMBER];
-  UINT8   COMParity[MAX_MENU_NUMBER];
-  UINT8   COMTerminalType[MAX_MENU_NUMBER];
-  UINT8   COMFlowControl[MAX_MENU_NUMBER];
-
-  //
   // We use DisableMap array to record the enable/disable state of each boot device
   // It should be taken as a bit array, from left to right there are totally 256 bits
   // the most left one stands for BBS table item 0, and the most right one stands for item 256
   // If the bit is 1, it means the boot device has been disabled.
   //
   UINT8   DisableMap[32];
-
-  //
-  // Console Output Text Mode
-  //
-  UINT16  ConsoleOutMode;
 
   //
   //  UINT16                    PadArea[10];

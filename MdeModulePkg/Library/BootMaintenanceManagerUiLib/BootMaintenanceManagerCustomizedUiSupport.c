@@ -186,30 +186,7 @@ BmmCreateDriverOptionMenu (
 }
 
 /**
-  Create Com Option menu in the page.
-
-  @param[in]    HiiHandle           The hii handle for the Uiapp driver.
-  @param[in]    StartOpCodeHandle   The opcode handle to save the new opcode.
-
-**/
-VOID
-BmmCreateComOptionMenu (
-  IN EFI_HII_HANDLE              HiiHandle,
-  IN VOID                        *StartOpCodeHandle
-  )
-{
-  HiiCreateGotoOpCode (
-    StartOpCodeHandle,
-    FORM_CON_MAIN_ID,
-    STRING_TOKEN (STR_FORM_CON_MAIN_TITLE),
-    STRING_TOKEN (STR_FORM_CON_MAIN_HELP),
-    EFI_IFR_FLAG_CALLBACK,
-    FORM_CON_MAIN_ID
-    );
-}
-
-/**
-  Create Com Option menu in the page.
+  Create Boot From File menu in the page.
 
   @param[in]    HiiHandle           The hii handle for the Uiapp driver.
   @param[in]    StartOpCodeHandle   The opcode handle to save the new opcode.

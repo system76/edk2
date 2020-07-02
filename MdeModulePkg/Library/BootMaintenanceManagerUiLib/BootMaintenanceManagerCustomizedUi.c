@@ -33,10 +33,6 @@ UiCustomizeBMMPage (
   //
   //BmmCreateDriverOptionMenu(HiiHandle, StartOpCodeHandle);
   //
-  // Create "Com Option" menu.
-  //
-  //BmmCreateComOptionMenu(HiiHandle, StartOpCodeHandle);
-  //
   // Create "Boot From File" menu.
   //
   BmmCreateBootFromFileMenu(HiiHandle, StartOpCodeHandle);

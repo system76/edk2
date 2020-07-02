@@ -9,33 +9,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "BootMaintenanceManager.h"
 
 #define FRONT_PAGE_KEY_OFFSET          0x4000
-//
-// Boot video resolution and text mode.
-//
-UINT32    mBmmBootHorizontalResolution    = 0;
-UINT32    mBmmBootVerticalResolution      = 0;
-UINT32    mBmmBootTextModeColumn          = 0;
-UINT32    mBmmBootTextModeRow             = 0;
-//
-// BIOS setup video resolution and text mode.
-//
-UINT32    mBmmSetupTextModeColumn         = 0;
-UINT32    mBmmSetupTextModeRow            = 0;
-UINT32    mBmmSetupHorizontalResolution   = 0;
-UINT32    mBmmSetupVerticalResolution     = 0;
-
-BOOLEAN   mBmmModeInitialized             = FALSE;
-
-EFI_DEVICE_PATH_PROTOCOL  EndDevicePath[] = {
-  {
-    END_DEVICE_PATH_TYPE,
-    END_ENTIRE_DEVICE_PATH_SUBTYPE,
-    {
-      END_DEVICE_PATH_LENGTH,
-      0
-    }
-  }
-};
 
 HII_VENDOR_DEVICE_PATH  mBmmHiiVendorDevicePath = {
   {
@@ -109,219 +82,6 @@ VOID
 CustomizeMenus (
   VOID
   );
-
-/**
-  This function will change video resolution and text mode
-  according to defined setup mode or defined boot mode
-
-  @param  IsSetupMode   Indicate mode is changed to setup mode or boot mode.
-
-  @retval  EFI_SUCCESS  Mode is changed successfully.
-  @retval  Others       Mode failed to be changed.
-
-**/
-EFI_STATUS
-BmmSetConsoleMode (
-  BOOLEAN  IsSetupMode
-  )
-{
-  EFI_GRAPHICS_OUTPUT_PROTOCOL          *GraphicsOutput;
-  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL       *SimpleTextOut;
-  UINTN                                 SizeOfInfo;
-  EFI_GRAPHICS_OUTPUT_MODE_INFORMATION  *Info;
-  UINT32                                MaxGopMode;
-  UINT32                                MaxTextMode;
-  UINT32                                ModeNumber;
-  UINT32                                NewHorizontalResolution;
-  UINT32                                NewVerticalResolution;
-  UINT32                                NewColumns;
-  UINT32                                NewRows;
-  UINTN                                 HandleCount;
-  EFI_HANDLE                            *HandleBuffer;
-  EFI_STATUS                            Status;
-  UINTN                                 Index;
-  UINTN                                 CurrentColumn;
-  UINTN                                 CurrentRow;
-
-  MaxGopMode  = 0;
-  MaxTextMode = 0;
-
-  //
-  // Get current video resolution and text mode
-  //
-  Status = gBS->HandleProtocol (
-                  gST->ConsoleOutHandle,
-                  &gEfiGraphicsOutputProtocolGuid,
-                  (VOID**)&GraphicsOutput
-                  );
-  if (EFI_ERROR (Status)) {
-    GraphicsOutput = NULL;
-  }
-
-  Status = gBS->HandleProtocol (
-                  gST->ConsoleOutHandle,
-                  &gEfiSimpleTextOutProtocolGuid,
-                  (VOID**)&SimpleTextOut
-                  );
-  if (EFI_ERROR (Status)) {
-    SimpleTextOut = NULL;
-  }
-
-  if ((GraphicsOutput == NULL) || (SimpleTextOut == NULL)) {
-    return EFI_UNSUPPORTED;
-  }
-
-  if (IsSetupMode) {
-    //
-    // The required resolution and text mode is setup mode.
-    //
-    NewHorizontalResolution = mBmmSetupHorizontalResolution;
-    NewVerticalResolution   = mBmmSetupVerticalResolution;
-    NewColumns              = mBmmSetupTextModeColumn;
-    NewRows                 = mBmmSetupTextModeRow;
-  } else {
-    //
-    // The required resolution and text mode is boot mode.
-    //
-    NewHorizontalResolution = mBmmBootHorizontalResolution;
-    NewVerticalResolution   = mBmmBootVerticalResolution;
-    NewColumns              = mBmmBootTextModeColumn;
-    NewRows                 = mBmmBootTextModeRow;
-  }
-
-  if (GraphicsOutput != NULL) {
-    MaxGopMode  = GraphicsOutput->Mode->MaxMode;
-  }
-
-  if (SimpleTextOut != NULL) {
-    MaxTextMode = SimpleTextOut->Mode->MaxMode;
-  }
-
-  //
-  // 1. If current video resolution is same with required video resolution,
-  //    video resolution need not be changed.
-  //    1.1. If current text mode is same with required text mode, text mode need not be changed.
-  //    1.2. If current text mode is different from required text mode, text mode need be changed.
-  // 2. If current video resolution is different from required video resolution, we need restart whole console drivers.
-  //
-  for (ModeNumber = 0; ModeNumber < MaxGopMode; ModeNumber++) {
-    Status = GraphicsOutput->QueryMode (
-                       GraphicsOutput,
-                       ModeNumber,
-                       &SizeOfInfo,
-                       &Info
-                       );
-    if (!EFI_ERROR (Status)) {
-      if ((Info->HorizontalResolution == NewHorizontalResolution) &&
-          (Info->VerticalResolution == NewVerticalResolution)) {
-        if ((GraphicsOutput->Mode->Info->HorizontalResolution == NewHorizontalResolution) &&
-            (GraphicsOutput->Mode->Info->VerticalResolution == NewVerticalResolution)) {
-          //
-          // Current resolution is same with required resolution, check if text mode need be set
-          //
-          Status = SimpleTextOut->QueryMode (SimpleTextOut, SimpleTextOut->Mode->Mode, &CurrentColumn, &CurrentRow);
-          ASSERT_EFI_ERROR (Status);
-          if (CurrentColumn == NewColumns && CurrentRow == NewRows) {
-            //
-            // If current text mode is same with required text mode. Do nothing
-            //
-            FreePool (Info);
-            return EFI_SUCCESS;
-          } else {
-            //
-            // If current text mode is different from required text mode.  Set new video mode
-            //
-            for (Index = 0; Index < MaxTextMode; Index++) {
-              Status = SimpleTextOut->QueryMode (SimpleTextOut, Index, &CurrentColumn, &CurrentRow);
-              if (!EFI_ERROR(Status)) {
-                if ((CurrentColumn == NewColumns) && (CurrentRow == NewRows)) {
-                  //
-                  // Required text mode is supported, set it.
-                  //
-                  Status = SimpleTextOut->SetMode (SimpleTextOut, Index);
-                  ASSERT_EFI_ERROR (Status);
-                  //
-                  // Update text mode PCD.
-                  //
-                  Status = PcdSet32S (PcdConOutColumn, mBmmSetupTextModeColumn);
-                  ASSERT_EFI_ERROR (Status);
-                  Status = PcdSet32S (PcdConOutRow, mBmmSetupTextModeRow);
-                  ASSERT_EFI_ERROR (Status);
-                  FreePool (Info);
-                  return EFI_SUCCESS;
-                }
-              }
-            }
-            if (Index == MaxTextMode) {
-              //
-              // If required text mode is not supported, return error.
-              //
-              FreePool (Info);
-              return EFI_UNSUPPORTED;
-            }
-          }
-        } else {
-          //
-          // If current video resolution is not same with the new one, set new video resolution.
-          // In this case, the driver which produces simple text out need be restarted.
-          //
-          Status = GraphicsOutput->SetMode (GraphicsOutput, ModeNumber);
-          if (!EFI_ERROR (Status)) {
-            FreePool (Info);
-            break;
-          }
-        }
-      }
-      FreePool (Info);
-    }
-  }
-
-  if (ModeNumber == MaxGopMode) {
-    //
-    // If the resolution is not supported, return error.
-    //
-    return EFI_UNSUPPORTED;
-  }
-
-  //
-  // Set PCD to Inform GraphicsConsole to change video resolution.
-  // Set PCD to Inform Consplitter to change text mode.
-  //
-  Status = PcdSet32S (PcdVideoHorizontalResolution, NewHorizontalResolution);
-  ASSERT_EFI_ERROR (Status);
-  Status = PcdSet32S (PcdVideoVerticalResolution, NewVerticalResolution);
-  ASSERT_EFI_ERROR (Status);
-  Status = PcdSet32S (PcdConOutColumn, NewColumns);
-  ASSERT_EFI_ERROR (Status);
-  Status = PcdSet32S (PcdConOutRow, NewRows);
-  ASSERT_EFI_ERROR (Status);
-
-  //
-  // Video mode is changed, so restart graphics console driver and higher level driver.
-  // Reconnect graphics console driver and higher level driver.
-  // Locate all the handles with GOP protocol and reconnect it.
-  //
-  Status = gBS->LocateHandleBuffer (
-                   ByProtocol,
-                   &gEfiSimpleTextOutProtocolGuid,
-                   NULL,
-                   &HandleCount,
-                   &HandleBuffer
-                   );
-  if (!EFI_ERROR (Status)) {
-    for (Index = 0; Index < HandleCount; Index++) {
-      gBS->DisconnectController (HandleBuffer[Index], NULL, NULL);
-    }
-    for (Index = 0; Index < HandleCount; Index++) {
-      gBS->ConnectController (HandleBuffer[Index], NULL, NULL, TRUE);
-    }
-    if (HandleBuffer != NULL) {
-      FreePool (HandleBuffer);
-    }
-  }
-
-  return EFI_SUCCESS;
-}
 
 /**
   This function converts an input device structure to a Unicode string.
@@ -523,109 +283,6 @@ UpdateProgress(
 }
 
 /**
-  Update the terminal content in TerminalMenu.
-
-  @param BmmData           The BMM fake NV data.
-
-**/
-VOID
-UpdateTerminalContent (
-  IN BMM_FAKE_NV_DATA       *BmmData
-  )
-{
-  UINT16                          Index;
-  BM_TERMINAL_CONTEXT             *NewTerminalContext;
-  BM_MENU_ENTRY                   *NewMenuEntry;
-
-  for (Index = 0; Index < TerminalMenu.MenuNumber; Index++) {
-    NewMenuEntry = BOpt_GetMenuEntry (&TerminalMenu, Index);
-    ASSERT (NewMenuEntry != NULL);
-    NewTerminalContext = (BM_TERMINAL_CONTEXT *) NewMenuEntry->VariableContext;
-    NewTerminalContext->BaudRateIndex = BmmData->COMBaudRate[Index];
-    ASSERT (BmmData->COMBaudRate[Index] < (ARRAY_SIZE (BaudRateList)));
-    NewTerminalContext->BaudRate      = BaudRateList[BmmData->COMBaudRate[Index]].Value;
-    NewTerminalContext->DataBitsIndex = BmmData->COMDataRate[Index];
-    ASSERT (BmmData->COMDataRate[Index] < (ARRAY_SIZE (DataBitsList)));
-    NewTerminalContext->DataBits      = (UINT8) DataBitsList[BmmData->COMDataRate[Index]].Value;
-    NewTerminalContext->StopBitsIndex = BmmData->COMStopBits[Index];
-    ASSERT (BmmData->COMStopBits[Index] < (ARRAY_SIZE (StopBitsList)));
-    NewTerminalContext->StopBits      = (UINT8) StopBitsList[BmmData->COMStopBits[Index]].Value;
-    NewTerminalContext->ParityIndex   = BmmData->COMParity[Index];
-    ASSERT (BmmData->COMParity[Index] < (ARRAY_SIZE (ParityList)));
-    NewTerminalContext->Parity        = (UINT8) ParityList[BmmData->COMParity[Index]].Value;
-    NewTerminalContext->TerminalType  = BmmData->COMTerminalType[Index];
-    NewTerminalContext->FlowControl   = BmmData->COMFlowControl[Index];
-    ChangeTerminalDevicePath (
-      NewTerminalContext->DevicePath,
-      FALSE
-      );
-  }
-}
-
-/**
-  Update the console content in ConsoleMenu.
-
-  @param ConsoleName       The name for the console device type.
-  @param BmmData           The BMM fake NV data.
-
-**/
-VOID
-UpdateConsoleContent(
-  IN CHAR16                 *ConsoleName,
-  IN BMM_FAKE_NV_DATA       *BmmData
-  )
-{
-  UINT16                          Index;
-  BM_CONSOLE_CONTEXT              *NewConsoleContext;
-  BM_TERMINAL_CONTEXT             *NewTerminalContext;
-  BM_MENU_ENTRY                   *NewMenuEntry;
-
-  if (StrCmp (ConsoleName, L"ConIn") == 0) {
-    for (Index = 0; Index < ConsoleInpMenu.MenuNumber; Index++){
-      NewMenuEntry                = BOpt_GetMenuEntry(&ConsoleInpMenu, Index);
-      NewConsoleContext           = (BM_CONSOLE_CONTEXT *)NewMenuEntry->VariableContext;
-      ASSERT (Index < MAX_MENU_NUMBER);
-      NewConsoleContext->IsActive = BmmData->ConsoleInCheck[Index];
-    }
-    for (Index = 0; Index < TerminalMenu.MenuNumber; Index++) {
-      NewMenuEntry                = BOpt_GetMenuEntry (&TerminalMenu, Index);
-      NewTerminalContext          = (BM_TERMINAL_CONTEXT *) NewMenuEntry->VariableContext;
-      ASSERT (Index + ConsoleInpMenu.MenuNumber < MAX_MENU_NUMBER);
-      NewTerminalContext->IsConIn = BmmData->ConsoleInCheck[Index + ConsoleInpMenu.MenuNumber];
-    }
-  }
-
-  if (StrCmp (ConsoleName, L"ConOut") == 0) {
-    for (Index = 0; Index < ConsoleOutMenu.MenuNumber; Index++){
-      NewMenuEntry                = BOpt_GetMenuEntry(&ConsoleOutMenu, Index);
-      NewConsoleContext           = (BM_CONSOLE_CONTEXT *)NewMenuEntry->VariableContext;
-      ASSERT (Index < MAX_MENU_NUMBER);
-      NewConsoleContext->IsActive = BmmData->ConsoleOutCheck[Index];
-    }
-    for (Index = 0; Index < TerminalMenu.MenuNumber; Index++) {
-      NewMenuEntry                = BOpt_GetMenuEntry (&TerminalMenu, Index);
-      NewTerminalContext          = (BM_TERMINAL_CONTEXT *) NewMenuEntry->VariableContext;
-      ASSERT (Index + ConsoleOutMenu.MenuNumber < MAX_MENU_NUMBER);
-      NewTerminalContext->IsConOut = BmmData->ConsoleOutCheck[Index + ConsoleOutMenu.MenuNumber];
-    }
-  }
-  if (StrCmp (ConsoleName, L"ErrOut") == 0) {
-    for (Index = 0; Index < ConsoleErrMenu.MenuNumber; Index++){
-      NewMenuEntry                = BOpt_GetMenuEntry(&ConsoleErrMenu, Index);
-      NewConsoleContext           = (BM_CONSOLE_CONTEXT *)NewMenuEntry->VariableContext;
-      ASSERT (Index < MAX_MENU_NUMBER);
-      NewConsoleContext->IsActive = BmmData->ConsoleErrCheck[Index];
-    }
-    for (Index = 0; Index < TerminalMenu.MenuNumber; Index++) {
-      NewMenuEntry                = BOpt_GetMenuEntry (&TerminalMenu, Index);
-      NewTerminalContext          = (BM_TERMINAL_CONTEXT *) NewMenuEntry->VariableContext;
-      ASSERT (Index + ConsoleErrMenu.MenuNumber < MAX_MENU_NUMBER);
-      NewTerminalContext->IsStdErr = BmmData->ConsoleErrCheck[Index + ConsoleErrMenu.MenuNumber];
-    }
-  }
-}
-
-/**
   This function allows a caller to extract the current configuration for one
   or more named elements from the target driver.
 
@@ -774,7 +431,6 @@ BootMaintRouteConfig (
   BM_MENU_ENTRY                   *NewMenuEntry;
   BM_LOAD_CONTEXT                 *NewLoadContext;
   UINT16                          Index;
-  BOOLEAN                         TerminalAttChange;
   BMM_CALLBACK_DATA               *Private;
   UINTN                           Offset;
 
@@ -907,85 +563,6 @@ BootMaintRouteConfig (
     Status = Var_UpdateDriverOrder (Private);
     if (EFI_ERROR (Status)) {
       Offset = OFFSET_OF (BMM_FAKE_NV_DATA, DriverOptionOrder);
-      goto Exit;
-    }
-  }
-
-  if (CompareMem (&NewBmmData->ConsoleOutMode, &OldBmmData->ConsoleOutMode, sizeof (NewBmmData->ConsoleOutMode)) != 0){
-    Status = Var_UpdateConMode(Private);
-    if (EFI_ERROR (Status)) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, ConsoleOutMode);
-      goto Exit;
-    }
-  }
-
-  TerminalAttChange = FALSE;
-  for (Index = 0; Index < TerminalMenu.MenuNumber; Index++) {
-
-    //
-    // only need update modified items
-    //
-    if (CompareMem (&NewBmmData->COMBaudRate[Index], &OldBmmData->COMBaudRate[Index], sizeof (NewBmmData->COMBaudRate[Index])) == 0 &&
-         CompareMem (&NewBmmData->COMDataRate[Index], &OldBmmData->COMDataRate[Index], sizeof (NewBmmData->COMDataRate[Index])) == 0 &&
-         CompareMem (&NewBmmData->COMStopBits[Index], &OldBmmData->COMStopBits[Index], sizeof (NewBmmData->COMStopBits[Index])) == 0 &&
-         CompareMem (&NewBmmData->COMParity[Index], &OldBmmData->COMParity[Index], sizeof (NewBmmData->COMParity[Index])) == 0 &&
-         CompareMem (&NewBmmData->COMTerminalType[Index], &OldBmmData->COMTerminalType[Index], sizeof (NewBmmData->COMTerminalType[Index])) == 0 &&
-         CompareMem (&NewBmmData->COMFlowControl[Index], &OldBmmData->COMFlowControl[Index], sizeof (NewBmmData->COMFlowControl[Index])) == 0) {
-      continue;
-    }
-
-    TerminalAttChange = TRUE;
-  }
-  if (TerminalAttChange) {
-    if (CompareMem (&NewBmmData->COMBaudRate[Index], &OldBmmData->COMBaudRate[Index], sizeof (NewBmmData->COMBaudRate[Index])) != 0) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, COMBaudRate);
-    } else if (CompareMem (&NewBmmData->COMDataRate[Index], &OldBmmData->COMDataRate[Index], sizeof (NewBmmData->COMDataRate[Index])) != 0) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, COMDataRate);
-    } else if (CompareMem (&NewBmmData->COMStopBits[Index], &OldBmmData->COMStopBits[Index], sizeof (NewBmmData->COMStopBits[Index])) != 0) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, COMStopBits);
-    } else if (CompareMem (&NewBmmData->COMParity[Index], &OldBmmData->COMParity[Index], sizeof (NewBmmData->COMParity[Index])) != 0) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, COMParity);
-    } else if (CompareMem (&NewBmmData->COMTerminalType[Index], &OldBmmData->COMTerminalType[Index], sizeof (NewBmmData->COMTerminalType[Index])) != 0) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, COMTerminalType);
-    } else if (CompareMem (&NewBmmData->COMFlowControl[Index], &OldBmmData->COMFlowControl[Index], sizeof (NewBmmData->COMFlowControl[Index])) != 0) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, COMFlowControl);
-    }
-    Status = Var_UpdateConsoleInpOption ();
-    if (EFI_ERROR (Status)) {
-      goto Exit;
-    }
-    Status = Var_UpdateConsoleOutOption ();
-    if (EFI_ERROR (Status)) {
-      goto Exit;
-    }
-    Status = Var_UpdateErrorOutOption ();
-    if (EFI_ERROR (Status)) {
-      goto Exit;
-    }
-  }
-  //
-  // Check data which located in Console Options Menu and save the settings if need
-  //
-  if (CompareMem (NewBmmData->ConsoleInCheck, OldBmmData->ConsoleInCheck, sizeof (NewBmmData->ConsoleInCheck)) != 0){
-    Status = Var_UpdateConsoleInpOption();
-    if (EFI_ERROR (Status)) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, ConsoleInCheck);
-      goto Exit;
-    }
-  }
-
-  if (CompareMem (NewBmmData->ConsoleOutCheck, OldBmmData->ConsoleOutCheck, sizeof (NewBmmData->ConsoleOutCheck)) != 0){
-    Status = Var_UpdateConsoleOutOption();
-    if (EFI_ERROR (Status)) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, ConsoleOutCheck);
-      goto Exit;
-    }
-  }
-
-  if (CompareMem (NewBmmData->ConsoleErrCheck, OldBmmData->ConsoleErrCheck, sizeof (NewBmmData->ConsoleErrCheck)) != 0){
-    Status = Var_UpdateErrorOutOption();
-    if (EFI_ERROR (Status)) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, ConsoleErrCheck);
       goto Exit;
     }
   }
@@ -1158,32 +735,9 @@ BootMaintCallback (
           UpdateDrvDelPage (Private);
           break;
 
-        case FORM_CON_IN_ID:
-        case FORM_CON_OUT_ID:
-        case FORM_CON_ERR_ID:
-          UpdatePageBody (QuestionId, Private);
-          break;
-
-        case FORM_CON_MODE_ID:
-          CleanUpPage (FORM_CON_MODE_ID, Private);
-          UpdateConModePage (Private);
-          break;
-
-        case FORM_CON_COM_ID:
-          CleanUpPage (FORM_CON_COM_ID, Private);
-          UpdateConCOMPage (Private);
-          break;
-
         default:
           break;
         }
-      } else if ((QuestionId >= TERMINAL_OPTION_OFFSET) && (QuestionId < CONSOLE_OPTION_OFFSET)) {
-        Index                  = (UINT16) (QuestionId - TERMINAL_OPTION_OFFSET);
-        Private->CurrentTerminal  = Index;
-
-        CleanUpPage (FORM_CON_COM_SETUP_ID, Private);
-        UpdateTerminalPage (Private);
-
       } else if (QuestionId >= HANDLE_OPTION_OFFSET) {
         Index                  = (UINT16) (QuestionId - HANDLE_OPTION_OFFSET);
 
@@ -1282,22 +836,6 @@ BootMaintCallback (
       default:
         break;
       }
-    }
-    //
-    // Update the content in Terminal menu and Console menu here.
-    //
-    if (QuestionId == COM_BAUD_RATE_QUESTION_ID + Private->CurrentTerminal || QuestionId == COM_DATA_RATE_QUESTION_ID + Private->CurrentTerminal ||
-      QuestionId == COM_PARITY_QUESTION_ID + Private->CurrentTerminal || QuestionId == COM_STOP_BITS_QUESTION_ID + Private->CurrentTerminal ||
-      QuestionId == COM_TERMINAL_QUESTION_ID + Private->CurrentTerminal || QuestionId == COM_FLOWCONTROL_QUESTION_ID + Private->CurrentTerminal
-    ) {
-      UpdateTerminalContent(CurrentFakeNVMap);
-    }
-    if ((QuestionId >= CON_IN_DEVICE_QUESTION_ID) && (QuestionId < CON_IN_DEVICE_QUESTION_ID + MAX_MENU_NUMBER)) {
-      UpdateConsoleContent (L"ConIn",CurrentFakeNVMap);
-    } else if ((QuestionId >= CON_OUT_DEVICE_QUESTION_ID) && (QuestionId < CON_OUT_DEVICE_QUESTION_ID + MAX_MENU_NUMBER)) {
-      UpdateConsoleContent (L"ConOut", CurrentFakeNVMap);
-    } else if ((QuestionId >= CON_ERR_DEVICE_QUESTION_ID) && (QuestionId < CON_ERR_DEVICE_QUESTION_ID + MAX_MENU_NUMBER)) {
-      UpdateConsoleContent (L"ErrOut", CurrentFakeNVMap);
     }
   }
 
@@ -1498,15 +1036,6 @@ InitializeBmmConfig (
   //
   GetDriverOrder (CallbackData);
 
-  //
-  // Initialize data which located in Console Options Menu
-  //
-  GetConsoleOutMode (CallbackData);
-  GetConsoleInCheck (CallbackData);
-  GetConsoleOutCheck (CallbackData);
-  GetConsoleErrCheck (CallbackData);
-  GetTerminalAttribute (CallbackData);
-
   CallbackData->BmmFakeNvData.ForceReconnect = TRUE;
 
   //
@@ -1531,12 +1060,6 @@ InitAllMenu (
   BOpt_GetBootOptions (CallbackData);
   BOpt_GetDriverOptions (CallbackData);
   BOpt_FindDrivers ();
-  InitializeListHead (&ConsoleInpMenu.Head);
-  InitializeListHead (&ConsoleOutMenu.Head);
-  InitializeListHead (&ConsoleErrMenu.Head);
-  InitializeListHead (&TerminalMenu.Head);
-  LocateSerialIo ();
-  GetAllConsoles ();
   mAllMenuInit = TRUE;
 }
 
@@ -1555,79 +1078,7 @@ FreeAllMenu (
   BOpt_FreeMenu (&BootOptionMenu);
   BOpt_FreeMenu (&DriverOptionMenu);
   BOpt_FreeMenu (&DriverMenu);
-  FreeAllConsoles ();
   mAllMenuInit = FALSE;
-}
-
-/**
-  Initial the boot mode related parameters.
-
-**/
-VOID
-BmmInitialBootModeInfo (
-  VOID
-  )
-{
-  EFI_STATUS                         Status;
-  EFI_GRAPHICS_OUTPUT_PROTOCOL       *GraphicsOutput;
-  EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL    *SimpleTextOut;
-  UINTN                              BootTextColumn;
-  UINTN                              BootTextRow;
-
-  if (mBmmModeInitialized) {
-    return;
-  }
-
-  //
-  // After the console is ready, get current video resolution
-  // and text mode before launching setup at first time.
-  //
-  Status = gBS->HandleProtocol (
-                  gST->ConsoleOutHandle,
-                  &gEfiGraphicsOutputProtocolGuid,
-                  (VOID**)&GraphicsOutput
-                  );
-  if (EFI_ERROR (Status)) {
-    GraphicsOutput = NULL;
-  }
-
-  Status = gBS->HandleProtocol (
-                  gST->ConsoleOutHandle,
-                  &gEfiSimpleTextOutProtocolGuid,
-                  (VOID**)&SimpleTextOut
-                  );
-  if (EFI_ERROR (Status)) {
-    SimpleTextOut = NULL;
-  }
-
-  if (GraphicsOutput != NULL) {
-    //
-    // Get current video resolution and text mode.
-    //
-    mBmmBootHorizontalResolution = GraphicsOutput->Mode->Info->HorizontalResolution;
-    mBmmBootVerticalResolution   = GraphicsOutput->Mode->Info->VerticalResolution;
-  }
-
-  if (SimpleTextOut != NULL) {
-    Status = SimpleTextOut->QueryMode (
-                              SimpleTextOut,
-                              SimpleTextOut->Mode->Mode,
-                              &BootTextColumn,
-                              &BootTextRow
-                              );
-    mBmmBootTextModeColumn = (UINT32)BootTextColumn;
-    mBmmBootTextModeRow    = (UINT32)BootTextRow;
-  }
-
-  //
-  // Get user defined text mode for setup.
-  //
-  mBmmSetupHorizontalResolution = PcdGet32 (PcdSetupVideoHorizontalResolution);
-  mBmmSetupVerticalResolution   = PcdGet32 (PcdSetupVideoVerticalResolution);
-  mBmmSetupTextModeColumn       = PcdGet32 (PcdSetupConOutColumn);
-  mBmmSetupTextModeRow          = PcdGet32 (PcdSetupConOutRow);
-
-  mBmmModeInitialized           = TRUE;
 }
 
 /**
@@ -1715,8 +1166,6 @@ BootMaintenanceManagerUiLibConstructor (
   // Update boot maintenance manager page
   //
   InitializeBmmConfig(mBmmCallbackInfo);
-
-  BmmInitialBootModeInfo();
 
   return EFI_SUCCESS;
 }

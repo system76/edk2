@@ -91,14 +91,6 @@ BOpt_CreateMenuEntry (
     ContextSize = sizeof (BM_FILE_CONTEXT);
     break;
 
-  case BM_CONSOLE_CONTEXT_SELECT:
-    ContextSize = sizeof (BM_CONSOLE_CONTEXT);
-    break;
-
-  case BM_TERMINAL_CONTEXT_SELECT:
-    ContextSize = sizeof (BM_TERMINAL_CONTEXT);
-    break;
-
   case BM_HANDLE_CONTEXT_SELECT:
     ContextSize = sizeof (BM_HANDLE_CONTEXT);
     break;
@@ -144,8 +136,6 @@ BOpt_DestroyMenuEntry (
 {
   BM_LOAD_CONTEXT           *LoadContext;
   BM_FILE_CONTEXT           *FileContext;
-  BM_CONSOLE_CONTEXT        *ConsoleContext;
-  BM_TERMINAL_CONTEXT       *TerminalContext;
   BM_HANDLE_CONTEXT         *HandleContext;
 
   //
@@ -179,18 +169,6 @@ BOpt_DestroyMenuEntry (
       FreePool (FileContext->Info);
     }
     FreePool (FileContext);
-    break;
-
-  case BM_CONSOLE_CONTEXT_SELECT:
-    ConsoleContext = (BM_CONSOLE_CONTEXT *) MenuEntry->VariableContext;
-    FreePool (ConsoleContext->DevicePath);
-    FreePool (ConsoleContext);
-    break;
-
-  case BM_TERMINAL_CONTEXT_SELECT:
-    TerminalContext = (BM_TERMINAL_CONTEXT *) MenuEntry->VariableContext;
-    FreePool (TerminalContext->DevicePath);
-    FreePool (TerminalContext);
     break;
 
   case BM_HANDLE_CONTEXT_SELECT:
@@ -927,9 +905,7 @@ BootFromFile (
     //
     BmmSetupResetReminder ();
 
-    BmmSetConsoleMode (FALSE);
     EfiBootManagerBoot (&BootOption);
-    BmmSetConsoleMode (TRUE);
 
     FreePool(FileName);
 
