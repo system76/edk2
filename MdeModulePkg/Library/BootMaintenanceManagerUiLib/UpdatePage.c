@@ -241,167 +241,8 @@ UpdateBootDelPage (
 }
 
 /**
-  Create a lit of driver option from global DriverMenu.
-
-  @param CallbackData    The BMM context data.
-
-**/
-VOID
-UpdateDrvAddHandlePage (
-  IN BMM_CALLBACK_DATA                *CallbackData
-  )
-{
-  BM_MENU_ENTRY *NewMenuEntry;
-  UINT16        Index;
-
-  CallbackData->BmmAskSaveOrNot = FALSE;
-
-  UpdatePageStart (CallbackData);
-
-  for (Index = 0; Index < DriverMenu.MenuNumber; Index++) {
-    NewMenuEntry = BOpt_GetMenuEntry (&DriverMenu, Index);
-
-    HiiCreateGotoOpCode (
-      mStartOpCodeHandle,
-      FORM_DRV_ADD_HANDLE_DESC_ID,
-      NewMenuEntry->DisplayStringToken,
-      STRING_TOKEN (STR_NULL_STRING),
-      EFI_IFR_FLAG_CALLBACK,
-      (UINT16) (HANDLE_OPTION_OFFSET + Index)
-      );
-  }
-
-  UpdatePageEnd (CallbackData);
-}
-
-/**
-  Create a lit of driver option from global DriverOptionMenu. It
-  allow user to delete the driver option.
-
-  @param CallbackData    The BMM context data.
-
-**/
-VOID
-UpdateDrvDelPage (
-  IN BMM_CALLBACK_DATA                *CallbackData
-  )
-{
-  BM_MENU_ENTRY   *NewMenuEntry;
-  BM_LOAD_CONTEXT *NewLoadContext;
-  UINT16          Index;
-
-  CallbackData->BmmAskSaveOrNot = TRUE;
-
-  UpdatePageStart (CallbackData);
-
-  ASSERT (DriverOptionMenu.MenuNumber <= (sizeof (CallbackData->BmmFakeNvData.DriverOptionDel) / sizeof (CallbackData->BmmFakeNvData.DriverOptionDel[0])));
-  for (Index = 0; Index < DriverOptionMenu.MenuNumber; Index++) {
-    NewMenuEntry            = BOpt_GetMenuEntry (&DriverOptionMenu, Index);
-
-    NewLoadContext          = (BM_LOAD_CONTEXT *) NewMenuEntry->VariableContext;
-    NewLoadContext->Deleted = FALSE;
-
-    if (CallbackData->BmmFakeNvData.DriverOptionDel[Index] && !CallbackData->BmmFakeNvData.DriverOptionDelMark[Index]) {
-      //
-      // CallbackData->BmmFakeNvData.BootOptionDel[Index] == TRUE means browser knows this boot option is selected
-      // CallbackData->BmmFakeNvData.BootOptionDelMark[Index] = FALSE means BDS knows the selected boot option has
-      // deleted, browser maintains old useless info. So clear this info here, and later update this info to browser
-      // through HiiSetBrowserData function.
-      //
-      CallbackData->BmmFakeNvData.DriverOptionDel[Index] = FALSE;
-      CallbackData->BmmOldFakeNVData.DriverOptionDel[Index] = FALSE;
-    }
-    HiiCreateCheckBoxOpCode (
-      mStartOpCodeHandle,
-      (EFI_QUESTION_ID) (DRIVER_OPTION_DEL_QUESTION_ID + Index),
-      VARSTORE_ID_BOOT_MAINT,
-      (UINT16) (DRIVER_OPTION_DEL_VAR_OFFSET + Index),
-      NewMenuEntry->DisplayStringToken,
-      NewMenuEntry->HelpStringToken,
-      EFI_IFR_FLAG_CALLBACK,
-      0,
-      NULL
-      );
-  }
-
-  UpdatePageEnd (CallbackData);
-}
-
-/**
-  Prepare the page to allow user to add description for
-  a Driver Option.
-
-  @param CallbackData    The BMM context data.
-
-**/
-VOID
-UpdateDriverAddHandleDescPage (
-  IN BMM_CALLBACK_DATA                *CallbackData
-  )
-{
-  BM_MENU_ENTRY *NewMenuEntry;
-
-  CallbackData->BmmFakeNvData.DriverAddActive          = 0x01;
-  CallbackData->BmmFakeNvData.DriverAddForceReconnect  = 0x00;
-  CallbackData->BmmAskSaveOrNot                        = TRUE;
-  NewMenuEntry = CallbackData->MenuEntry;
-
-  UpdatePageStart (CallbackData);
-
-  HiiCreateSubTitleOpCode (
-    mStartOpCodeHandle,
-    NewMenuEntry->DisplayStringToken,
-    0,
-    0,
-    0
-    );
-
-  HiiCreateStringOpCode (
-    mStartOpCodeHandle,
-    (EFI_QUESTION_ID) DRV_ADD_HANDLE_DESC_QUESTION_ID,
-    VARSTORE_ID_BOOT_MAINT,
-    DRV_ADD_HANDLE_DESC_VAR_OFFSET,
-    STRING_TOKEN (STR_LOAD_OPTION_DESC),
-    STRING_TOKEN (STR_NULL_STRING),
-    0,
-    0,
-    6,
-    75,
-    NULL
-    );
-
-  HiiCreateCheckBoxOpCode (
-    mStartOpCodeHandle,
-    (EFI_QUESTION_ID) DRV_ADD_RECON_QUESTION_ID,
-    VARSTORE_ID_BOOT_MAINT,
-    DRV_ADD_RECON_VAR_OFFSET,
-    STRING_TOKEN (STR_LOAD_OPTION_FORCE_RECON),
-    STRING_TOKEN (STR_LOAD_OPTION_FORCE_RECON),
-    0,
-    0,
-    NULL
-    );
-
-  HiiCreateStringOpCode (
-    mStartOpCodeHandle,
-    (EFI_QUESTION_ID) DRIVER_ADD_OPTION_QUESTION_ID,
-    VARSTORE_ID_BOOT_MAINT,
-    DRIVER_ADD_OPTION_VAR_OFFSET,
-    STRING_TOKEN (STR_OPTIONAL_DATA),
-    STRING_TOKEN (STR_NULL_STRING),
-    0,
-    0,
-    6,
-    75,
-    NULL
-    );
-
-  UpdatePageEnd (CallbackData);
-}
-
-/**
   Update the page's NV Map if user has changed the order
-  a list. This list can be Boot Order or Driver Order.
+  a list. This list can be Boot Order.
 
   @param UpdatePageId    The form ID to be updated.
   @param OptionMenu      The new list.
@@ -445,21 +286,6 @@ UpdateOrderPage (
     OptionOrder = CallbackData->BmmFakeNvData.BootOptionOrder;
     QuestionId = BOOT_OPTION_ORDER_QUESTION_ID;
     VarOffset = BOOT_OPTION_ORDER_VAR_OFFSET;
-    break;
-
-  case FORM_DRV_CHG_ID:
-    //
-    // If the DriverOptionOrder in the BmmFakeNvData are same with the date in the BmmOldFakeNVData,
-    // means all Driver Options has been save in DriverOptionMenu, we can get the DriverOptionOrder from the menu.
-    // else means browser maintains some uncommitted date which are not saved in DriverOptionMenu,
-    // so we should not get the data from DriverOptionMenu to show it.
-    //
-    if (CompareMem (CallbackData->BmmFakeNvData.DriverOptionOrder, CallbackData->BmmOldFakeNVData.DriverOptionOrder, sizeof (CallbackData->BmmFakeNvData.DriverOptionOrder)) == 0) {
-      GetDriverOrder (CallbackData);
-    }
-    OptionOrder = CallbackData->BmmFakeNvData.DriverOptionOrder;
-    QuestionId = DRIVER_OPTION_ORDER_QUESTION_ID;
-    VarOffset = DRIVER_OPTION_ORDER_VAR_OFFSET;
     break;
   }
   ASSERT (OptionOrder != NULL);
@@ -512,7 +338,7 @@ UpdateOrderPage (
 }
 
 /**
-Update add boot/driver option page.
+Update add boot option page.
 
 @param CallbackData    The BMM context data.
 @param FormId             The form ID to be updated.
@@ -548,13 +374,6 @@ UpdateOptionPage(
       ZeroMem (CallbackData->BmmFakeNvData.BootDescriptionData, sizeof (CallbackData->BmmFakeNvData.BootDescriptionData));
       ZeroMem (CallbackData->BmmOldFakeNVData.BootOptionalData, sizeof (CallbackData->BmmOldFakeNVData.BootOptionalData));
       ZeroMem (CallbackData->BmmOldFakeNVData.BootDescriptionData, sizeof (CallbackData->BmmOldFakeNVData.BootDescriptionData));
-    }
-  } else if (FormId == FORM_DRV_ADD_FILE_ID){
-    if (!CallbackData->BmmFakeNvData.DriverOptionChanged) {
-      ZeroMem (CallbackData->BmmFakeNvData.DriverOptionalData, sizeof (CallbackData->BmmFakeNvData.DriverOptionalData));
-      ZeroMem (CallbackData->BmmFakeNvData.DriverDescriptionData, sizeof (CallbackData->BmmFakeNvData.DriverDescriptionData));
-      ZeroMem (CallbackData->BmmOldFakeNVData.DriverOptionalData, sizeof (CallbackData->BmmOldFakeNVData.DriverOptionalData));
-      ZeroMem (CallbackData->BmmOldFakeNVData.DriverDescriptionData, sizeof (CallbackData->BmmOldFakeNVData.DriverDescriptionData));
     }
   }
 
@@ -598,10 +417,6 @@ UpdatePageBody (
     UpdateOrderPage (UpdatePageId, &BootOptionMenu, CallbackData);
     break;
 
-  case FORM_DRV_CHG_ID:
-    UpdateOrderPage (UpdatePageId, &DriverOptionMenu, CallbackData);
-    break;
-
   default:
     break;
   }
@@ -620,12 +435,7 @@ UpdatePageId (
   UINT16                         NewPageId
   )
 {
-  if ((NewPageId < FILE_OPTION_OFFSET) && (NewPageId >= HANDLE_OPTION_OFFSET)) {
-    //
-    // If we select a handle to add driver option, advance to the add handle description page.
-    //
-    NewPageId = FORM_DRV_ADD_HANDLE_DESC_ID;
-  } else if ((NewPageId == KEY_VALUE_SAVE_AND_EXIT) || (NewPageId == KEY_VALUE_NO_SAVE_AND_EXIT)) {
+  if ((NewPageId == KEY_VALUE_SAVE_AND_EXIT) || (NewPageId == KEY_VALUE_NO_SAVE_AND_EXIT)) {
     //
     // Return to main page after "Save Changes" or "Discard Changes".
     //

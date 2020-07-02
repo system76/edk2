@@ -21,21 +21,3 @@ BM_MENU_OPTION      BootOptionMenu = {
   {NULL},
   0
 };
-
-///
-/// Driver Option from variable menu
-///
-BM_MENU_OPTION      DriverOptionMenu = {
-  BM_MENU_OPTION_SIGNATURE,
-  {NULL},
-  0
-};
-
-///
-/// Handles in current system selection menu
-///
-BM_MENU_OPTION      DriverMenu = {
-  BM_MENU_OPTION_SIGNATURE,
-  {NULL},
-  0
-};

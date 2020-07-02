@@ -539,34 +539,6 @@ BootMaintRouteConfig (
     Private->BmmOldFakeNVData.BootTimeOut = NewBmmData->BootTimeOut;
   }
 
-  //
-  // Check data which located in Driver Options Menu and save the settings if need
-  //
-  if (CompareMem (NewBmmData->DriverOptionDel, OldBmmData->DriverOptionDel, sizeof (NewBmmData->DriverOptionDel)) != 0) {
-    for (Index = 0;
-         ((Index < DriverOptionMenu.MenuNumber) && (Index < (sizeof (NewBmmData->DriverOptionDel) / sizeof (NewBmmData->DriverOptionDel[0]))));
-         Index++) {
-      NewMenuEntry            = BOpt_GetMenuEntry (&DriverOptionMenu, Index);
-      NewLoadContext          = (BM_LOAD_CONTEXT *) NewMenuEntry->VariableContext;
-      NewLoadContext->Deleted = NewBmmData->DriverOptionDel[Index];
-      NewBmmData->DriverOptionDel[Index] = FALSE;
-      NewBmmData->DriverOptionDelMark[Index] = FALSE;
-    }
-    Status = Var_DelDriverOption ();
-    if (EFI_ERROR (Status)) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, DriverOptionDel);
-      goto Exit;
-    }
-  }
-
-  if (CompareMem (NewBmmData->DriverOptionOrder, OldBmmData->DriverOptionOrder, sizeof (NewBmmData->DriverOptionOrder)) != 0) {
-    Status = Var_UpdateDriverOrder (Private);
-    if (EFI_ERROR (Status)) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, DriverOptionOrder);
-      goto Exit;
-    }
-  }
-
   if (CompareMem (NewBmmData->BootDescriptionData, OldBmmData->BootDescriptionData, sizeof (NewBmmData->BootDescriptionData)) != 0 ||
        CompareMem (NewBmmData->BootOptionalData, OldBmmData->BootOptionalData, sizeof (NewBmmData->BootOptionalData)) != 0) {
     Status = Var_UpdateBootOption (Private);
@@ -580,29 +552,6 @@ BootMaintRouteConfig (
       goto Exit;
     }
     BOpt_GetBootOptions (Private);
-  }
-
-  if (CompareMem (NewBmmData->DriverDescriptionData, OldBmmData->DriverDescriptionData, sizeof (NewBmmData->DriverDescriptionData)) != 0 ||
-       CompareMem (NewBmmData->DriverOptionalData, OldBmmData->DriverOptionalData, sizeof (NewBmmData->DriverOptionalData)) != 0) {
-    Status = Var_UpdateDriverOption (
-              Private,
-              Private->BmmHiiHandle,
-              NewBmmData->DriverDescriptionData,
-              NewBmmData->DriverOptionalData,
-              NewBmmData->ForceReconnect
-              );
-    NewBmmData->DriverOptionChanged = FALSE;
-    NewBmmData->ForceReconnect      = TRUE;
-    if (EFI_ERROR (Status)) {
-      if (CompareMem (NewBmmData->DriverDescriptionData, OldBmmData->DriverDescriptionData, sizeof (NewBmmData->DriverDescriptionData)) != 0) {
-        Offset = OFFSET_OF (BMM_FAKE_NV_DATA, DriverDescriptionData);
-      } else {
-        Offset = OFFSET_OF (BMM_FAKE_NV_DATA, DriverOptionalData);
-      }
-      goto Exit;
-    }
-
-    BOpt_GetDriverOptions (Private);
   }
 
   //
@@ -654,10 +603,8 @@ BootMaintCallback (
   )
 {
   BMM_CALLBACK_DATA *Private;
-  BM_MENU_ENTRY     *NewMenuEntry;
   BMM_FAKE_NV_DATA  *CurrentFakeNVMap;
   BMM_FAKE_NV_DATA  *OldFakeNVMap;
-  UINTN             Index;
   EFI_DEVICE_PATH_PROTOCOL * File;
 
   if (Action != EFI_BROWSER_ACTION_CHANGING && Action != EFI_BROWSER_ACTION_CHANGED && Action != EFI_BROWSER_ACTION_FORM_OPEN) {
@@ -710,47 +657,18 @@ BootMaintCallback (
           ChooseFile (NULL, L".efi", CreateBootOptionFromFile, &File);
           break;
 
-        case FORM_DRV_ADD_FILE_ID:
-          // Leave BMM and enter FileExplorer.
-          ChooseFile (NULL, L".efi", CreateDriverOptionFromFile, &File);
-          break;
-
-        case FORM_DRV_ADD_HANDLE_ID:
-          CleanUpPage (FORM_DRV_ADD_HANDLE_ID, Private);
-          UpdateDrvAddHandlePage (Private);
-          break;
-
         case FORM_BOOT_DEL_ID:
           CleanUpPage (FORM_BOOT_DEL_ID, Private);
           UpdateBootDelPage (Private);
           break;
 
         case FORM_BOOT_CHG_ID:
-        case FORM_DRV_CHG_ID:
           UpdatePageBody (QuestionId, Private);
-          break;
-
-        case FORM_DRV_DEL_ID:
-          CleanUpPage (FORM_DRV_DEL_ID, Private);
-          UpdateDrvDelPage (Private);
           break;
 
         default:
           break;
         }
-      } else if (QuestionId >= HANDLE_OPTION_OFFSET) {
-        Index                  = (UINT16) (QuestionId - HANDLE_OPTION_OFFSET);
-
-        NewMenuEntry            = BOpt_GetMenuEntry (&DriverMenu, Index);
-        ASSERT (NewMenuEntry != NULL);
-        Private->HandleContext  = (BM_HANDLE_CONTEXT *) NewMenuEntry->VariableContext;
-
-        CleanUpPage (FORM_DRV_ADD_HANDLE_DESC_ID, Private);
-
-        Private->MenuEntry                  = NewMenuEntry;
-        Private->LoadContext->FilePathList  = Private->HandleContext->DevicePath;
-
-        UpdateDriverAddHandleDescPage (Private);
       }
     }
     if (QuestionId == KEY_VALUE_BOOT_FROM_FILE){
@@ -766,21 +684,6 @@ BootMaintCallback (
       CleanUselessBeforeSubmit (Private);
       CurrentFakeNVMap->BootOptionChanged = FALSE;
       *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_SUBMIT_EXIT;
-    } else if (QuestionId == KEY_VALUE_SAVE_AND_EXIT_DRIVER) {
-      CleanUselessBeforeSubmit (Private);
-      CurrentFakeNVMap->DriverOptionChanged = FALSE;
-      *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_SUBMIT_EXIT;
-    } else if (QuestionId == KEY_VALUE_NO_SAVE_AND_EXIT_DRIVER) {
-      //
-      // Discard changes and exit formset
-      //
-      ZeroMem (CurrentFakeNVMap->DriverOptionalData, sizeof (CurrentFakeNVMap->DriverOptionalData));
-      ZeroMem (CurrentFakeNVMap->BootDescriptionData, sizeof (CurrentFakeNVMap->BootDescriptionData));
-      ZeroMem (OldFakeNVMap->DriverOptionalData, sizeof (OldFakeNVMap->DriverOptionalData));
-      ZeroMem (OldFakeNVMap->DriverDescriptionData, sizeof (OldFakeNVMap->DriverDescriptionData));
-      CurrentFakeNVMap->DriverOptionChanged = FALSE;
-      CurrentFakeNVMap->ForceReconnect      = TRUE;
-      *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_DISCARD_EXIT;
     } else if (QuestionId == KEY_VALUE_NO_SAVE_AND_EXIT_BOOT) {
       //
       // Discard changes and exit formset
@@ -793,8 +696,6 @@ BootMaintCallback (
       *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_DISCARD_EXIT;
     } else if (QuestionId == KEY_VALUE_BOOT_DESCRIPTION || QuestionId == KEY_VALUE_BOOT_OPTION) {
       CurrentFakeNVMap->BootOptionChanged = TRUE;
-    } else if (QuestionId == KEY_VALUE_DRIVER_DESCRIPTION || QuestionId == KEY_VALUE_DRIVER_OPTION) {
-      CurrentFakeNVMap->DriverOptionChanged = TRUE;
     }
 
     if ((QuestionId >= BOOT_OPTION_DEL_QUESTION_ID) && (QuestionId < BOOT_OPTION_DEL_QUESTION_ID + MAX_MENU_NUMBER)) {
@@ -808,12 +709,6 @@ BootMaintCallback (
         // Means user remove the old check status.
         //
         CurrentFakeNVMap->BootOptionDelMark[QuestionId - BOOT_OPTION_DEL_QUESTION_ID] = FALSE;
-      }
-    } else if ((QuestionId >= DRIVER_OPTION_DEL_QUESTION_ID) && (QuestionId < DRIVER_OPTION_DEL_QUESTION_ID + MAX_MENU_NUMBER)) {
-      if (Value->b){
-        CurrentFakeNVMap->DriverOptionDelMark[QuestionId - DRIVER_OPTION_DEL_QUESTION_ID] = TRUE;
-      } else {
-        CurrentFakeNVMap->DriverOptionDelMark[QuestionId - DRIVER_OPTION_DEL_QUESTION_ID] = FALSE;
       }
     } else {
       switch (QuestionId) {
@@ -848,8 +743,7 @@ BootMaintCallback (
 }
 
 /**
-  Discard all changes done to the BMM pages such as Boot Order change,
-  Driver order change.
+  Discard all changes done to the BMM pages such as Boot Order change.
 
   @param Private            The BMM context data.
   @param CurrentFakeNVMap   The current Fack NV Map.
@@ -868,21 +762,10 @@ DiscardChangeHandler (
     CopyMem (CurrentFakeNVMap->BootOptionOrder, Private->BmmOldFakeNVData.BootOptionOrder, sizeof (CurrentFakeNVMap->BootOptionOrder));
     break;
 
-  case FORM_DRV_CHG_ID:
-    CopyMem (CurrentFakeNVMap->DriverOptionOrder, Private->BmmOldFakeNVData.DriverOptionOrder, sizeof (CurrentFakeNVMap->DriverOptionOrder));
-    break;
-
   case FORM_BOOT_DEL_ID:
     ASSERT (BootOptionMenu.MenuNumber <= (sizeof (CurrentFakeNVMap->BootOptionDel) / sizeof (CurrentFakeNVMap->BootOptionDel[0])));
     for (Index = 0; Index < BootOptionMenu.MenuNumber; Index++) {
       CurrentFakeNVMap->BootOptionDel[Index] = FALSE;
-    }
-    break;
-
-  case FORM_DRV_DEL_ID:
-    ASSERT (DriverOptionMenu.MenuNumber <= (sizeof (CurrentFakeNVMap->DriverOptionDel) / sizeof (CurrentFakeNVMap->DriverOptionDel[0])));
-    for (Index = 0; Index < DriverOptionMenu.MenuNumber; Index++) {
-      CurrentFakeNVMap->DriverOptionDel[Index] = FALSE;
     }
     break;
 
@@ -892,13 +775,6 @@ DiscardChangeHandler (
 
   case FORM_TIME_OUT_ID:
     CurrentFakeNVMap->BootTimeOut = Private->BmmOldFakeNVData.BootTimeOut;
-    break;
-
-  case FORM_DRV_ADD_HANDLE_DESC_ID:
-  case FORM_DRV_ADD_FILE_ID:
-  case FORM_DRV_ADD_HANDLE_ID:
-    CurrentFakeNVMap->DriverAddHandleDesc[0]          = 0x0000;
-    CurrentFakeNVMap->DriverAddHandleOptionalData[0]  = 0x0000;
     break;
 
   default:
@@ -923,14 +799,6 @@ CleanUselessBeforeSubmit (
       if (Private->BmmFakeNvData.BootOptionDel[Index] && !Private->BmmFakeNvData.BootOptionDelMark[Index]) {
         Private->BmmFakeNvData.BootOptionDel[Index] = FALSE;
         Private->BmmOldFakeNVData.BootOptionDel[Index] = FALSE;
-      }
-    }
-  }
-  if (Private->BmmPreviousPageId != FORM_DRV_DEL_ID) {
-    for (Index = 0; Index < DriverOptionMenu.MenuNumber; Index++) {
-      if (Private->BmmFakeNvData.DriverOptionDel[Index] && !Private->BmmFakeNvData.DriverOptionDelMark[Index]) {
-        Private->BmmFakeNvData.DriverOptionDel[Index] = FALSE;
-        Private->BmmOldFakeNVData.DriverOptionDel[Index] = FALSE;
       }
     }
   }
@@ -1031,11 +899,6 @@ InitializeBmmConfig (
   //
   GetBootOrder (CallbackData);
 
-  //
-  // Initialize data which located in Driver Options Menu
-  //
-  GetDriverOrder (CallbackData);
-
   CallbackData->BmmFakeNvData.ForceReconnect = TRUE;
 
   //
@@ -1056,10 +919,7 @@ InitAllMenu (
   )
 {
   InitializeListHead (&BootOptionMenu.Head);
-  InitializeListHead (&DriverOptionMenu.Head);
   BOpt_GetBootOptions (CallbackData);
-  BOpt_GetDriverOptions (CallbackData);
-  BOpt_FindDrivers ();
   mAllMenuInit = TRUE;
 }
 
@@ -1076,8 +936,6 @@ FreeAllMenu (
     return;
   }
   BOpt_FreeMenu (&BootOptionMenu);
-  BOpt_FreeMenu (&DriverOptionMenu);
-  BOpt_FreeMenu (&DriverMenu);
   mAllMenuInit = FALSE;
 }
 

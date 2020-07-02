@@ -49,19 +49,6 @@ BmmCreateBootOptionMenu (
   );
 
 /**
-  Create Driver Option menu in the page.
-
-  @param[in]    HiiHandle           The hii handle for the Uiapp driver.
-  @param[in]    StartOpCodeHandle   The opcode handle to save the new opcode.
-
-**/
-VOID
-BmmCreateDriverOptionMenu (
-  IN EFI_HII_HANDLE              HiiHandle,
-  IN VOID                        *StartOpCodeHandle
-  );
-
-/**
   Create Boot From File menu in the page.
 
   @param[in]    HiiHandle           The hii handle for the Uiapp driver.
@@ -84,44 +71,6 @@ BmmCreateBootFromFileMenu (
 VOID
 BmmCreateEmptyLine (
   IN EFI_HII_HANDLE              HiiHandle,
-  IN VOID                        *StartOpCodeHandle
-  );
-
-/**
-  Rename the driver name if necessary.
-
-  @param    DriverName          Input the driver name.
-  @param    NewDriverName       Return the new driver name.
-  @param    EmptyLineAfter      Whether need to insert empty line.
-
-  @retval   New driver name if compared, else NULL.
-
-**/
-typedef
-EFI_STATUS
-(EFIAPI *DRIVER_SPECIAL_HANDLER)(
-  IN  CHAR16                   *DriverName,
-  OUT CHAR16                   **NewName,
-  OUT BOOLEAN                  *EmptyLineAfter
-);
-
-/**
-  Search the drivers in the system which need to show in the front page
-  and insert the menu to the front page.
-
-  @param    HiiHandle           The hii handle for the Uiapp driver.
-  @param    ClassGuid           The class guid for the driver which is the target.
-  @param    SpecialHandlerFn      The pointer to the specail handler function, if any.
-  @param    StartOpCodeHandle   The opcode handle to save the new opcode.
-
-  @retval   EFI_SUCCESS         Search the driver success
-
-**/
-EFI_STATUS
-BmmListThirdPartyDrivers (
-  IN EFI_HII_HANDLE              HiiHandle,
-  IN EFI_GUID                    *ClassGuid,
-  IN DRIVER_SPECIAL_HANDLER      SpecialHandlerFn,
   IN VOID                        *StartOpCodeHandle
   );
 

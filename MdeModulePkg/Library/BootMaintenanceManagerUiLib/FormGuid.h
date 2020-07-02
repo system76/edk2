@@ -17,21 +17,13 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #define FORM_BOOT_ADD_ID                     0x1002
 #define FORM_BOOT_DEL_ID                     0x1003
 #define FORM_BOOT_CHG_ID                     0x1004
-#define FORM_DRV_ADD_ID                      0x1005
-#define FORM_DRV_DEL_ID                      0x1006
-#define FORM_DRV_CHG_ID                      0x1007
 #define FORM_FILE_SEEK_ID                    0x100C
 #define FORM_FILE_NEW_SEEK_ID                0x100D
-#define FORM_DRV_ADD_FILE_ID                 0x100E
-#define FORM_DRV_ADD_HANDLE_ID               0x100F
-#define FORM_DRV_ADD_HANDLE_DESC_ID          0x1010
 #define FORM_BOOT_NEXT_ID                    0x1011
 #define FORM_TIME_OUT_ID                     0x1012
 #define FORM_BOOT_SETUP_ID                   0x1014
-#define FORM_DRIVER_SETUP_ID                 0x1015
 #define FORM_BOOT_LEGACY_DEVICE_ID           0x1016
 #define FORM_BOOT_ADD_DESCRIPTION_ID         0x101F
-#define FORM_DRIVER_ADD_FILE_DESCRIPTION_ID  0x1020
 #define FORM_BOOT_FROM_FILE_ID               0x1024
 
 
@@ -40,20 +32,14 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #define KEY_VALUE_MAIN_BOOT_NEXT             0x1106
 #define KEY_VALUE_BOOT_ADD_DESC_DATA         0x1107
 #define KEY_VALUE_BOOT_ADD_OPT_DATA          0x1108
-#define KEY_VALUE_DRIVER_ADD_DESC_DATA       0x1109
-#define KEY_VALUE_DRIVER_ADD_OPT_DATA        0x110A
 #define KEY_VALUE_SAVE_AND_EXIT              0x110B
 #define KEY_VALUE_NO_SAVE_AND_EXIT           0x110C
 #define KEY_VALUE_BOOT_FROM_FILE             0x110D
 #define FORM_RESET                           0x110E
 #define KEY_VALUE_BOOT_DESCRIPTION           0x110F
 #define KEY_VALUE_BOOT_OPTION                0x1110
-#define KEY_VALUE_DRIVER_DESCRIPTION         0x1111
-#define KEY_VALUE_DRIVER_OPTION              0x1112
 #define KEY_VALUE_SAVE_AND_EXIT_BOOT         0x1113
 #define KEY_VALUE_NO_SAVE_AND_EXIT_BOOT      0x1114
-#define KEY_VALUE_SAVE_AND_EXIT_DRIVER       0x1115
-#define KEY_VALUE_NO_SAVE_AND_EXIT_DRIVER    0x1116
 #define KEY_VALUE_TRIGGER_FORM_OPEN_ACTION   0x1117
 
 #define MAXIMUM_NORMAL_KEY_VALUE             0x11FF
@@ -91,27 +77,16 @@ typedef struct {
   UINT32  BootNext;
 
   //
-  // Driver Option Add Handle page storage
-  //
-  UINT16  DriverAddHandleDesc[MAX_MENU_NUMBER];
-  UINT16  DriverAddHandleOptionalData[MAX_MENU_NUMBER];
-  UINT8   DriverAddActive;
-  UINT8   DriverAddForceReconnect;
-
-  //
-  // Boot or Driver Option Order storage
+  // Boot Option Order storage
   // The value is the OptionNumber+1 because the order list value cannot be 0
   // Use UINT32 to hold the potential value 0xFFFF+1=0x10000
   //
   UINT32  BootOptionOrder[MAX_MENU_NUMBER];
-  UINT32  DriverOptionOrder[MAX_MENU_NUMBER];
   //
-  // Boot or Driver Option Delete storage
+  // Boot Option Delete storage
   //
   BOOLEAN BootOptionDel[MAX_MENU_NUMBER];
-  BOOLEAN DriverOptionDel[MAX_MENU_NUMBER];
   BOOLEAN BootOptionDelMark[MAX_MENU_NUMBER];
-  BOOLEAN DriverOptionDelMark[MAX_MENU_NUMBER];
 
   //
   // We use DisableMap array to record the enable/disable state of each boot device
@@ -127,10 +102,7 @@ typedef struct {
 
   UINT16  BootDescriptionData[MAX_MENU_NUMBER];
   UINT16  BootOptionalData[127];
-  UINT16  DriverDescriptionData[MAX_MENU_NUMBER];
-  UINT16  DriverOptionalData[127];
   BOOLEAN BootOptionChanged;
-  BOOLEAN DriverOptionChanged;
   UINT8   Active;
   UINT8   ForceReconnect;
 } BMM_FAKE_NV_DATA;

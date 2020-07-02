@@ -118,25 +118,13 @@ typedef UINT8 BBS_TYPE;
 
 #define BOOT_TIME_OUT_VAR_OFFSET        VAR_OFFSET (BootTimeOut)
 #define BOOT_NEXT_VAR_OFFSET            VAR_OFFSET (BootNext)
-#define DRV_ADD_HANDLE_DESC_VAR_OFFSET  VAR_OFFSET (DriverAddHandleDesc)
-#define DRV_ADD_ACTIVE_VAR_OFFSET       VAR_OFFSET (DriverAddActive)
-#define DRV_ADD_RECON_VAR_OFFSET        VAR_OFFSET (DriverAddForceReconnect)
 #define BOOT_OPTION_ORDER_VAR_OFFSET    VAR_OFFSET (BootOptionOrder)
-#define DRIVER_OPTION_ORDER_VAR_OFFSET  VAR_OFFSET (DriverOptionOrder)
 #define BOOT_OPTION_DEL_VAR_OFFSET      VAR_OFFSET (BootOptionDel)
-#define DRIVER_OPTION_DEL_VAR_OFFSET    VAR_OFFSET (DriverOptionDel)
-#define DRIVER_ADD_OPTION_VAR_OFFSET    VAR_OFFSET (DriverAddHandleOptionalData)
 
 #define BOOT_TIME_OUT_QUESTION_ID       QUESTION_ID (BootTimeOut)
 #define BOOT_NEXT_QUESTION_ID           QUESTION_ID (BootNext)
-#define DRV_ADD_HANDLE_DESC_QUESTION_ID QUESTION_ID (DriverAddHandleDesc)
-#define DRV_ADD_ACTIVE_QUESTION_ID      QUESTION_ID (DriverAddActive)
-#define DRV_ADD_RECON_QUESTION_ID       QUESTION_ID (DriverAddForceReconnect)
 #define BOOT_OPTION_ORDER_QUESTION_ID   QUESTION_ID (BootOptionOrder)
-#define DRIVER_OPTION_ORDER_QUESTION_ID QUESTION_ID (DriverOptionOrder)
 #define BOOT_OPTION_DEL_QUESTION_ID     QUESTION_ID (BootOptionDel)
-#define DRIVER_OPTION_DEL_QUESTION_ID   QUESTION_ID (DriverOptionDel)
-#define DRIVER_ADD_OPTION_QUESTION_ID   QUESTION_ID (DriverAddHandleOptionalData)
 
 #define STRING_DEPOSITORY_NUMBER        8
 
@@ -224,22 +212,6 @@ typedef struct {
 
 /**
 
-  Find drivers that will be added as Driver#### variables from handles
-  in current system environment
-  All valid handles in the system except those consume SimpleFs, LoadFile
-  are stored in DriverMenu for future use.
-
-  @retval EFI_SUCCESS The function complets successfully.
-  @return Other value if failed to build the DriverMenu.
-
-**/
-EFI_STATUS
-BOpt_FindDrivers (
-  VOID
-  );
-
-/**
-
   Build the BootOptionMenu according to BootOrder Variable.
   This Routine will access the Boot#### to get EFI_LOAD_OPTION.
 
@@ -250,22 +222,6 @@ BOpt_FindDrivers (
 **/
 EFI_STATUS
 BOpt_GetBootOptions (
-  IN  BMM_CALLBACK_DATA         *CallbackData
-  );
-
-/**
-
-  Build up all DriverOptionMenu
-
-  @param CallbackData The BMM context data.
-
-  @return EFI_SUCESS The functin completes successfully.
-  @retval EFI_OUT_OF_RESOURCES Not enough memory to compete the operation.
-
-
-**/
-EFI_STATUS
-BOpt_GetDriverOptions (
   IN  BMM_CALLBACK_DATA         *CallbackData
   );
 
@@ -303,18 +259,6 @@ BOpt_GetOptionNumber (
 **/
 UINT16
 BOpt_GetBootOptionNumber (
-  VOID
-  );
-
-/**
-
-Get the Option Number for Driver#### that does not used.
-
-@return The unused Option Number.
-
-**/
-UINT16
-BOpt_GetDriverOptionNumber (
   VOID
   );
 
@@ -373,17 +317,6 @@ GetBootOrder (
   IN  BMM_CALLBACK_DATA    *CallbackData
   );
 
-/**
-  Get driver option order from globalc DriverOptionMenu.
-
-  @param CallbackData    The BMM context data.
-
-**/
-VOID
-GetDriverOrder (
-  IN  BMM_CALLBACK_DATA    *CallbackData
-  );
-
 //
 // Variable operation by menu selection
 //
@@ -418,44 +351,6 @@ Var_DelBootOption (
   );
 
 /**
-  This function create a currently loaded Drive Option from
-  the BMM. It then appends this Driver Option to the end of
-  the "DriverOrder" list. It append this Driver Opotion to the end
-  of DriverOptionMenu.
-
-  @param CallbackData    The BMM context data.
-  @param HiiHandle       The HII handle associated with the BMM formset.
-  @param DescriptionData The description of this driver option.
-  @param OptionalData    The optional load option.
-  @param ForceReconnect  If to force reconnect.
-
-  @retval EFI_OUT_OF_RESOURCES If not enought memory to complete the operation.
-  @retval EFI_SUCCESS          If function completes successfully.
-
-**/
-EFI_STATUS
-Var_UpdateDriverOption (
-  IN  BMM_CALLBACK_DATA         *CallbackData,
-  IN  EFI_HII_HANDLE            HiiHandle,
-  IN  UINT16                    *DescriptionData,
-  IN  UINT16                    *OptionalData,
-  IN  UINT8                     ForceReconnect
-  );
-
-/**
-  Delete Load Option that represent a Deleted state in DriverOptionMenu.
-
-  @retval EFI_SUCCESS Load Option is successfully updated.
-  @return Other value than EFI_SUCCESS if failed to update "Driver Order" EFI
-          Variable.
-
-**/
-EFI_STATUS
-Var_DelDriverOption (
-  VOID
-  );
-
-/**
   This function update the "BootNext" EFI Variable. If there is no "BootNex" specified in BMM,
   this EFI Variable is deleted.
   It also update the BMM context data specified the "BootNext" value.
@@ -484,23 +379,6 @@ Var_UpdateBootNext (
 **/
 EFI_STATUS
 Var_UpdateBootOrder (
-  IN BMM_CALLBACK_DATA            *CallbackData
-  );
-
-/**
-  This function update the "DriverOrder" EFI Variable based on
-  BMM Formset's NV map. It then refresh DriverOptionMenu
-  with the new "DriverOrder" list.
-
-  @param CallbackData    The BMM context data.
-
-  @retval EFI_SUCCESS           The function complete successfully.
-  @retval EFI_OUT_OF_RESOURCES  Not enough memory to complete the function.
-  @return The EFI variable can not be saved. See gRT->SetVariable for detail return information.
-
-**/
-EFI_STATUS
-Var_UpdateDriverOrder (
   IN BMM_CALLBACK_DATA            *CallbackData
   );
 
@@ -553,37 +431,6 @@ UpdateBootDelPage (
   );
 
 /**
-  Create a lit of driver option from global DriverMenu.
-
-  @param CallbackData    The BMM context data.
-**/
-VOID
-UpdateDrvAddHandlePage (
-  IN BMM_CALLBACK_DATA                *CallbackData
-  );
-
-/**
-  Create a lit of driver option from global DriverOptionMenu. It
-  allow user to delete the driver option.
-
-  @param CallbackData    The BMM context data.
-**/
-VOID
-UpdateDrvDelPage (
-  IN BMM_CALLBACK_DATA                *CallbackData
-  );
-
-/**
-  Prepare the page to allow user to add description for a Driver Option.
-
-  @param CallbackData    The BMM context data.
-**/
-VOID
-UpdateDriverAddHandleDescPage (
-  IN BMM_CALLBACK_DATA                *CallbackData
-  );
-
-/**
   Dispatch the correct update page function to call based on the UpdatePageId.
 
   @param UpdatePageId    The form ID.
@@ -596,7 +443,7 @@ UpdatePageBody (
   );
 
 /**
- Update add boot/driver option page.
+ Update add boot option page.
 
   @param CallbackData    The BMM context data.
   @param FormId             The form ID to be updated.
@@ -681,8 +528,7 @@ GetLegacyBootOptionVar (
   );
 
 /**
-  Discard all changes done to the BMM pages such as Boot Order change,
-  Driver order change.
+  Discard all changes done to the BMM pages such as Boot Order change.
 
   @param Private         The BMM context data.
   @param CurrentFakeNVMap The current Fack NV Map.
@@ -912,8 +758,6 @@ BootFromFile (
 // Global variable in this program (defined in data.c)
 //
 extern BM_MENU_OPTION             BootOptionMenu;
-extern BM_MENU_OPTION             DriverOptionMenu;
-extern BM_MENU_OPTION             DriverMenu;
 
 //
 // Shared IFR form update data
