@@ -184,10 +184,11 @@
   ResetSystemLib|UefiPayloadPkg/Library/ResetSystemLib/ResetSystemLib.inf
 !if $(SYSTEM76_EC_LOGGING) == TRUE
   SerialPortLib|UefiPayloadPkg/Library/System76EcLib/System76EcLib.inf
+  PlatformHookLib|UefiPayloadPkg/Library/System76EcLib/System76EcLib.inf
 !else
   SerialPortLib|MdeModulePkg/Library/BaseSerialPortLib16550/BaseSerialPortLib16550.inf
-!endif
   PlatformHookLib|UefiPayloadPkg/Library/PlatformHookLib/PlatformHookLib.inf
+!endif
   PlatformBootManagerLib|UefiPayloadPkg/Library/PlatformBootManagerLib/PlatformBootManagerLib.inf
   IoApicLib|PcAtChipsetPkg/Library/BaseIoApicLib/BaseIoApicLib.inf
 

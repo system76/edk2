@@ -7,8 +7,6 @@
 **/
 
 #include <Library/IoLib.h>
-#include <Library/SerialPortLib.h>
-#include <Library/TimerLib.h>
 
 // From coreboot/src/drivers/system76_ec/system76_ec.c {
 #define SYSTEM76_EC_BASE 0x0E00
@@ -32,12 +30,8 @@ void system76_ec_flush(void) {
     // Send command
     system76_ec_write(0, 4);
 
-    // Wait for command completion, for up to 10 milliseconds
-    int timeout;
-    for (timeout = 10000; timeout > 0; timeout--) {
-        if (system76_ec_read(0) == 0) break;
-        MicroSecondDelay(1);
-    }
+    // Wait for command completion
+    while (system76_ec_read(0) != 0) {}
 
     // Clear length
     system76_ec_write(3, 0);
@@ -57,6 +51,9 @@ void system76_ec_print(UINT8 byte) {
     }
 }
 // } From coreboot/src/drivers/system76_ec/system76_ec.c
+
+// Implement SerialPortLib {
+#include <Library/SerialPortLib.h>
 
 RETURN_STATUS
 EFIAPI
@@ -131,3 +128,17 @@ SerialPortSetAttributes (
 {
     return RETURN_UNSUPPORTED;
 }
+// } Implement SerialPortLib
+
+// Implement PlatformHookLib {
+#include <Library/PlatformHookLib.h>
+
+RETURN_STATUS
+EFIAPI
+PlatformHookSerialPortInitialize (
+  VOID
+  )
+{
+    return RETURN_SUCCESS;
+}
+// } Implement PlatformHookLib
