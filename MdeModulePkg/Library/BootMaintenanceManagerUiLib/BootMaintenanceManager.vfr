@@ -27,8 +27,8 @@ formset
        //
        suppressif TRUE;
           text
-              help  = STRING_TOKEN(STR_NONE),
-              text  = STRING_TOKEN(STR_NONE),
+              help  = STRING_TOKEN(STR_NULL_STRING),
+              text  = STRING_TOKEN(STR_NULL_STRING),
               flags = INTERACTIVE,
               key   = KEY_VALUE_TRIGGER_FORM_OPEN_ACTION;
        endif;
@@ -42,100 +42,10 @@ formset
 
   endform;
 
-  form formid = FORM_BOOT_SETUP_ID,
-       title = STRING_TOKEN(STR_FORM_BOOT_SETUP_TITLE);
-
-       goto FORM_MAIN_ID,
-            prompt = STRING_TOKEN(STR_FORM_GOTO_MAIN),
-            help = STRING_TOKEN(STR_FORM_GOTO_MAIN);
-            //flags = INTERACTIVE,
-            //key = FORM_MAIN_ID;
-
-       goto FORM_BOOT_SETUP_ID,
-            prompt = STRING_TOKEN(STR_FORM_BOOT_ADD_TITLE),
-            help = STRING_TOKEN(STR_FORM_BOOT_ADD_HELP),
-            flags = INTERACTIVE,
-            key = FORM_BOOT_ADD_ID;
-
-       goto FORM_BOOT_DEL_ID,
-            prompt = STRING_TOKEN(STR_FORM_BOOT_DEL_TITLE),
-            help = STRING_TOKEN(STR_FORM_BOOT_IMMEDIATE_HELP),
-            flags = INTERACTIVE,
-            key = FORM_BOOT_DEL_ID;
-
-       goto FORM_BOOT_CHG_ID,
-            prompt = STRING_TOKEN(STR_FORM_BOOT_CHG_TITLE),
-            help = STRING_TOKEN(STR_FORM_BOOT_IMMEDIATE_HELP),
-            flags = INTERACTIVE,
-            key = FORM_BOOT_CHG_ID;
-  endform;
-
-   form formid = FORM_BOOT_ADD_ID,
-       title = STRING_TOKEN(STR_FORM_BOOT_ADD_DESC_TITLE);
-
-       label FORM_BOOT_ADD_ID;
-       label LABEL_END;
-
-       subtitle text = STRING_TOKEN(STR_NULL_STRING);
-
-       string    varid    = BmmData.BootDescriptionData,
-                 questionid = KEY_VALUE_BOOT_DESCRIPTION,
-                 prompt   = STRING_TOKEN(STR_LOAD_OPTION_DESC),
-                 help     = STRING_TOKEN(STR_NULL_STRING),
-                 flags    = INTERACTIVE,
-                 minsize  = 6,
-                 maxsize  = 75,
-       endstring;
-
-       string    varid    = BmmData.BootOptionalData,
-                 questionid = KEY_VALUE_BOOT_OPTION,
-                 prompt   = STRING_TOKEN(STR_OPTIONAL_DATA),
-                 help     = STRING_TOKEN(STR_NULL_STRING),
-                 flags    = INTERACTIVE,
-                 minsize  = 0,
-                 maxsize  = 120,
-       endstring;
-
-       subtitle text = STRING_TOKEN(STR_NULL_STRING);
-
-       text
-         help   = STRING_TOKEN(STR_SAVE_AND_EXIT),
-         text   = STRING_TOKEN(STR_SAVE_AND_EXIT),
-         flags  = INTERACTIVE,
-         key    = KEY_VALUE_SAVE_AND_EXIT_BOOT;
-
-       text
-         help   = STRING_TOKEN(STR_NO_SAVE_AND_EXIT),
-         text   = STRING_TOKEN(STR_NO_SAVE_AND_EXIT),
-         flags  = INTERACTIVE,
-         key    = KEY_VALUE_NO_SAVE_AND_EXIT_BOOT;
-  endform;
-
-  form formid = FORM_BOOT_DEL_ID,
-       title = STRING_TOKEN(STR_FORM_BOOT_DEL_TITLE);
-
-       label FORM_BOOT_DEL_ID;
-       label LABEL_END;
-  endform;
-
   form formid = FORM_BOOT_CHG_ID,
        title = STRING_TOKEN(STR_FORM_BOOT_CHG_TITLE);
 
        label FORM_BOOT_CHG_ID;
-       label LABEL_END;
-  endform;
-
-  form formid = FORM_FILE_SEEK_ID,
-       title = STRING_TOKEN(STR_FORM_BOOT_ADD_TITLE);
-
-       label FORM_FILE_SEEK_ID;
-       label LABEL_END;
-  endform;
-
-  form formid = FORM_FILE_NEW_SEEK_ID,
-       title = STRING_TOKEN(STR_FORM_BOOT_ADD_TITLE);
-
-       label FORM_FILE_NEW_SEEK_ID;
        label LABEL_END;
   endform;
 endformset;

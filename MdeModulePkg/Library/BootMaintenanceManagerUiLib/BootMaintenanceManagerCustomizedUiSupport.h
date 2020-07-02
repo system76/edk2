@@ -10,32 +10,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #define __BOOT_MAINTENANCE_MANAGER_UI_LIB_H__
 
 /**
-  Create Time Out Menu in the page.
-
-  @param[in]    HiiHandle           The hii handle for the Uiapp driver.
-  @param[in]    StartOpCodeHandle   The opcode handle to save the new opcode.
-
-**/
-VOID
-BmmCreateTimeOutMenu (
-  IN EFI_HII_HANDLE              HiiHandle,
-  IN VOID                        *StartOpCodeHandle
-  );
-
-/**
-  Create the dynamic item to allow user to set the "BootNext" vaule.
-
-  @param[in]    HiiHandle           The hii handle for the Uiapp driver.
-  @param[in]    StartOpCodeHandle   The opcode handle to save the new opcode.
-
-**/
-VOID
-BmmCreateBootNextMenu(
-  IN EFI_HII_HANDLE              HiiHandle,
-  IN VOID                        *StartOpCodeHandle
-  );
-
-/**
   Create Boot Option menu in the page.
 
   @param[in]    HiiHandle           The hii handle for the Uiapp driver.
@@ -57,19 +31,6 @@ BmmCreateBootOptionMenu (
 **/
 VOID
 BmmCreateBootFromFileMenu (
-  IN EFI_HII_HANDLE              HiiHandle,
-  IN VOID                        *StartOpCodeHandle
-  );
-
-/**
-  Create empty line menu in the front page.
-
-  @param    HiiHandle           The hii handle for the Uiapp driver.
-  @param    StartOpCodeHandle   The opcode handle to save the new opcode.
-
-**/
-VOID
-BmmCreateEmptyLine (
   IN EFI_HII_HANDLE              HiiHandle,
   IN VOID                        *StartOpCodeHandle
   );

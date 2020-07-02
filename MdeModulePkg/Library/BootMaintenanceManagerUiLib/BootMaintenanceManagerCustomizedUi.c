@@ -24,28 +24,8 @@ UiCustomizeBMMPage (
   IN VOID            *StartOpCodeHandle
   )
 {
-  //
-  // Create "Boot Option" menu.
-  //
   BmmCreateBootOptionMenu(HiiHandle, StartOpCodeHandle);
-  //
-  // Create "Boot From File" menu.
-  //
   BmmCreateBootFromFileMenu(HiiHandle, StartOpCodeHandle);
-
-  //
-  // Create empty line.
-  //
-  //BmmCreateEmptyLine (HiiHandle, StartOpCodeHandle);
-
-  //
-  // Create "Boot Next" menu.
-  //
-  //BmmCreateBootNextMenu (HiiHandle, StartOpCodeHandle);
-  //
-  // Create "Time Out" menu.
-  //
-  //BmmCreateTimeOutMenu (HiiHandle, StartOpCodeHandle);
 }
 
 /**

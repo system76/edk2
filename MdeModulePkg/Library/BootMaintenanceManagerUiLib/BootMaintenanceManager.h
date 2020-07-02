@@ -116,24 +116,13 @@ typedef UINT8 BBS_TYPE;
 //
 #define QUESTION_ID(Field)             (VAR_OFFSET (Field) + CONFIG_OPTION_OFFSET)
 
-#define BOOT_TIME_OUT_VAR_OFFSET        VAR_OFFSET (BootTimeOut)
-#define BOOT_NEXT_VAR_OFFSET            VAR_OFFSET (BootNext)
 #define BOOT_OPTION_ORDER_VAR_OFFSET    VAR_OFFSET (BootOptionOrder)
-#define BOOT_OPTION_DEL_VAR_OFFSET      VAR_OFFSET (BootOptionDel)
 
-#define BOOT_TIME_OUT_QUESTION_ID       QUESTION_ID (BootTimeOut)
-#define BOOT_NEXT_QUESTION_ID           QUESTION_ID (BootNext)
 #define BOOT_OPTION_ORDER_QUESTION_ID   QUESTION_ID (BootOptionOrder)
-#define BOOT_OPTION_DEL_QUESTION_ID     QUESTION_ID (BootOptionDel)
 
 #define STRING_DEPOSITORY_NUMBER        8
 
-#define NONE_BOOTNEXT_VALUE             (0xFFFF + 1)
-
 typedef struct {
-  BOOLEAN                   IsBootNext;
-  BOOLEAN                   Deleted;
-
   BOOLEAN                   IsLegacy;
 
   UINT32                    Attributes;
@@ -317,55 +306,6 @@ GetBootOrder (
   IN  BMM_CALLBACK_DATA    *CallbackData
   );
 
-//
-// Variable operation by menu selection
-//
-/**
-  This function create a currently loaded Boot Option from
-  the BMM. It then appends this Boot Option to the end of
-  the "BootOrder" list. It also append this Boot Opotion to the end
-  of BootOptionMenu.
-
-  @param CallbackData           The BMM context data.
-
-  @retval EFI_OUT_OF_RESOURCES  If not enought memory to complete the operation.
-  @retval EFI_SUCCESS           If function completes successfully.
-
-**/
-EFI_STATUS
-Var_UpdateBootOption (
-  IN  BMM_CALLBACK_DATA                   *CallbackData
-  );
-
-/**
-  Delete Boot Option that represent a Deleted state in BootOptionMenu.
-
-  @retval EFI_SUCCESS   If all boot load option EFI Variables corresponding to
-                        BM_LOAD_CONTEXT marked for deletion is deleted
-  @return Others        If failed to update the "BootOrder" variable after deletion.
-
-**/
-EFI_STATUS
-Var_DelBootOption (
-  VOID
-  );
-
-/**
-  This function update the "BootNext" EFI Variable. If there is no "BootNex" specified in BMM,
-  this EFI Variable is deleted.
-  It also update the BMM context data specified the "BootNext" value.
-
-  @param CallbackData    The BMM context data.
-
-  @retval EFI_SUCCESS    The function complete successfully.
-  @return The EFI variable can not be saved. See gRT->SetVariable for detail return information.
-
-**/
-EFI_STATUS
-Var_UpdateBootNext (
-  IN BMM_CALLBACK_DATA            *CallbackData
-  );
-
 /**
   This function update the "BootOrder" EFI Variable based on BMM Formset's NV map. It then refresh
   BootOptionMenu with the new "BootOrder" list.
@@ -419,18 +359,6 @@ CleanUpPage (
   );
 
 /**
-  Create a lit of boot option from global BootOptionMenu. It
-  allow user to delete the boot option.
-
-  @param CallbackData    The BMM context data.
-
-**/
-VOID
-UpdateBootDelPage (
-  IN BMM_CALLBACK_DATA                *CallbackData
-  );
-
-/**
   Dispatch the correct update page function to call based on the UpdatePageId.
 
   @param UpdatePageId    The form ID.
@@ -455,59 +383,6 @@ UpdateOptionPage(
   IN   BMM_CALLBACK_DATA        *CallbackData,
   IN   EFI_FORM_ID              FormId,
   IN   EFI_DEVICE_PATH_PROTOCOL *DevicePath
-  );
-
-/**
-  Function deletes the variable specified by VarName and VarGuid.
-
-
-  @param VarName            A Null-terminated Unicode string that is
-                            the name of the vendor's variable.
-
-  @param VarGuid            A unique identifier for the vendor.
-
-  @retval  EFI_SUCCESS           The variable was found and removed
-  @retval  EFI_UNSUPPORTED       The variable store was inaccessible
-  @retval  EFI_OUT_OF_RESOURCES  The temporary buffer was not available
-  @retval  EFI_NOT_FOUND         The variable was not found
-
-**/
-EFI_STATUS
-EfiLibDeleteVariable (
-  IN CHAR16   *VarName,
-  IN EFI_GUID *VarGuid
-  );
-
-/**
-  Function is used to determine the number of device path instances
-  that exist in a device path.
-
-
-  @param DevicePath      A pointer to a device path data structure.
-
-  @return This function counts and returns the number of device path instances
-          in DevicePath.
-
-**/
-UINTN
-EfiDevicePathInstanceCount (
-  IN EFI_DEVICE_PATH_PROTOCOL      *DevicePath
-  );
-
-/**
-  Get a string from the Data Hub record based on
-  a device path.
-
-  @param DevPath         The device Path.
-
-  @return A string located from the Data Hub records based on
-          the device path.
-  @retval NULL  If failed to get the String from Data Hub.
-
-**/
-UINT16 *
-EfiLibStrFromDatahub (
-  IN EFI_DEVICE_PATH_PROTOCOL                 *DevPath
   );
 
 /**

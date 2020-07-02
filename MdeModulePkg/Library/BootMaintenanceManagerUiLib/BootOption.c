@@ -266,11 +266,8 @@ BOpt_GetBootOptions (
   UINT16                        BootString[10];
   UINT8                         *LoadOptionFromVar;
   UINTN                         BootOptionSize;
-  BOOLEAN                       BootNextFlag;
   UINT16                        *BootOrderList;
   UINTN                         BootOrderListSize;
-  UINT16                        *BootNext;
-  UINTN                         BootNextSize;
   BM_MENU_ENTRY                 *NewMenuEntry;
   BM_LOAD_CONTEXT               *NewLoadContext;
   UINT8                         *LoadOptionPtr;
@@ -285,9 +282,7 @@ BOpt_GetBootOptions (
 
   MenuCount         = 0;
   BootOrderListSize = 0;
-  BootNextSize      = 0;
   BootOrderList     = NULL;
-  BootNext          = NULL;
   LoadOptionFromVar = NULL;
   BOpt_FreeMenu (&BootOptionMenu);
   InitializeListHead (&BootOptionMenu.Head);
@@ -300,16 +295,6 @@ BOpt_GetBootOptions (
     return EFI_NOT_FOUND;
   }
 
-  //
-  // Get the BootNext from the Var
-  //
-  GetEfiGlobalVariable2 (L"BootNext", (VOID **) &BootNext, &BootNextSize);
-  if (BootNext != NULL) {
-    if (BootNextSize != sizeof (UINT16)) {
-      FreePool (BootNext);
-      BootNext = NULL;
-    }
-  }
   BootOption = EfiBootManagerGetLoadOptions (&BootOptionCount, LoadOptionTypeBoot);
   for (Index = 0; Index < BootOrderListSize / sizeof (UINT16); Index++) {
     //
@@ -328,12 +313,6 @@ BOpt_GetBootOptions (
       continue;
     }
 
-    if (BootNext != NULL) {
-      BootNextFlag = (BOOLEAN) (*BootNext == BootOrderList[Index]);
-    } else {
-      BootNextFlag = FALSE;
-    }
-
     NewMenuEntry = BOpt_CreateMenuEntry (BM_LOAD_CONTEXT_SELECT);
     ASSERT (NULL != NewMenuEntry);
 
@@ -343,8 +322,6 @@ BOpt_GetBootOptions (
     LoadOptionEnd                       = LoadOptionFromVar + BootOptionSize;
 
     NewMenuEntry->OptionNumber          = BootOrderList[Index];
-    NewLoadContext->Deleted             = FALSE;
-    NewLoadContext->IsBootNext          = BootNextFlag;
 
     //
     // Is a Legacy Device?
@@ -435,9 +412,6 @@ BOpt_GetBootOptions (
   }
   EfiBootManagerFreeLoadOptions (BootOption, BootOptionCount);
 
-  if (BootNext != NULL) {
-    FreePool (BootNext);
-  }
   if (BootOrderList != NULL) {
     FreePool (BootOrderList);
   }
@@ -642,21 +616,4 @@ ReSendForm(
                          NULL
                          );
   return TRUE;
-}
-
-/**
-  Create boot option base on the input file path info.
-
-  @param FilePath    Point to the file path.
-
-  @retval TRUE   Exit caller function.
-  @retval FALSE  Not exit caller function.
-**/
-BOOLEAN
-EFIAPI
-CreateBootOptionFromFile (
-  IN EFI_DEVICE_PATH_PROTOCOL    *FilePath
-  )
-{
-  return ReSendForm(FilePath, FORM_BOOT_ADD_ID);
 }

@@ -183,63 +183,6 @@ CleanUpPage (
     );
 }
 
-
-/**
-  Create a list of boot option from global BootOptionMenu. It
-  allow user to delete the boot option.
-
-  @param CallbackData    The BMM context data.
-
-**/
-VOID
-UpdateBootDelPage (
-  IN BMM_CALLBACK_DATA                *CallbackData
-  )
-{
-  BM_MENU_ENTRY   *NewMenuEntry;
-  BM_LOAD_CONTEXT *NewLoadContext;
-  UINT16          Index;
-
-  CallbackData->BmmAskSaveOrNot = TRUE;
-
-  UpdatePageStart (CallbackData);
-
-  ASSERT (BootOptionMenu.MenuNumber <= (sizeof (CallbackData->BmmFakeNvData.BootOptionDel) / sizeof (CallbackData->BmmFakeNvData.BootOptionDel[0])));
-  for (Index = 0; Index < BootOptionMenu.MenuNumber; Index++) {
-    NewMenuEntry    = BOpt_GetMenuEntry (&BootOptionMenu, Index);
-    NewLoadContext  = (BM_LOAD_CONTEXT *) NewMenuEntry->VariableContext;
-    if (NewLoadContext->IsLegacy) {
-      continue;
-    }
-
-    NewLoadContext->Deleted = FALSE;
-
-    if (CallbackData->BmmFakeNvData.BootOptionDel[Index] && !CallbackData->BmmFakeNvData.BootOptionDelMark[Index]) {
-      //
-      // CallbackData->BmmFakeNvData.BootOptionDel[Index] == TRUE means browser knows this boot option is selected
-      // CallbackData->BmmFakeNvData.BootOptionDelMark[Index] = FALSE means BDS knows the selected boot option has
-      // deleted, browser maintains old useless info. So clear this info here, and later update this info to browser
-      // through HiiSetBrowserData function.
-      //
-      CallbackData->BmmFakeNvData.BootOptionDel[Index] = FALSE;
-      CallbackData->BmmOldFakeNVData.BootOptionDel[Index] = FALSE;
-    }
-
-    HiiCreateCheckBoxOpCode (
-      mStartOpCodeHandle,
-      (EFI_QUESTION_ID) (BOOT_OPTION_DEL_QUESTION_ID + Index),
-      VARSTORE_ID_BOOT_MAINT,
-      (UINT16) (BOOT_OPTION_DEL_VAR_OFFSET + Index),
-      NewMenuEntry->DisplayStringToken,
-      NewMenuEntry->HelpStringToken,
-      EFI_IFR_FLAG_CALLBACK,
-      0,
-      NULL
-      );
-  }
-  UpdatePageEnd (CallbackData);
-}
-
 /**
   Update the page's NV Map if user has changed the order
   a list. This list can be Boot Order.
@@ -367,15 +310,6 @@ UpdateOptionPage(
 
   StringToken = HiiSetString (CallbackData->BmmHiiHandle, 0, String, NULL);
   FreePool (String);
-
-  if(FormId == FORM_BOOT_ADD_ID){
-    if (!CallbackData->BmmFakeNvData.BootOptionChanged) {
-      ZeroMem (CallbackData->BmmFakeNvData.BootOptionalData, sizeof (CallbackData->BmmFakeNvData.BootOptionalData));
-      ZeroMem (CallbackData->BmmFakeNvData.BootDescriptionData, sizeof (CallbackData->BmmFakeNvData.BootDescriptionData));
-      ZeroMem (CallbackData->BmmOldFakeNVData.BootOptionalData, sizeof (CallbackData->BmmOldFakeNVData.BootOptionalData));
-      ZeroMem (CallbackData->BmmOldFakeNVData.BootDescriptionData, sizeof (CallbackData->BmmOldFakeNVData.BootDescriptionData));
-    }
-  }
 
   RefreshUpdateData();
   mStartLabel->Number = FormId;

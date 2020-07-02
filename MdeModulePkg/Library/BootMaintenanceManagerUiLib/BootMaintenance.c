@@ -428,9 +428,6 @@ BootMaintRouteConfig (
   EFI_HII_CONFIG_ROUTING_PROTOCOL *ConfigRouting;
   BMM_FAKE_NV_DATA                *NewBmmData;
   BMM_FAKE_NV_DATA                *OldBmmData;
-  BM_MENU_ENTRY                   *NewMenuEntry;
-  BM_LOAD_CONTEXT                 *NewLoadContext;
-  UINT16                          Index;
   BMM_CALLBACK_DATA               *Private;
   UINTN                           Offset;
 
@@ -484,74 +481,12 @@ BootMaintRouteConfig (
   // avoid setting unnecessary non-volatile variable
   //
 
-  //
-  // Check data which located in BMM main page and save the settings if need
-  //
-  if (CompareMem (&NewBmmData->BootNext, &OldBmmData->BootNext, sizeof (NewBmmData->BootNext)) != 0) {
-    Status = Var_UpdateBootNext (Private);
-    if (EFI_ERROR (Status)) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, BootNext);
-      goto Exit;
-    }
-  }
-
-  //
-  // Check data which located in Boot Options Menu and save the settings if need
-  //
-  if (CompareMem (NewBmmData->BootOptionDel, OldBmmData->BootOptionDel, sizeof (NewBmmData->BootOptionDel)) != 0) {
-    for (Index = 0;
-         ((Index < BootOptionMenu.MenuNumber) && (Index < (sizeof (NewBmmData->BootOptionDel) / sizeof (NewBmmData->BootOptionDel[0]))));
-         Index ++) {
-      NewMenuEntry            = BOpt_GetMenuEntry (&BootOptionMenu, Index);
-      NewLoadContext          = (BM_LOAD_CONTEXT *) NewMenuEntry->VariableContext;
-      NewLoadContext->Deleted = NewBmmData->BootOptionDel[Index];
-      NewBmmData->BootOptionDel[Index] = FALSE;
-      NewBmmData->BootOptionDelMark[Index] = FALSE;
-    }
-
-    Status = Var_DelBootOption ();
-    if (EFI_ERROR (Status)) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, BootOptionDel);
-      goto Exit;
-    }
-  }
-
   if (CompareMem (NewBmmData->BootOptionOrder, OldBmmData->BootOptionOrder, sizeof (NewBmmData->BootOptionOrder)) != 0) {
     Status = Var_UpdateBootOrder (Private);
     if (EFI_ERROR (Status)) {
       Offset = OFFSET_OF (BMM_FAKE_NV_DATA, BootOptionOrder);
       goto Exit;
     }
-  }
-
-  if (CompareMem (&NewBmmData->BootTimeOut, &OldBmmData->BootTimeOut, sizeof (NewBmmData->BootTimeOut)) != 0){
-    Status = gRT->SetVariable(
-                    L"Timeout",
-                    &gEfiGlobalVariableGuid,
-                    EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS | EFI_VARIABLE_NON_VOLATILE,
-                    sizeof(UINT16),
-                    &(NewBmmData->BootTimeOut)
-                    );
-    if (EFI_ERROR (Status)) {
-      Offset = OFFSET_OF (BMM_FAKE_NV_DATA, BootTimeOut);
-      goto Exit;
-    }
-    Private->BmmOldFakeNVData.BootTimeOut = NewBmmData->BootTimeOut;
-  }
-
-  if (CompareMem (NewBmmData->BootDescriptionData, OldBmmData->BootDescriptionData, sizeof (NewBmmData->BootDescriptionData)) != 0 ||
-       CompareMem (NewBmmData->BootOptionalData, OldBmmData->BootOptionalData, sizeof (NewBmmData->BootOptionalData)) != 0) {
-    Status = Var_UpdateBootOption (Private);
-    NewBmmData->BootOptionChanged = FALSE;
-    if (EFI_ERROR (Status)) {
-      if (CompareMem (NewBmmData->BootDescriptionData, OldBmmData->BootDescriptionData, sizeof (NewBmmData->BootDescriptionData)) != 0) {
-        Offset = OFFSET_OF (BMM_FAKE_NV_DATA, BootDescriptionData);
-      } else {
-        Offset = OFFSET_OF (BMM_FAKE_NV_DATA, BootOptionalData);
-      }
-      goto Exit;
-    }
-    BOpt_GetBootOptions (Private);
   }
 
   //
@@ -604,7 +539,6 @@ BootMaintCallback (
 {
   BMM_CALLBACK_DATA *Private;
   BMM_FAKE_NV_DATA  *CurrentFakeNVMap;
-  BMM_FAKE_NV_DATA  *OldFakeNVMap;
   EFI_DEVICE_PATH_PROTOCOL * File;
 
   if (Action != EFI_BROWSER_ACTION_CHANGING && Action != EFI_BROWSER_ACTION_CHANGED && Action != EFI_BROWSER_ACTION_FORM_OPEN) {
@@ -639,7 +573,6 @@ BootMaintCallback (
   // Retrieve uncommitted data from Form Browser
   //
   CurrentFakeNVMap = &Private->BmmFakeNvData;
-  OldFakeNVMap     = &Private->BmmOldFakeNVData;
   HiiGetBrowserData (&mBootMaintGuid, mBootMaintStorageName, sizeof (BMM_FAKE_NV_DATA), (UINT8 *) CurrentFakeNVMap);
 
   if (Action == EFI_BROWSER_ACTION_CHANGING) {
@@ -652,16 +585,6 @@ BootMaintCallback (
     if (QuestionId < FILE_OPTION_OFFSET) {
       if (QuestionId < CONFIG_OPTION_OFFSET) {
         switch (QuestionId) {
-        case FORM_BOOT_ADD_ID:
-          // Leave BMM and enter FileExplorer.
-          ChooseFile (NULL, L".efi", CreateBootOptionFromFile, &File);
-          break;
-
-        case FORM_BOOT_DEL_ID:
-          CleanUpPage (FORM_BOOT_DEL_ID, Private);
-          UpdateBootDelPage (Private);
-          break;
-
         case FORM_BOOT_CHG_ID:
           UpdatePageBody (QuestionId, Private);
           break;
@@ -681,56 +604,29 @@ BootMaintCallback (
     }
 
     if (QuestionId == KEY_VALUE_SAVE_AND_EXIT_BOOT) {
-      CleanUselessBeforeSubmit (Private);
-      CurrentFakeNVMap->BootOptionChanged = FALSE;
       *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_SUBMIT_EXIT;
     } else if (QuestionId == KEY_VALUE_NO_SAVE_AND_EXIT_BOOT) {
-      //
-      // Discard changes and exit formset
-      //
-      ZeroMem (CurrentFakeNVMap->BootOptionalData, sizeof (CurrentFakeNVMap->BootOptionalData));
-      ZeroMem (CurrentFakeNVMap->BootDescriptionData, sizeof (CurrentFakeNVMap->BootDescriptionData));
-      ZeroMem (OldFakeNVMap->BootOptionalData, sizeof (OldFakeNVMap->BootOptionalData));
-      ZeroMem (OldFakeNVMap->BootDescriptionData, sizeof (OldFakeNVMap->BootDescriptionData));
-      CurrentFakeNVMap->BootOptionChanged = FALSE;
       *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_DISCARD_EXIT;
-    } else if (QuestionId == KEY_VALUE_BOOT_DESCRIPTION || QuestionId == KEY_VALUE_BOOT_OPTION) {
-      CurrentFakeNVMap->BootOptionChanged = TRUE;
     }
 
-    if ((QuestionId >= BOOT_OPTION_DEL_QUESTION_ID) && (QuestionId < BOOT_OPTION_DEL_QUESTION_ID + MAX_MENU_NUMBER)) {
-      if (Value->b){
-        //
-        // Means user try to delete this boot option but not press F10 or "Commit Changes and Exit" menu.
-        //
-        CurrentFakeNVMap->BootOptionDelMark[QuestionId - BOOT_OPTION_DEL_QUESTION_ID] = TRUE;
-      } else {
-        //
-        // Means user remove the old check status.
-        //
-        CurrentFakeNVMap->BootOptionDelMark[QuestionId - BOOT_OPTION_DEL_QUESTION_ID] = FALSE;
+    switch (QuestionId) {
+    case KEY_VALUE_SAVE_AND_EXIT:
+    case KEY_VALUE_NO_SAVE_AND_EXIT:
+      if (QuestionId == KEY_VALUE_SAVE_AND_EXIT) {
+        *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_SUBMIT_EXIT;
+      } else if (QuestionId == KEY_VALUE_NO_SAVE_AND_EXIT) {
+        DiscardChangeHandler (Private, CurrentFakeNVMap);
+        *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_DISCARD_EXIT;
       }
-    } else {
-      switch (QuestionId) {
-      case KEY_VALUE_SAVE_AND_EXIT:
-      case KEY_VALUE_NO_SAVE_AND_EXIT:
-        if (QuestionId == KEY_VALUE_SAVE_AND_EXIT) {
-          CleanUselessBeforeSubmit (Private);
-          *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_SUBMIT_EXIT;
-        } else if (QuestionId == KEY_VALUE_NO_SAVE_AND_EXIT) {
-          DiscardChangeHandler (Private, CurrentFakeNVMap);
-          *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_DISCARD_EXIT;
-        }
 
-        break;
+      break;
 
-      case FORM_RESET:
-        gRT->ResetSystem (EfiResetCold, EFI_SUCCESS, 0, NULL);
-        return EFI_UNSUPPORTED;
+    case FORM_RESET:
+      gRT->ResetSystem (EfiResetCold, EFI_SUCCESS, 0, NULL);
+      return EFI_UNSUPPORTED;
 
-      default:
-        break;
-      }
+    default:
+      break;
     }
   }
 
@@ -755,52 +651,13 @@ DiscardChangeHandler (
   IN  BMM_FAKE_NV_DATA                *CurrentFakeNVMap
   )
 {
-  UINT16  Index;
-
   switch (Private->BmmPreviousPageId) {
   case FORM_BOOT_CHG_ID:
     CopyMem (CurrentFakeNVMap->BootOptionOrder, Private->BmmOldFakeNVData.BootOptionOrder, sizeof (CurrentFakeNVMap->BootOptionOrder));
     break;
 
-  case FORM_BOOT_DEL_ID:
-    ASSERT (BootOptionMenu.MenuNumber <= (sizeof (CurrentFakeNVMap->BootOptionDel) / sizeof (CurrentFakeNVMap->BootOptionDel[0])));
-    for (Index = 0; Index < BootOptionMenu.MenuNumber; Index++) {
-      CurrentFakeNVMap->BootOptionDel[Index] = FALSE;
-    }
-    break;
-
-  case FORM_BOOT_NEXT_ID:
-    CurrentFakeNVMap->BootNext = Private->BmmOldFakeNVData.BootNext;
-    break;
-
-  case FORM_TIME_OUT_ID:
-    CurrentFakeNVMap->BootTimeOut = Private->BmmOldFakeNVData.BootTimeOut;
-    break;
-
   default:
     break;
-  }
-}
-
-/**
-  This function is to clean some useless data before submit changes.
-
-  @param Private            The BMM context data.
-
-**/
-VOID
-CleanUselessBeforeSubmit (
-  IN  BMM_CALLBACK_DATA               *Private
-  )
-{
-  UINT16  Index;
-  if (Private->BmmPreviousPageId != FORM_BOOT_DEL_ID) {
-    for (Index = 0; Index < BootOptionMenu.MenuNumber; Index++) {
-      if (Private->BmmFakeNvData.BootOptionDel[Index] && !Private->BmmFakeNvData.BootOptionDelMark[Index]) {
-        Private->BmmFakeNvData.BootOptionDel[Index] = FALSE;
-        Private->BmmOldFakeNVData.BootOptionDel[Index] = FALSE;
-      }
-    }
   }
 }
 
@@ -872,34 +729,12 @@ InitializeBmmConfig (
   IN  BMM_CALLBACK_DATA    *CallbackData
   )
 {
-  BM_MENU_ENTRY   *NewMenuEntry;
-  BM_LOAD_CONTEXT *NewLoadContext;
-  UINT16          Index;
-
   ASSERT (CallbackData != NULL);
-
-  //
-  // Initialize data which located in BMM main page
-  //
-  CallbackData->BmmFakeNvData.BootNext = NONE_BOOTNEXT_VALUE;
-  for (Index = 0; Index < BootOptionMenu.MenuNumber; Index++) {
-    NewMenuEntry    = BOpt_GetMenuEntry (&BootOptionMenu, Index);
-    NewLoadContext  = (BM_LOAD_CONTEXT *) NewMenuEntry->VariableContext;
-
-    if (NewLoadContext->IsBootNext) {
-      CallbackData->BmmFakeNvData.BootNext = Index;
-      break;
-    }
-  }
-
-  CallbackData->BmmFakeNvData.BootTimeOut = PcdGet16 (PcdPlatformBootTimeOut);
 
   //
   // Initialize data which located in Boot Options Menu
   //
   GetBootOrder (CallbackData);
-
-  CallbackData->BmmFakeNvData.ForceReconnect = TRUE;
 
   //
   // Backup Initialize BMM configuartion data to BmmOldFakeNVData
