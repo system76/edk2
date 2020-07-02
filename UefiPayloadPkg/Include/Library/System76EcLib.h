@@ -9,18 +9,10 @@
 #ifndef __SYSTEM76_EC_LIB__
 #define __SYSTEM76_EC_LIB__
 
-/**
-  Write data to the embedded controller using SMFI command interface.
-
-  @param  Buffer            Pointer to the data buffer to be written.
-  @param  NumberOfBytes     Number of bytes to write.
-
-  @return -1 if the command failed, else the number of data bytes written.
-**/
-INTN
-System76EcWrite (
-  IN UINT8    *Buffer,
-  IN UINTN    NumberOfBytes
-);
+// From coreboot/src/include/console/system76_ec.h {
+void system76_ec_init(void);
+void system76_ec_flush(void);
+void system76_ec_print(UINT8 byte);
+// } From coreboot/src/include/console/system76_ec.h
 
 #endif /* __SYSTEM76_EC_LIB__ */

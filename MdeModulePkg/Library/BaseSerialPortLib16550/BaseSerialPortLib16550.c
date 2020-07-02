@@ -489,6 +489,8 @@ SerialPortInitialize (
   UINT32         CurrentDivisor;
   BOOLEAN        Initialized;
 
+  system76_ec_init();
+
   //
   // Perform platform specific initialization required to enable use of the 16550 device
   // at the location specified by PcdSerialUseMmio and PcdSerialRegisterBase.
@@ -602,32 +604,32 @@ SerialPortWrite (
   UINTN  Result;
   UINTN  Index;
   UINTN  FifoSize;
-  UINT8  *BufPtr = Buffer;
-  UINTN  Bytes = NumberOfBytes;
 
   if (Buffer == NULL) {
     return 0;
   }
 
   SerialRegisterBase = GetSerialRegisterBase ();
-  if (SerialRegisterBase ==0) {
-    return 0;
-  }
 
   if (NumberOfBytes == 0) {
     //
     // Flush the hardware
     //
 
-    //
-    // Wait for both the transmit FIFO and shift register empty.
-    //
-    while ((SerialPortReadRegister (SerialRegisterBase, R_UART_LSR) & (B_UART_LSR_TEMT | B_UART_LSR_TXRDY)) != (B_UART_LSR_TEMT | B_UART_LSR_TXRDY));
+    system76_ec_flush();
 
-    //
-    // Wait for the hardware flow control signal
-    //
-    while (!SerialPortWritable (SerialRegisterBase));
+    if (SerialRegisterBase != 0) {
+      //
+      // Wait for both the transmit FIFO and shift register empty.
+      //
+      while ((SerialPortReadRegister (SerialRegisterBase, R_UART_LSR) & (B_UART_LSR_TEMT | B_UART_LSR_TXRDY)) != (B_UART_LSR_TEMT | B_UART_LSR_TXRDY));
+
+      //
+      // Wait for the hardware flow control signal
+      //
+      while (!SerialPortWritable (SerialRegisterBase));
+    }
+
     return 0;
   }
 
@@ -645,29 +647,31 @@ SerialPortWrite (
 
   Result = NumberOfBytes;
   while (NumberOfBytes != 0) {
-    //
-    // Wait for the serial port to be ready, to make sure both the transmit FIFO
-    // and shift register empty.
-    //
-    while ((SerialPortReadRegister (SerialRegisterBase, R_UART_LSR) & (B_UART_LSR_TEMT | B_UART_LSR_TXRDY)) != (B_UART_LSR_TEMT | B_UART_LSR_TXRDY));
+    system76_ec_print(*Buffer);
 
-    //
-    // Fill then entire Tx FIFO
-    //
-    for (Index = 0; Index < FifoSize && NumberOfBytes != 0; Index++, NumberOfBytes--, Buffer++) {
+    if (SerialRegisterBase != 0) {
       //
-      // Wait for the hardware flow control signal
+      // Wait for the serial port to be ready, to make sure both the transmit FIFO
+      // and shift register empty.
       //
-      while (!SerialPortWritable (SerialRegisterBase));
+      while ((SerialPortReadRegister (SerialRegisterBase, R_UART_LSR) & (B_UART_LSR_TEMT | B_UART_LSR_TXRDY)) != (B_UART_LSR_TEMT | B_UART_LSR_TXRDY));
 
       //
-      // Write byte to the transmit buffer.
+      // Fill then entire Tx FIFO
       //
-      SerialPortWriteRegister (SerialRegisterBase, R_UART_TXBUF, *Buffer);
+      for (Index = 0; Index < FifoSize && NumberOfBytes != 0; Index++, NumberOfBytes--, Buffer++) {
+        //
+        // Wait for the hardware flow control signal
+        //
+        while (!SerialPortWritable (SerialRegisterBase));
+
+        //
+        // Write byte to the transmit buffer.
+        //
+        SerialPortWriteRegister (SerialRegisterBase, R_UART_TXBUF, *Buffer);
+      }
     }
   }
-
-  System76EcWrite(BufPtr, Bytes);
 
   return Result;
 }
@@ -1107,4 +1111,3 @@ SerialPortSetAttributes (
 
   return RETURN_SUCCESS;
 }
-

@@ -8,11 +8,6 @@
 
 #include <Library/System76EcLib.h>
 
-INTN
-System76EcWrite (
-  IN UINT8  *Buffer,
-  IN UINTN  NumberOfBytes
-  )
-{
-  return 0;
-}
+void system76_ec_init(void) {}
+void system76_ec_flush(void) {}
+void system76_ec_print(UINT8 byte) {}
