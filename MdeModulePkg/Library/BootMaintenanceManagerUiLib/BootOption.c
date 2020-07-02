@@ -421,80 +421,6 @@ BOpt_GetBootOptions (
 }
 
 /**
-
-  Get the Option Number that has not been allocated for use.
-
-  @param Type  The type of Option.
-
-  @return The available Option Number.
-
-**/
-UINT16
-BOpt_GetOptionNumber (
-  CHAR16        *Type
-  )
-{
-  UINT16        *OrderList;
-  UINTN         OrderListSize;
-  UINTN         Index;
-  CHAR16        StrTemp[20];
-  UINT16        *OptionBuffer;
-  UINT16        OptionNumber;
-  UINTN         OptionSize;
-
-  OrderListSize = 0;
-  OrderList     = NULL;
-  OptionNumber  = 0;
-  Index         = 0;
-
-  UnicodeSPrint (StrTemp, sizeof (StrTemp), L"%sOrder", Type);
-
-  GetEfiGlobalVariable2 (StrTemp, (VOID **) &OrderList, &OrderListSize);
-  for (OptionNumber = 0; ; OptionNumber++) {
-    if (OrderList != NULL) {
-      for (Index = 0; Index < OrderListSize / sizeof (UINT16); Index++) {
-        if (OptionNumber == OrderList[Index]) {
-          break;
-        }
-      }
-    }
-
-    if (Index < OrderListSize / sizeof (UINT16)) {
-      //
-      // The OptionNumber occurs in the OrderList, continue to use next one
-      //
-      continue;
-    }
-    UnicodeSPrint (StrTemp, sizeof (StrTemp), L"%s%04x", Type, (UINTN) OptionNumber);
-    DEBUG((EFI_D_ERROR,"Option = %s\n", StrTemp));
-    GetEfiGlobalVariable2 (StrTemp, (VOID **) &OptionBuffer, &OptionSize);
-    if (NULL == OptionBuffer) {
-      //
-      // The Boot[OptionNumber] NOT occurs, we found it
-      //
-      break;
-    }
-  }
-
-  return OptionNumber;
-}
-
-/**
-
-  Get the Option Number for Boot#### that does not used.
-
-  @return The available Option Number.
-
-**/
-UINT16
-BOpt_GetBootOptionNumber (
-  VOID
-  )
-{
-  return BOpt_GetOptionNumber (L"Boot");
-}
-
-/**
   Get option number according to Boot#### and BootOrder variable.
   The value is saved as #### + 1.
 
@@ -587,33 +513,4 @@ BootFromFile (
   }
 
   return FALSE;
-}
-
-/**
-  Display the form base on the selected file.
-
-  @param FilePath   Point to the file path.
-  @param FormId     The form need to display.
-
-**/
-BOOLEAN
-ReSendForm(
-  IN  EFI_DEVICE_PATH_PROTOCOL  *FilePath,
-  IN  EFI_FORM_ID               FormId
-  )
-{
-  gBootMaintenancePrivate.LoadContext->FilePathList = FilePath;
-
-  UpdateOptionPage(&gBootMaintenancePrivate, FormId, FilePath);
-
-  gBootMaintenancePrivate.FormBrowser2->SendForm (
-                         gBootMaintenancePrivate.FormBrowser2,
-                         &gBootMaintenancePrivate.BmmHiiHandle,
-                         1,
-                         &mBootMaintGuid,
-                         FormId,
-                         NULL,
-                         NULL
-                         );
-  return TRUE;
 }

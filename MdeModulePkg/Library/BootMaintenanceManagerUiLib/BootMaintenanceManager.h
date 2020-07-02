@@ -66,11 +66,6 @@ extern UINT8    BootMaintenanceManagerBin[];
 #define BMM_CALLBACK_DATA_FROM_THIS(a)  CR (a, BMM_CALLBACK_DATA, BmmConfigAccess, BMM_CALLBACK_DATA_SIGNATURE)
 
 //
-// Enumeration type definition
-//
-typedef UINT8 BBS_TYPE;
-
-//
 // All of the signatures that will be used in list structure
 //
 #define BM_MENU_OPTION_SIGNATURE      SIGNATURE_32 ('m', 'e', 'n', 'u')
@@ -185,7 +180,6 @@ typedef struct {
   BM_HANDLE_CONTEXT              *HandleContext;
   BM_FILE_CONTEXT                *FileContext;
   BM_LOAD_CONTEXT                *LoadContext;
-  BBS_TYPE                       BbsType;
 
   //
   // BMM main formset callback data.
@@ -193,7 +187,6 @@ typedef struct {
 
   EFI_FORM_ID                    BmmCurrentPageId;
   EFI_FORM_ID                    BmmPreviousPageId;
-  BOOLEAN                        BmmAskSaveOrNot;
   BMM_FAKE_NV_DATA               BmmFakeNvData;
   BMM_FAKE_NV_DATA               BmmOldFakeNVData;
 
@@ -223,32 +216,6 @@ BOpt_GetBootOptions (
 VOID
 BOpt_FreeMenu (
   BM_MENU_OPTION        *FreeMenu
-  );
-
-/**
-
-  Get the Option Number that has not been allocated for use.
-
-  @param Type  The type of Option.
-
-  @return The available Option Number.
-
-**/
-UINT16
-BOpt_GetOptionNumber (
-  CHAR16        *Type
-  );
-
-/**
-
-  Get the Option Number for Boot#### that does not used.
-
-  @return The available Option Number.
-
-**/
-UINT16
-BOpt_GetBootOptionNumber (
-  VOID
   );
 
 /**

@@ -70,37 +70,6 @@ RefreshUpdateData (
 }
 
 /**
-  Add a "Go back to main page" tag in front of the form when there are no
-  "Apply changes" and "Discard changes" tags in the end of the form.
-
-  @param CallbackData    The BMM context data.
-
-**/
-VOID
-UpdatePageStart (
-  IN BMM_CALLBACK_DATA                *CallbackData
-  )
-{
-  RefreshUpdateData ();
-  mStartLabel->Number = CallbackData->BmmCurrentPageId;
-
-  if (!(CallbackData->BmmAskSaveOrNot)) {
-    //
-    // Add a "Go back to main page" tag in front of the form when there are no
-    // "Apply changes" and "Discard changes" tags in the end of the form.
-    //
-    HiiCreateGotoOpCode (
-      mStartOpCodeHandle,
-      FORM_MAIN_ID,
-      STRING_TOKEN (STR_FORM_GOTO_MAIN),
-      STRING_TOKEN (STR_FORM_GOTO_MAIN),
-      0,
-      FORM_MAIN_ID
-      );
-  }
-}
-
-/**
   Create the "Apply changes" and "Discard changes" tags. And
   ensure user can return to the main page.
 
@@ -115,24 +84,22 @@ UpdatePageEnd (
   //
   // Create the "Apply changes" and "Discard changes" tags.
   //
-  if (CallbackData->BmmAskSaveOrNot) {
-    HiiCreateSubTitleOpCode (
-      mStartOpCodeHandle,
-      STRING_TOKEN (STR_NULL_STRING),
-      0,
-      0,
-      0
-      );
+  HiiCreateSubTitleOpCode (
+    mStartOpCodeHandle,
+    STRING_TOKEN (STR_NULL_STRING),
+    0,
+    0,
+    0
+    );
 
-    HiiCreateActionOpCode (
-      mStartOpCodeHandle,
-      KEY_VALUE_SAVE_AND_EXIT,
-      STRING_TOKEN (STR_SAVE_AND_EXIT),
-      STRING_TOKEN (STR_NULL_STRING),
-      EFI_IFR_FLAG_CALLBACK,
-      0
-      );
-  }
+  HiiCreateActionOpCode (
+    mStartOpCodeHandle,
+    KEY_VALUE_SAVE_AND_EXIT,
+    STRING_TOKEN (STR_SAVE_AND_EXIT),
+    STRING_TOKEN (STR_NULL_STRING),
+    EFI_IFR_FLAG_CALLBACK,
+    0
+    );
 
   //
   // Ensure user can return to the main page.
@@ -207,9 +174,6 @@ UpdateOrderPage (
   UINT32            *OptionOrder;
   EFI_QUESTION_ID   QuestionId;
   UINT16            VarOffset;
-
-  CallbackData->BmmAskSaveOrNot = TRUE;
-  UpdatePageStart (CallbackData);
 
   OptionOrder = NULL;
   QuestionId = 0;
