@@ -35,17 +35,46 @@ HII_VENDOR_DEVICE_PATH  mBmmHiiVendorDevicePath = {
   }
 };
 
-EFI_GUID mBootMaintGuid          = BOOT_MAINT_FORMSET_GUID;
+EFI_GUID mBootMaintGuid = BOOT_MAINT_FORMSET_GUID;
+CHAR16  mBootMaintStorageName[] = L"BmmData";
 
-CHAR16  mBootMaintStorageName[]     = L"BmmData";
+EFI_STATUS
+EFIAPI
+ExtractConfig (
+  IN  CONST EFI_HII_CONFIG_ACCESS_PROTOCOL   *This,
+  IN  CONST EFI_STRING                       Request,
+  OUT EFI_STRING                             *Progress,
+  OUT EFI_STRING                             *Results
+  );
+
+EFI_STATUS
+EFIAPI
+RouteConfig (
+  IN CONST EFI_HII_CONFIG_ACCESS_PROTOCOL *This,
+  IN CONST EFI_STRING                     Configuration,
+  OUT EFI_STRING                          *Progress
+  );
+
+EFI_STATUS
+EFIAPI
+DriverCallback (
+  IN  CONST EFI_HII_CONFIG_ACCESS_PROTOCOL         *This,
+  IN        EFI_BROWSER_ACTION                     Action,
+  IN        EFI_QUESTION_ID                        QuestionId,
+  IN        UINT8                                  Type,
+  IN        EFI_IFR_TYPE_VALUE                     *Value,
+  OUT       EFI_BROWSER_ACTION_REQUEST             *ActionRequest
+  );
+
+
 BMM_CALLBACK_DATA  gBootMaintenancePrivate = {
   BMM_CALLBACK_DATA_SIGNATURE,
   NULL,
   NULL,
   {
-    BootMaintExtractConfig,
-    BootMaintRouteConfig,
-    BootMaintCallback
+    ExtractConfig,
+    RouteConfig,
+    DriverCallback
   }
 };
 
@@ -305,7 +334,7 @@ UpdateProgress(
 **/
 EFI_STATUS
 EFIAPI
-BootMaintExtractConfig (
+ExtractConfig (
   IN  CONST EFI_HII_CONFIG_ACCESS_PROTOCOL   *This,
   IN  CONST EFI_STRING                       Request,
   OUT EFI_STRING                             *Progress,
@@ -417,7 +446,7 @@ BootMaintExtractConfig (
 **/
 EFI_STATUS
 EFIAPI
-BootMaintRouteConfig (
+RouteConfig (
   IN CONST EFI_HII_CONFIG_ACCESS_PROTOCOL *This,
   IN CONST EFI_STRING                     Configuration,
   OUT EFI_STRING                          *Progress
@@ -528,7 +557,7 @@ Exit:
 **/
 EFI_STATUS
 EFIAPI
-BootMaintCallback (
+DriverCallback (
   IN  CONST EFI_HII_CONFIG_ACCESS_PROTOCOL         *This,
   IN        EFI_BROWSER_ACTION                     Action,
   IN        EFI_QUESTION_ID                        QuestionId,
@@ -537,105 +566,85 @@ BootMaintCallback (
   OUT       EFI_BROWSER_ACTION_REQUEST             *ActionRequest
   )
 {
-  BMM_CALLBACK_DATA *Private;
-  BMM_FAKE_NV_DATA  *CurrentFakeNVMap;
-  EFI_DEVICE_PATH_PROTOCOL * File;
+  BMM_CALLBACK_DATA *Private = BMM_CALLBACK_DATA_FROM_THIS(This);
+  BMM_FAKE_NV_DATA  *CurrentFakeNVMap = &Private->BmmFakeNvData;
+  EFI_STATUS Status = EFI_UNSUPPORTED;
 
-  if (Action != EFI_BROWSER_ACTION_CHANGING && Action != EFI_BROWSER_ACTION_CHANGED && Action != EFI_BROWSER_ACTION_FORM_OPEN) {
-    //
-    // Do nothing for other UEFI Action. Only do call back when data is changed or the form is open.
-    //
-    return EFI_UNSUPPORTED;
-  }
-
-  Private        = BMM_CALLBACK_DATA_FROM_THIS (This);
-
-  if (Action == EFI_BROWSER_ACTION_FORM_OPEN) {
-    if (QuestionId == KEY_VALUE_TRIGGER_FORM_OPEN_ACTION) {
-      if (!mFirstEnterBMMForm) {
-        //
-        // BMMUiLib depends on LegacyUi library to show legacy menus.
-        // If we want to show Legacy menus correctly in BMM page,
-        // we must do it after the LegacyUi library has already been initialized.
-        // Opening the BMM form is the appropriate time that the LegacyUi library has already been initialized.
-        // So we do the tasks which are related to legacy menus here.
-        // 1. Update the menus (including legacy munu) show in BootMiantenanceManager page.
-        // 2. Re-scan the BootOption menus (including the legacy boot option).
-        //
-        CustomizeMenus ();
-        EfiBootManagerRefreshAllBootOption ();
-        BOpt_GetBootOptions (Private);
-        mFirstEnterBMMForm = TRUE;
-      }
-    }
-  }
-  //
   // Retrieve uncommitted data from Form Browser
-  //
-  CurrentFakeNVMap = &Private->BmmFakeNvData;
   HiiGetBrowserData (&mBootMaintGuid, mBootMaintStorageName, sizeof (BMM_FAKE_NV_DATA), (UINT8 *) CurrentFakeNVMap);
 
-  if (Action == EFI_BROWSER_ACTION_CHANGING) {
-    if (Value == NULL) {
+  switch (Action) {
+  case EFI_BROWSER_ACTION_FORM_OPEN:
+    if (!mFirstEnterBMMForm) {
+      CustomizeMenus ();
+      EfiBootManagerRefreshAllBootOption ();
+      BOpt_GetBootOptions (Private);
+      mFirstEnterBMMForm = TRUE;
+    }
+    Status = EFI_SUCCESS;
+    break;
+
+  case EFI_BROWSER_ACTION_CHANGING:
+    if (Value == NULL)
       return EFI_INVALID_PARAMETER;
-    }
 
-    UpdatePageId (Private, QuestionId);
-
-    if (QuestionId < FILE_OPTION_OFFSET) {
-      if (QuestionId < CONFIG_OPTION_OFFSET) {
-        switch (QuestionId) {
-        case FORM_BOOT_CHG_ID:
-          UpdatePageBody (QuestionId, Private);
-          break;
-
-        default:
-          break;
-        }
-      }
-    }
-    if (QuestionId == KEY_VALUE_BOOT_FROM_FILE){
-      // Leave BMM and enter FileExplorer.
-      ChooseFile (NULL, L".efi", BootFromFile, &File);
-    }
-  } else if (Action == EFI_BROWSER_ACTION_CHANGED) {
-    if ((Value == NULL) || (ActionRequest == NULL)) {
-      return EFI_INVALID_PARAMETER;
-    }
-
-    if (QuestionId == KEY_VALUE_SAVE_AND_EXIT_BOOT) {
-      *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_SUBMIT_EXIT;
-    } else if (QuestionId == KEY_VALUE_NO_SAVE_AND_EXIT_BOOT) {
-      *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_DISCARD_EXIT;
-    }
+    UpdatePageId(Private, QuestionId);
 
     switch (QuestionId) {
-    case KEY_VALUE_SAVE_AND_EXIT:
-    case KEY_VALUE_NO_SAVE_AND_EXIT:
-      if (QuestionId == KEY_VALUE_SAVE_AND_EXIT) {
-        *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_SUBMIT_EXIT;
-      } else if (QuestionId == KEY_VALUE_NO_SAVE_AND_EXIT) {
-        DiscardChangeHandler (Private, CurrentFakeNVMap);
-        *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_DISCARD_EXIT;
-      }
-
+    case FORM_BOOT_CHG_ID:
+      UpdatePageBody(QuestionId, Private);
+      Status = EFI_SUCCESS;
       break;
 
-    case FORM_RESET:
-      gRT->ResetSystem (EfiResetCold, EFI_SUCCESS, 0, NULL);
-      return EFI_UNSUPPORTED;
+    case KEY_VALUE_BOOT_FROM_FILE:
+      // Leave BMM and enter FileExplorer.
+      {
+        EFI_DEVICE_PATH_PROTOCOL *File;
+        ChooseFile(NULL, L".efi", BootFromFile, &File);
+      }
+      Status = EFI_SUCCESS;
+      break;
 
     default:
       break;
     }
+
+    break;
+
+  case EFI_BROWSER_ACTION_CHANGED:
+    if ((Value == NULL) || (ActionRequest == NULL)) {
+      return EFI_INVALID_PARAMETER;
+    }
+
+    switch (QuestionId) {
+    case KEY_VALUE_SAVE_AND_EXIT:
+    case KEY_VALUE_SAVE_AND_EXIT_BOOT:
+      *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_SUBMIT_EXIT;
+      Status = EFI_SUCCESS;
+      break;
+
+    case KEY_VALUE_NO_SAVE_AND_EXIT:
+    case KEY_VALUE_NO_SAVE_AND_EXIT_BOOT:
+      DiscardChangeHandler (Private, CurrentFakeNVMap);
+      *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_DISCARD_EXIT;
+      Status = EFI_SUCCESS;
+      break;
+
+    default:
+      break;
+    }
+    break;
+
+  default:
+    break;
   }
 
-  //
-  // Pass changed uncommitted data back to Form Browser
-  //
-  HiiSetBrowserData (&mBootMaintGuid, mBootMaintStorageName, sizeof (BMM_FAKE_NV_DATA), (UINT8 *) CurrentFakeNVMap, NULL);
+  if (Status == EFI_SUCCESS) {
+    // Pass changed uncommitted data back to Form Browser
+    HiiSetBrowserData (&mBootMaintGuid, mBootMaintStorageName, sizeof(BMM_FAKE_NV_DATA), (UINT8 *)CurrentFakeNVMap, NULL);
+  }
 
-  return EFI_SUCCESS;
+  return Status;
 }
 
 /**
