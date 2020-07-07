@@ -10,8 +10,8 @@
 
 formset
   guid = BOOT_MAINT_FORMSET_GUID,
-  title = STRING_TOKEN(STR_FORM_MAIN_TITLE),
-  help = STRING_TOKEN(STR_BOOT_MAINT_MANAGER_HELP),
+  title = STRING_TOKEN(STR_CHANGE_BOOT_ORDER),
+  help = STRING_TOKEN(STR_NULL_STRING),
   classguid = gEfiIfrFrontPageGuid,
 
   varstore BMM_FAKE_NV_DATA,
@@ -19,12 +19,9 @@ formset
     name = BmmData,
     guid = BOOT_MAINT_FORMSET_GUID;
 
-  form formid = FORM_MAIN_ID,
-       title = STRING_TOKEN(STR_FORM_MAIN_TITLE);
-       //
-       // Add this invisible text in order to indicate enter Boot Maintenance Manager form.
-       // To trigger the form open action.
-       //
+  form formid = FORM_BOOT_CHG_ID,
+       title = STRING_TOKEN(STR_CHANGE_BOOT_ORDER);
+
        suppressif TRUE;
           text
               help  = STRING_TOKEN(STR_NULL_STRING),
@@ -33,19 +30,8 @@ formset
               key   = KEY_VALUE_TRIGGER_FORM_OPEN_ACTION;
        endif;
 
-    label LABEL_FORM_MAIN_START;
-    //
-    // This is where we will dynamically add a Action type op-code to show
-    // the platform information.
-    //
-    label LABEL_FORM_MAIN_END;
-
-  endform;
-
-  form formid = FORM_BOOT_CHG_ID,
-       title = STRING_TOKEN(STR_FORM_BOOT_CHG_TITLE);
-
        label FORM_BOOT_CHG_ID;
        label LABEL_END;
   endform;
+
 endformset;

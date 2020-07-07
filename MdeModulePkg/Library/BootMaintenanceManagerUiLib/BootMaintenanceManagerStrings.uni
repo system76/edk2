@@ -9,12 +9,4 @@
 #langdef   en-US "English"
 
 #string STR_NULL_STRING                #language en-US  ""
-#string STR_FORM_MAIN_TITLE            #language en-US  "Boot Options"
-#string STR_BOOT_MAINT_MANAGER_HELP    #language en-US  "Configure boot options"
-#string STR_FORM_BOOT_CHG_TITLE        #language en-US  "Change Boot Order"
-#string STR_SAVE_AND_EXIT              #language en-US  "Commit Changes and Exit"
-#string STR_NO_SAVE_AND_EXIT           #language en-US  "Discard Changes and Exit"
-#string STR_FORM_GOTO_MAIN             #language en-US  "Go Back To Main Page"
-#string STR_BOOT_FROM_FILE             #language en-US  "Boot From File"
-#string STR_BOOT_FROM_FILE_HELP        #language en-US  "Boot system from a file or device"
-#string STR_CHANGE_ORDER               #language en-US  "Change Boot Order"
+#string STR_CHANGE_BOOT_ORDER          #language en-US  "Change Boot Order"

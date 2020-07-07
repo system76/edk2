@@ -67,7 +67,7 @@ DriverCallback (
   );
 
 
-BMM_CALLBACK_DATA  gBootMaintenancePrivate = {
+STATIC BMM_CALLBACK_DATA mBootMaintenancePrivate = {
   BMM_CALLBACK_DATA_SIGNATURE,
   NULL,
   NULL,
@@ -78,9 +78,17 @@ BMM_CALLBACK_DATA  gBootMaintenancePrivate = {
   }
 };
 
-BMM_CALLBACK_DATA *mBmmCallbackInfo = &gBootMaintenancePrivate;
+///
+/// Boot Option from variable Menu
+///
+BM_MENU_OPTION      BootOptionMenu = {
+  BM_MENU_OPTION_SIGNATURE,
+  {NULL},
+  0
+};
+
+STATIC BMM_CALLBACK_DATA *mBmmCallbackInfo = &mBootMaintenancePrivate;
 BOOLEAN  mAllMenuInit               = FALSE;
-BOOLEAN  mFirstEnterBMMForm         = FALSE;
 
 /**
   This function converts an input device structure to a Unicode string.
@@ -116,49 +124,6 @@ UiDevicePathToStr (
                             );
   ASSERT (ToText != NULL);
   return ToText;
-}
-
-/**
-  Extract filename from device path. The returned buffer is allocated using AllocateCopyPool.
-  The caller is responsible for freeing the allocated buffer using FreePool().
-
-  @param DevicePath       Device path.
-
-  @return                 A new allocated string that represents the file name.
-
-**/
-CHAR16 *
-ExtractFileNameFromDevicePath (
-  IN   EFI_DEVICE_PATH_PROTOCOL *DevicePath
-  )
-{
-  CHAR16          *String;
-  CHAR16          *MatchString;
-  CHAR16          *LastMatch;
-  CHAR16          *FileName;
-  UINTN           Length;
-
-  ASSERT(DevicePath != NULL);
-
-  String = UiDevicePathToStr(DevicePath);
-  MatchString = String;
-  LastMatch   = String;
-  FileName    = NULL;
-
-  while(MatchString != NULL){
-    LastMatch   = MatchString + 1;
-    MatchString = StrStr(LastMatch,L"\\");
-  }
-
-  Length = StrLen(LastMatch);
-  FileName = AllocateCopyPool ((Length + 1) * sizeof(CHAR16), LastMatch);
-  if (FileName != NULL) {
-    *(FileName + Length) = 0;
-  }
-
-  FreePool(String);
-
-  return FileName;
 }
 
 /**
@@ -281,84 +246,6 @@ UpdateProgress(
   return ReturnString;
 }
 
-STATIC
-VOID
-UiCustomizeBMMPage (
-  IN EFI_HII_HANDLE  HiiHandle,
-  IN VOID            *StartOpCodeHandle
-  )
-{
-  HiiCreateGotoOpCode (
-    StartOpCodeHandle,
-    FORM_BOOT_CHG_ID,
-    STRING_TOKEN (STR_CHANGE_ORDER),
-    STRING_TOKEN (STR_NULL_STRING),
-    EFI_IFR_FLAG_CALLBACK,
-    FORM_BOOT_CHG_ID
-    );
-
-  HiiCreateGotoOpCode (
-    StartOpCodeHandle,
-    FORM_MAIN_ID,
-    STRING_TOKEN (STR_BOOT_FROM_FILE),
-    STRING_TOKEN (STR_BOOT_FROM_FILE_HELP),
-    EFI_IFR_FLAG_CALLBACK,
-    KEY_VALUE_BOOT_FROM_FILE
-    );
-}
-
-STATIC
-VOID
-CustomizeMenus (
-  VOID
-  )
-{
-  VOID                        *StartOpCodeHandle;
-  VOID                        *EndOpCodeHandle;
-  EFI_IFR_GUID_LABEL          *StartGuidLabel;
-  EFI_IFR_GUID_LABEL          *EndGuidLabel;
-
-  //
-  // Allocate space for creation of UpdateData Buffer
-  //
-  StartOpCodeHandle = HiiAllocateOpCodeHandle ();
-  ASSERT (StartOpCodeHandle != NULL);
-
-  EndOpCodeHandle = HiiAllocateOpCodeHandle ();
-  ASSERT (EndOpCodeHandle != NULL);
-  //
-  // Create Hii Extend Label OpCode as the start opcode
-  //
-  StartGuidLabel = (EFI_IFR_GUID_LABEL *) HiiCreateGuidOpCode (StartOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
-  StartGuidLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
-  StartGuidLabel->Number       = LABEL_FORM_MAIN_START;
-  //
-  // Create Hii Extend Label OpCode as the end opcode
-  //
-  EndGuidLabel = (EFI_IFR_GUID_LABEL *) HiiCreateGuidOpCode (EndOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
-  EndGuidLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
-  EndGuidLabel->Number       = LABEL_FORM_MAIN_END;
-
-  //
-  //Updata Front Page form
-  //
-  UiCustomizeBMMPage (
-    mBmmCallbackInfo->BmmHiiHandle,
-    StartOpCodeHandle
-    );
-
-  HiiUpdateForm (
-    mBmmCallbackInfo->BmmHiiHandle,
-    &mBootMaintGuid,
-    FORM_MAIN_ID,
-    StartOpCodeHandle,
-    EndOpCodeHandle
-    );
-
-  HiiFreeOpCodeHandle (StartOpCodeHandle);
-  HiiFreeOpCodeHandle (EndOpCodeHandle);
-}
-
 /**
   This function update the "BootOrder" EFI Variable based on
   BMM Formset's NV map. It then refresh BootOptionMenu
@@ -420,6 +307,116 @@ Var_UpdateBootOrder (
   BOpt_GetBootOptions (CallbackData);
 
   return Status;
+
+}
+
+STATIC
+VOID
+UpdateBootOrderList(
+  IN BMM_CALLBACK_DATA *CallbackData
+  )
+{
+  EFI_IFR_GUID_LABEL  *StartLabel;
+  EFI_IFR_GUID_LABEL  *EndLabel;
+  VOID                *StartOpCodeHandle;
+  VOID                *EndOpCodeHandle;
+
+  BM_MENU_ENTRY     *NewMenuEntry;
+  UINT16            Index;
+  UINT16            OptionIndex;
+  VOID              *OptionsOpCodeHandle;
+  BOOLEAN           BootOptionFound;
+  UINT32            *OptionOrder = NULL;
+
+  StartOpCodeHandle = HiiAllocateOpCodeHandle();
+  ASSERT(StartOpCodeHandle != NULL);
+
+  EndOpCodeHandle = HiiAllocateOpCodeHandle();
+  ASSERT(EndOpCodeHandle != NULL);
+
+  // Create Hii Extend Label OpCode as the start opcode
+  StartLabel = (EFI_IFR_GUID_LABEL *)HiiCreateGuidOpCode(StartOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
+  StartLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
+  StartLabel->Number = FORM_BOOT_CHG_ID;
+
+  // Create Hii Extend Label OpCode as the end opcode
+  EndLabel = (EFI_IFR_GUID_LABEL *) HiiCreateGuidOpCode (EndOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
+  EndLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
+  EndLabel->Number = LABEL_END;
+
+  HiiUpdateForm(
+    CallbackData->BmmHiiHandle,
+    &mBootMaintGuid,
+    FORM_BOOT_CHG_ID,
+    StartOpCodeHandle,  // FORM_BOOT_CHG_ID
+    EndOpCodeHandle     // LABEL_END
+    );
+
+  //
+  // If the BootOptionOrder in the BmmFakeNvData are same with the date in the BmmOldFakeNVData,
+  // means all Boot Options has been save in BootOptionMenu, we can get the date from the menu.
+  // else means browser maintains some uncommitted date which are not saved in BootOptionMenu,
+  // so we should not get the data from BootOptionMenu to show it.
+  //
+  if (CompareMem (CallbackData->BmmFakeNvData.BootOptionOrder, CallbackData->BmmOldFakeNVData.BootOptionOrder, sizeof (CallbackData->BmmFakeNvData.BootOptionOrder)) == 0) {
+    GetBootOrder (CallbackData);
+  }
+
+  OptionOrder = CallbackData->BmmFakeNvData.BootOptionOrder;
+  ASSERT (OptionOrder != NULL);
+
+  OptionsOpCodeHandle = HiiAllocateOpCodeHandle ();
+  ASSERT (OptionsOpCodeHandle != NULL);
+
+  NewMenuEntry = NULL;
+  for (OptionIndex = 0; (OptionOrder[OptionIndex] != 0 && OptionIndex < MAX_MENU_NUMBER); OptionIndex++) {
+    BootOptionFound = FALSE;
+    for (Index = 0; Index < BootOptionMenu.MenuNumber; Index++) {
+      NewMenuEntry   = BOpt_GetMenuEntry (&BootOptionMenu, Index);
+      if ((UINT32) (NewMenuEntry->OptionNumber + 1) == OptionOrder[OptionIndex]) {
+        BootOptionFound = TRUE;
+        break;
+      }
+    }
+    if (BootOptionFound) {
+      HiiCreateOneOfOptionOpCode (
+        OptionsOpCodeHandle,
+        NewMenuEntry->DisplayStringToken,
+        EFI_IFR_FLAG_CALLBACK,
+        EFI_IFR_TYPE_NUM_SIZE_32,
+        OptionOrder[OptionIndex]
+        );
+    }
+  }
+
+  if (BootOptionMenu.MenuNumber > 0) {
+    HiiCreateOrderedListOpCode (
+      StartOpCodeHandle,                           // Container for dynamic created opcodes
+      BOOT_OPTION_ORDER_QUESTION_ID,               // Question ID
+      VARSTORE_ID_BOOT_MAINT,                      // VarStore ID
+      BOOT_OPTION_ORDER_VAR_OFFSET,                // Offset in Buffer Storage
+      STRING_TOKEN (STR_CHANGE_BOOT_ORDER),        // Question prompt text
+      STRING_TOKEN (STR_CHANGE_BOOT_ORDER),        // Question help text
+      EFI_IFR_FLAG_CALLBACK,                       // Question flag
+      EFI_IFR_UNIQUE_SET,                          // Ordered list flag, e.g. EFI_IFR_UNIQUE_SET
+      EFI_IFR_TYPE_NUM_SIZE_32,                    // Data type of Question value
+      MAX_MENU_NUMBER,                             // Maximum container
+      OptionsOpCodeHandle,                         // Option Opcode list
+      NULL                                         // Default Opcode is NULL
+      );
+  }
+
+  HiiUpdateForm(
+    CallbackData->BmmHiiHandle,
+    &mBootMaintGuid,
+    FORM_BOOT_CHG_ID,
+    StartOpCodeHandle,  // FORM_BOOT_CHG_ID
+    EndOpCodeHandle     // LABEL_END
+    );
+
+  HiiFreeOpCodeHandle(OptionsOpCodeHandle);
+  HiiFreeOpCodeHandle(EndOpCodeHandle);
+  HiiFreeOpCodeHandle(StartOpCodeHandle);
 
 }
 
@@ -687,33 +684,15 @@ DriverCallback (
 
   switch (Action) {
   case EFI_BROWSER_ACTION_FORM_OPEN:
-    if (!mFirstEnterBMMForm) {
-      CustomizeMenus ();
-      EfiBootManagerRefreshAllBootOption ();
-      BOpt_GetBootOptions (Private);
-      mFirstEnterBMMForm = TRUE;
-    }
+    // Dispatch the display to the next page
+    UpdateBootOrderList(Private);
     Status = EFI_SUCCESS;
     break;
 
-  case EFI_BROWSER_ACTION_CHANGING:
-    if (Value == NULL)
-      return EFI_INVALID_PARAMETER;
-
-    UpdatePageId(Private, QuestionId);
-
+  case EFI_BROWSER_ACTION_CHANGED:
     switch (QuestionId) {
     case FORM_BOOT_CHG_ID:
-      UpdatePageBody(QuestionId, Private);
-      Status = EFI_SUCCESS;
-      break;
-
-    case KEY_VALUE_BOOT_FROM_FILE:
-      // Leave BMM and enter FileExplorer.
-      {
-        EFI_DEVICE_PATH_PROTOCOL *File;
-        ChooseFile(NULL, L".efi", BootFromFile, &File);
-      }
+      *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_APPLY;
       Status = EFI_SUCCESS;
       break;
 
@@ -721,30 +700,6 @@ DriverCallback (
       break;
     }
 
-    break;
-
-  case EFI_BROWSER_ACTION_CHANGED:
-    if ((Value == NULL) || (ActionRequest == NULL)) {
-      return EFI_INVALID_PARAMETER;
-    }
-
-    switch (QuestionId) {
-    case KEY_VALUE_SAVE_AND_EXIT:
-    case KEY_VALUE_SAVE_AND_EXIT_BOOT:
-      *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_SUBMIT_EXIT;
-      Status = EFI_SUCCESS;
-      break;
-
-    case KEY_VALUE_NO_SAVE_AND_EXIT:
-    case KEY_VALUE_NO_SAVE_AND_EXIT_BOOT:
-      DiscardChangeHandler (Private, CurrentFakeNVMap);
-      *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_DISCARD_EXIT;
-      Status = EFI_SUCCESS;
-      break;
-
-    default:
-      break;
-    }
     break;
 
   default:
@@ -757,29 +712,6 @@ DriverCallback (
   }
 
   return Status;
-}
-
-/**
-  Discard all changes done to the BMM pages such as Boot Order change.
-
-  @param Private            The BMM context data.
-  @param CurrentFakeNVMap   The current Fack NV Map.
-
-**/
-VOID
-DiscardChangeHandler (
-  IN  BMM_CALLBACK_DATA               *Private,
-  IN  BMM_FAKE_NV_DATA                *CurrentFakeNVMap
-  )
-{
-  switch (Private->BmmPreviousPageId) {
-  case FORM_BOOT_CHG_ID:
-    CopyMem (CurrentFakeNVMap->BootOptionOrder, Private->BmmOldFakeNVData.BootOptionOrder, sizeof (CurrentFakeNVMap->BootOptionOrder));
-    break;
-
-  default:
-    break;
-  }
 }
 
 /**
@@ -904,15 +836,9 @@ BootMaintenanceManagerUiLibConstructor (
 
   mBmmCallbackInfo->MenuEntry     = (BM_MENU_ENTRY *) Ptr;
 
-  mBmmCallbackInfo->BmmPreviousPageId  = FORM_MAIN_ID;
-  mBmmCallbackInfo->BmmCurrentPageId   = FORM_MAIN_ID;
-
   InitAllMenu (mBmmCallbackInfo);
 
-  CreateUpdateData();
-  //
   // Update boot maintenance manager page
-  //
   InitializeBmmConfig(mBmmCallbackInfo);
 
   return EFI_SUCCESS;
@@ -935,14 +861,6 @@ BootMaintenanceManagerUiLibDestructor (
   )
 
 {
-  if (mStartOpCodeHandle != NULL) {
-    HiiFreeOpCodeHandle (mStartOpCodeHandle);
-  }
-
-  if (mEndOpCodeHandle != NULL) {
-    HiiFreeOpCodeHandle (mEndOpCodeHandle);
-  }
-
   FreeAllMenu ();
 
   //

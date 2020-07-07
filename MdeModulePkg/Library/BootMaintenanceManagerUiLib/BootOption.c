@@ -87,14 +87,6 @@ BOpt_CreateMenuEntry (
     ContextSize = sizeof (BM_LOAD_CONTEXT);
     break;
 
-  case BM_FILE_CONTEXT_SELECT:
-    ContextSize = sizeof (BM_FILE_CONTEXT);
-    break;
-
-  case BM_HANDLE_CONTEXT_SELECT:
-    ContextSize = sizeof (BM_HANDLE_CONTEXT);
-    break;
-
   default:
     ContextSize = 0;
     break;
@@ -135,8 +127,6 @@ BOpt_DestroyMenuEntry (
   )
 {
   BM_LOAD_CONTEXT           *LoadContext;
-  BM_FILE_CONTEXT           *FileContext;
-  BM_HANDLE_CONTEXT         *HandleContext;
 
   //
   //  Select by the type in Menu entry for current context type
@@ -149,31 +139,6 @@ BOpt_DestroyMenuEntry (
       FreePool (LoadContext->OptionalData);
     }
     FreePool (LoadContext);
-    break;
-
-  case BM_FILE_CONTEXT_SELECT:
-    FileContext = (BM_FILE_CONTEXT *) MenuEntry->VariableContext;
-
-    if (!FileContext->IsRoot) {
-      FreePool (FileContext->DevicePath);
-    } else {
-      if (FileContext->FHandle != NULL) {
-        FileContext->FHandle->Close (FileContext->FHandle);
-      }
-    }
-
-    if (FileContext->FileName != NULL) {
-      FreePool (FileContext->FileName);
-    }
-    if (FileContext->Info != NULL) {
-      FreePool (FileContext->Info);
-    }
-    FreePool (FileContext);
-    break;
-
-  case BM_HANDLE_CONTEXT_SELECT:
-    HandleContext = (BM_HANDLE_CONTEXT *) MenuEntry->VariableContext;
-    FreePool (HandleContext);
     break;
 
   default:
@@ -323,29 +288,19 @@ BOpt_GetBootOptions (
 
     NewMenuEntry->OptionNumber          = BootOrderList[Index];
 
-    //
     // Is a Legacy Device?
-    //
     Ptr = (UINT8 *) LoadOptionFromVar;
 
-    //
     // Attribute = *(UINT32 *)Ptr;
-    //
     Ptr += sizeof (UINT32);
 
-    //
     // FilePathSize = *(UINT16 *)Ptr;
-    //
     Ptr += sizeof (UINT16);
 
-    //
     // Description = (CHAR16 *)Ptr;
-    //
     Ptr += StrSize ((CHAR16 *) Ptr);
 
-    //
     // Now Ptr point to Device Path
-    //
     DevicePath = (EFI_DEVICE_PATH_PROTOCOL *) Ptr;
     if ((BBS_DEVICE_PATH == DevicePath->Type) && (BBS_BBS_DP == DevicePath->SubType)) {
       NewLoadContext->IsLegacy = TRUE;
@@ -463,54 +418,4 @@ GetBootOrder (
     }
     BmmConfig->BootOptionOrder[OptionOrderIndex++] = (UINT32) (NewMenuEntry->OptionNumber + 1);
   }
-}
-
-/**
-  Boot the file specified by the input file path info.
-
-  @param FilePath    Point to the file path.
-
-  @retval TRUE   Exit caller function.
-  @retval FALSE  Not exit caller function.
-**/
-BOOLEAN
-EFIAPI
-BootFromFile (
-  IN EFI_DEVICE_PATH_PROTOCOL    *FilePath
-  )
-{
-  EFI_BOOT_MANAGER_LOAD_OPTION BootOption;
-  CHAR16                       *FileName;
-
-  FileName = NULL;
-
-  FileName = ExtractFileNameFromDevicePath(FilePath);
-  if (FileName != NULL) {
-    EfiBootManagerInitializeLoadOption (
-      &BootOption,
-      0,
-      LoadOptionTypeBoot,
-      LOAD_OPTION_ACTIVE,
-      FileName,
-      FilePath,
-      NULL,
-      0
-      );
-    //
-    // Since current no boot from removable media directly is allowed */
-    //
-    gST->ConOut->ClearScreen (gST->ConOut);
-    //
-    // Check whether need to reset system.
-    //
-    BmmSetupResetReminder ();
-
-    EfiBootManagerBoot (&BootOption);
-
-    FreePool(FileName);
-
-    EfiBootManagerFreeLoadOption (&BootOption);
-  }
-
-  return FALSE;
 }

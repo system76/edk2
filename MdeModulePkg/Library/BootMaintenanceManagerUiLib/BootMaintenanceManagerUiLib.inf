@@ -22,27 +22,24 @@
   BootMaintenance.c
   FormGuid.h
   BootOption.c
-  Data.c
-  UpdatePage.c
 
 [Packages]
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
 
 [LibraryClasses]
-  DevicePathLib
   BaseLib
-  UefiRuntimeServicesTableLib
-  MemoryAllocationLib
-  UefiLib
-  UefiBootServicesTableLib
   BaseMemoryLib
   DebugLib
-  PrintLib
+  DevicePathLib
   HiiLib
-  UefiHiiServicesLib
+  MemoryAllocationLib
+  PrintLib
   UefiBootManagerLib
-  FileExplorerLib
+  UefiBootServicesTableLib
+  UefiHiiServicesLib
+  UefiLib
+  UefiRuntimeServicesTableLib
 
 [Guids]
   gEfiGlobalVariableGuid
@@ -52,7 +49,6 @@
 
 [Protocols]
   gEfiSimpleFileSystemProtocolGuid
-  gEfiLoadFileProtocolGuid
   gEfiHiiConfigAccessProtocolGuid
   gEfiDevicePathToTextProtocolGuid
   gEdkiiFormBrowserEx2ProtocolGuid
