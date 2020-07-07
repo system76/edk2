@@ -83,36 +83,6 @@ BOOLEAN  mAllMenuInit               = FALSE;
 BOOLEAN  mFirstEnterBMMForm         = FALSE;
 
 /**
-  Init all memu.
-
-  @param CallbackData    The BMM context data.
-
-**/
-VOID
-InitAllMenu (
-  IN  BMM_CALLBACK_DATA    *CallbackData
-  );
-
-/**
-  Free up all Menu Option list.
-
-**/
-VOID
-FreeAllMenu (
-  VOID
-  );
-
-/**
-
-  Update the menus in the BMM page.
-
-**/
-VOID
-CustomizeMenus (
-  VOID
-  );
-
-/**
   This function converts an input device structure to a Unicode string.
 
   @param DevPath      A pointer to the device path structure.
@@ -309,6 +279,148 @@ UpdateProgress(
   FreePool (StringPtr);
 
   return ReturnString;
+}
+
+STATIC
+VOID
+UiCustomizeBMMPage (
+  IN EFI_HII_HANDLE  HiiHandle,
+  IN VOID            *StartOpCodeHandle
+  )
+{
+  HiiCreateGotoOpCode (
+    StartOpCodeHandle,
+    FORM_BOOT_CHG_ID,
+    STRING_TOKEN (STR_CHANGE_ORDER),
+    STRING_TOKEN (STR_NULL_STRING),
+    EFI_IFR_FLAG_CALLBACK,
+    FORM_BOOT_CHG_ID
+    );
+
+  HiiCreateGotoOpCode (
+    StartOpCodeHandle,
+    FORM_MAIN_ID,
+    STRING_TOKEN (STR_BOOT_FROM_FILE),
+    STRING_TOKEN (STR_BOOT_FROM_FILE_HELP),
+    EFI_IFR_FLAG_CALLBACK,
+    KEY_VALUE_BOOT_FROM_FILE
+    );
+}
+
+STATIC
+VOID
+CustomizeMenus (
+  VOID
+  )
+{
+  VOID                        *StartOpCodeHandle;
+  VOID                        *EndOpCodeHandle;
+  EFI_IFR_GUID_LABEL          *StartGuidLabel;
+  EFI_IFR_GUID_LABEL          *EndGuidLabel;
+
+  //
+  // Allocate space for creation of UpdateData Buffer
+  //
+  StartOpCodeHandle = HiiAllocateOpCodeHandle ();
+  ASSERT (StartOpCodeHandle != NULL);
+
+  EndOpCodeHandle = HiiAllocateOpCodeHandle ();
+  ASSERT (EndOpCodeHandle != NULL);
+  //
+  // Create Hii Extend Label OpCode as the start opcode
+  //
+  StartGuidLabel = (EFI_IFR_GUID_LABEL *) HiiCreateGuidOpCode (StartOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
+  StartGuidLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
+  StartGuidLabel->Number       = LABEL_FORM_MAIN_START;
+  //
+  // Create Hii Extend Label OpCode as the end opcode
+  //
+  EndGuidLabel = (EFI_IFR_GUID_LABEL *) HiiCreateGuidOpCode (EndOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
+  EndGuidLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
+  EndGuidLabel->Number       = LABEL_FORM_MAIN_END;
+
+  //
+  //Updata Front Page form
+  //
+  UiCustomizeBMMPage (
+    mBmmCallbackInfo->BmmHiiHandle,
+    StartOpCodeHandle
+    );
+
+  HiiUpdateForm (
+    mBmmCallbackInfo->BmmHiiHandle,
+    &mBootMaintGuid,
+    FORM_MAIN_ID,
+    StartOpCodeHandle,
+    EndOpCodeHandle
+    );
+
+  HiiFreeOpCodeHandle (StartOpCodeHandle);
+  HiiFreeOpCodeHandle (EndOpCodeHandle);
+}
+
+/**
+  This function update the "BootOrder" EFI Variable based on
+  BMM Formset's NV map. It then refresh BootOptionMenu
+  with the new "BootOrder" list.
+
+  @param CallbackData    The BMM context data.
+
+  @retval EFI_SUCCESS             The function complete successfully.
+  @retval EFI_OUT_OF_RESOURCES    Not enough memory to complete the function.
+  @return The EFI variable can not be saved. See gRT->SetVariable for detail return information.
+
+**/
+STATIC
+EFI_STATUS
+Var_UpdateBootOrder (
+  IN BMM_CALLBACK_DATA            *CallbackData
+  )
+{
+  EFI_STATUS  Status;
+  UINT16      Index;
+  UINT16      OrderIndex;
+  UINT16      *BootOrder;
+  UINTN       BootOrderSize;
+  UINT16      OptionNumber;
+
+  //
+  // First check whether BootOrder is present in current configuration
+  //
+  GetEfiGlobalVariable2 (L"BootOrder", (VOID **) &BootOrder, &BootOrderSize);
+  if (BootOrder == NULL) {
+    return EFI_OUT_OF_RESOURCES;
+  }
+
+  ASSERT (BootOptionMenu.MenuNumber <= (sizeof (CallbackData->BmmFakeNvData.BootOptionOrder) / sizeof (CallbackData->BmmFakeNvData.BootOptionOrder[0])));
+
+  //
+  // OptionOrder is subset of BootOrder
+  //
+  for (OrderIndex = 0; (OrderIndex < BootOptionMenu.MenuNumber) && (CallbackData->BmmFakeNvData.BootOptionOrder[OrderIndex] != 0); OrderIndex++) {
+    for (Index = OrderIndex; Index < BootOrderSize / sizeof (UINT16); Index++) {
+      if ((BootOrder[Index] == (UINT16) (CallbackData->BmmFakeNvData.BootOptionOrder[OrderIndex] - 1)) && (OrderIndex != Index)) {
+        OptionNumber = BootOrder[Index];
+        CopyMem (&BootOrder[OrderIndex + 1], &BootOrder[OrderIndex], (Index - OrderIndex) * sizeof (UINT16));
+        BootOrder[OrderIndex] = OptionNumber;
+      }
+    }
+  }
+
+  Status = gRT->SetVariable (
+                  L"BootOrder",
+                  &gEfiGlobalVariableGuid,
+                  VAR_FLAG,
+                  BootOrderSize,
+                  BootOrder
+                  );
+  FreePool (BootOrder);
+
+  BOpt_FreeMenu (&BootOptionMenu);
+  BOpt_GetBootOptions (CallbackData);
+
+  return Status;
+
 }
 
 /**
@@ -671,62 +783,6 @@ DiscardChangeHandler (
 }
 
 /**
-
-  Update the menus in the BMM page.
-
-**/
-VOID
-CustomizeMenus (
-  VOID
-  )
-{
-  VOID                        *StartOpCodeHandle;
-  VOID                        *EndOpCodeHandle;
-  EFI_IFR_GUID_LABEL          *StartGuidLabel;
-  EFI_IFR_GUID_LABEL          *EndGuidLabel;
-
-  //
-  // Allocate space for creation of UpdateData Buffer
-  //
-  StartOpCodeHandle = HiiAllocateOpCodeHandle ();
-  ASSERT (StartOpCodeHandle != NULL);
-
-  EndOpCodeHandle = HiiAllocateOpCodeHandle ();
-  ASSERT (EndOpCodeHandle != NULL);
-  //
-  // Create Hii Extend Label OpCode as the start opcode
-  //
-  StartGuidLabel = (EFI_IFR_GUID_LABEL *) HiiCreateGuidOpCode (StartOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
-  StartGuidLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
-  StartGuidLabel->Number       = LABEL_FORM_MAIN_START;
-  //
-  // Create Hii Extend Label OpCode as the end opcode
-  //
-  EndGuidLabel = (EFI_IFR_GUID_LABEL *) HiiCreateGuidOpCode (EndOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
-  EndGuidLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
-  EndGuidLabel->Number       = LABEL_FORM_MAIN_END;
-
-  //
-  //Updata Front Page form
-  //
-  UiCustomizeBMMPage (
-    mBmmCallbackInfo->BmmHiiHandle,
-    StartOpCodeHandle
-    );
-
-  HiiUpdateForm (
-    mBmmCallbackInfo->BmmHiiHandle,
-    &mBootMaintGuid,
-    FORM_MAIN_ID,
-    StartOpCodeHandle,
-    EndOpCodeHandle
-    );
-
-  HiiFreeOpCodeHandle (StartOpCodeHandle);
-  HiiFreeOpCodeHandle (EndOpCodeHandle);
-}
-
-/**
    Create dynamic code for BMM and initialize all of BMM configuration data in BmmFakeNvData and
    BmmOldFakeNVData member in BMM context data.
 
@@ -751,12 +807,7 @@ InitializeBmmConfig (
   CopyMem (&CallbackData->BmmOldFakeNVData, &CallbackData->BmmFakeNvData, sizeof (BMM_FAKE_NV_DATA));
 }
 
-/**
-  Initialized all Menu Option List.
-
-  @param CallbackData    The BMM context data.
-
-**/
+STATIC
 VOID
 InitAllMenu (
   IN  BMM_CALLBACK_DATA    *CallbackData
@@ -767,16 +818,11 @@ InitAllMenu (
   mAllMenuInit = TRUE;
 }
 
-/**
-  Free up all Menu Option list.
-
-**/
+STATIC
 VOID
-FreeAllMenu (
-  VOID
-  )
+FreeAllMenu (VOID)
 {
-  if (!mAllMenuInit){
+  if (!mAllMenuInit) {
     return;
   }
   BOpt_FreeMenu (&BootOptionMenu);

@@ -8,18 +8,12 @@
 [Defines]
   INF_VERSION                    = 0x00010005
   BASE_NAME                      = BootMaintenanceManagerUiLib
-  MODULE_UNI_FILE                = BootMaintenanceManagerUiLib.uni
   FILE_GUID                      = CA9E4824-4198-4715-AA22-E2935E703A07
   MODULE_TYPE                    = DXE_DRIVER
   VERSION_STRING                 = 1.0
   LIBRARY_CLASS                  = NULL|DXE_DRIVER UEFI_APPLICATION
   CONSTRUCTOR                    = BootMaintenanceManagerUiLibConstructor
   DESTRUCTOR                     = BootMaintenanceManagerUiLibDestructor
-#
-# The following information is for reference only and not required by the build tools.
-#
-#  VALID_ARCHITECTURES           = IA32 X64 EBC
-#
 
 [Sources]
   BootMaintenanceManager.h
@@ -29,12 +23,7 @@
   FormGuid.h
   BootOption.c
   Data.c
-  Variable.c
   UpdatePage.c
-  BootMaintenanceManagerCustomizedUi.c
-  BootMaintenanceManagerCustomizedUi.h
-  BootMaintenanceManagerCustomizedUiSupport.c
-  BootMaintenanceManagerCustomizedUiSupport.h
 
 [Packages]
   MdePkg/MdePkg.dec
@@ -56,22 +45,14 @@
   FileExplorerLib
 
 [Guids]
-  gEfiGlobalVariableGuid                        ## SOMETIMES_PRODUCES ## Variable:L"Boot####" (Boot option variable)
-                                                ## SOMETIMES_PRODUCES ## Variable:L"PlatformLang" (Platform supported languange in Rfc4646 format)
-                                                ## SOMETIMES_PRODUCES ## Variable:L"Lang" (Platform supported languange in Iso639 format)
-                                                ## SOMETIMES_PRODUCES ## Variable:L"KeyXX" (Hotkey option variable)
-                                                ## PRODUCES           ## Variable:L"HwErrRecSupport" (The level of platform supported hardware Error Record Persistence)
-                                                ## SOMETIMES_PRODUCES ## Variable:L"BootOptionSupport" (The feature supported in boot option menu, value could be: EFI_BOOT_OPTION_SUPPORT_KEY, EFI_BOOT_OPTION_SUPPORT_APP
-                                                ## SOMETIMES_PRODUCES (not PcdUefiVariableDefaultLangDeprecate)## Variable:L"LangCodes" (Value of PcdUefiVariableDefaultLangCodes)
-                                                ## PRODUCES           ## Variable:L"PlatformLangCodes" (Value of PcdUefiVariableDefaultPlatformLangCodes)
-                                                ## SOMETIMES_PRODUCES ## Variable:L"BootOrder" (The boot option array)
-  gEfiIfrTianoGuid                              ## SOMETIMES_CONSUMES ## GUID (Extended IFR Guid Opcode)
-  gEfiIfrFrontPageGuid                          ## CONSUMES ## GUID
-  gEfiIfrBootMaintenanceGuid                    ## CONSUMES ## GUID
+  gEfiGlobalVariableGuid
+  gEfiIfrTianoGuid
+  gEfiIfrFrontPageGuid
+  gEfiIfrBootMaintenanceGuid
 
 [Protocols]
-  gEfiSimpleFileSystemProtocolGuid              ## CONSUMES
-  gEfiLoadFileProtocolGuid                      ## CONSUMES
-  gEfiHiiConfigAccessProtocolGuid               ## CONSUMES
-  gEfiDevicePathToTextProtocolGuid              ## CONSUMES
-  gEdkiiFormBrowserEx2ProtocolGuid              ## CONSUMES
+  gEfiSimpleFileSystemProtocolGuid
+  gEfiLoadFileProtocolGuid
+  gEfiHiiConfigAccessProtocolGuid
+  gEfiDevicePathToTextProtocolGuid
+  gEdkiiFormBrowserEx2ProtocolGuid

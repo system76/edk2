@@ -34,7 +34,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Library/UefiHiiServicesLib.h>
 #include <Library/UefiBootManagerLib.h>
 #include <Library/FileExplorerLib.h>
-#include "BootMaintenanceManagerCustomizedUi.h"
 
 #pragma pack(1)
 
@@ -271,22 +270,6 @@ BOpt_GetMenuEntry (
 VOID
 GetBootOrder (
   IN  BMM_CALLBACK_DATA    *CallbackData
-  );
-
-/**
-  This function update the "BootOrder" EFI Variable based on BMM Formset's NV map. It then refresh
-  BootOptionMenu with the new "BootOrder" list.
-
-  @param CallbackData           The BMM context data.
-
-  @retval EFI_SUCCESS           The function complete successfully.
-  @retval EFI_OUT_OF_RESOURCES  Not enough memory to complete the function.
-  @return not The EFI variable can not be saved. See gRT->SetVariable for detail return information.
-
-**/
-EFI_STATUS
-Var_UpdateBootOrder (
-  IN BMM_CALLBACK_DATA            *CallbackData
   );
 
 //
