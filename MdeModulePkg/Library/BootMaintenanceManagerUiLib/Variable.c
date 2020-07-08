@@ -631,6 +631,7 @@ Var_UpdateBootOrder (
   BOpt_FreeMenu (&BootOptionMenu);
   BOpt_GetBootOptions (CallbackData);
 
+  DEBUG ((EFI_D_INFO, "Updated BootOrder: %r\n", Status));
   return Status;
 
 }
