@@ -722,6 +722,7 @@ BootMaintExtractConfig (
     *Progress = Request + StrLen (Request);
   }
 
+  DEBUG ((EFI_D_INFO, "%a complete: %r\n", __FUNCTION__, Status));
   return Status;
 }
 
@@ -1033,6 +1034,7 @@ BootMaintRouteConfig (
   //
   CopyMem (OldBmmData, NewBmmData, sizeof (BMM_FAKE_NV_DATA));
 
+  DEBUG ((EFI_D_INFO, "%a complete: %r\n", __FUNCTION__, Status));
   return EFI_SUCCESS;
 
 Exit:
@@ -1093,6 +1095,8 @@ BootMaintCallback (
   Private        = BMM_CALLBACK_DATA_FROM_THIS (This);
 
   if (Action == EFI_BROWSER_ACTION_FORM_OPEN) {
+    DEBUG ((EFI_D_INFO, "EFI_BROWSER_ACTION_FORM_OPEN: 0x%0X\n", QuestionId));
+
     if (QuestionId == KEY_VALUE_TRIGGER_FORM_OPEN_ACTION) {
       if (!mFirstEnterBMMForm) {
         //
@@ -1121,6 +1125,8 @@ BootMaintCallback (
   HiiGetBrowserData (&mBootMaintGuid, mBootMaintStorageName, sizeof (BMM_FAKE_NV_DATA), (UINT8 *) CurrentFakeNVMap);
 
   if (Action == EFI_BROWSER_ACTION_CHANGING) {
+    DEBUG ((EFI_D_INFO, "EFI_BROWSER_ACTION_CHANGING: 0x%0X\n", QuestionId));
+
     if (Value == NULL) {
       return EFI_INVALID_PARAMETER;
     }
@@ -1206,6 +1212,8 @@ BootMaintCallback (
       ChooseFile (NULL, L".efi", BootFromFile, &File);
     }
   } else if (Action == EFI_BROWSER_ACTION_CHANGED) {
+    DEBUG ((EFI_D_INFO, "EFI_BROWSER_ACTION_CHANGED: 0x%0X\n", QuestionId));
+
     if ((Value == NULL) || (ActionRequest == NULL)) {
       return EFI_INVALID_PARAMETER;
     }
@@ -1308,6 +1316,7 @@ BootMaintCallback (
   //
   HiiSetBrowserData (&mBootMaintGuid, mBootMaintStorageName, sizeof (BMM_FAKE_NV_DATA), (UINT8 *) CurrentFakeNVMap, NULL);
 
+  DEBUG ((EFI_D_INFO, "%a complete: %r\n", __FUNCTION__, EFI_SUCCESS));
   return EFI_SUCCESS;
 }
 
