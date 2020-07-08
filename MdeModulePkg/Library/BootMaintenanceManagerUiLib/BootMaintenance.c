@@ -1253,6 +1253,11 @@ BootMaintCallback (
       CurrentFakeNVMap->DriverOptionChanged = TRUE;
     }
 
+    if (QuestionId == BOOT_OPTION_ORDER_QUESTION_ID) {
+        // Save BootOrder on list update
+        *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_APPLY;
+    }
+
     if ((QuestionId >= BOOT_OPTION_DEL_QUESTION_ID) && (QuestionId < BOOT_OPTION_DEL_QUESTION_ID + MAX_MENU_NUMBER)) {
       if (Value->b){
         //
