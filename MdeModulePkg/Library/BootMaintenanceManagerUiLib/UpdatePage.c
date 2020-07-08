@@ -651,7 +651,7 @@ UpdateOrderPage (
       VarOffset,                                   // Offset in Buffer Storage
       STRING_TOKEN (STR_CHANGE_ORDER),             // Question prompt text
       STRING_TOKEN (STR_CHANGE_ORDER),             // Question help text
-      0,                                           // Question flag
+      EFI_IFR_FLAG_CALLBACK,                       // Question flag
       0,                                           // Ordered list flag, e.g. EFI_IFR_UNIQUE_SET
       EFI_IFR_TYPE_NUM_SIZE_32,                    // Data type of Question value
       100,                                         // Maximum container
