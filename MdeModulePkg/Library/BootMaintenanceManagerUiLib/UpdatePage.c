@@ -115,36 +115,36 @@ UpdatePageEnd (
   //
   // Create the "Apply changes" and "Discard changes" tags.
   //
-  if (CallbackData->BmmAskSaveOrNot) {
-    HiiCreateSubTitleOpCode (
-      mStartOpCodeHandle,
-      STRING_TOKEN (STR_NULL_STRING),
-      0,
-      0,
-      0
-      );
+  //if (CallbackData->BmmAskSaveOrNot) {
+  //  HiiCreateSubTitleOpCode (
+  //    mStartOpCodeHandle,
+  //    STRING_TOKEN (STR_NULL_STRING),
+  //    0,
+  //    0,
+  //    0
+  //    );
 
-    HiiCreateActionOpCode (
-      mStartOpCodeHandle,
-      KEY_VALUE_SAVE_AND_EXIT,
-      STRING_TOKEN (STR_SAVE_AND_EXIT),
-      STRING_TOKEN (STR_NULL_STRING),
-      EFI_IFR_FLAG_CALLBACK,
-      0
-      );
-  }
+  //  HiiCreateActionOpCode (
+  //    mStartOpCodeHandle,
+  //    KEY_VALUE_SAVE_AND_EXIT,
+  //    STRING_TOKEN (STR_SAVE_AND_EXIT),
+  //    STRING_TOKEN (STR_NULL_STRING),
+  //    EFI_IFR_FLAG_CALLBACK,
+  //    0
+  //    );
+  //}
 
   //
   // Ensure user can return to the main page.
   //
-  HiiCreateActionOpCode (
-    mStartOpCodeHandle,
-    KEY_VALUE_NO_SAVE_AND_EXIT,
-    STRING_TOKEN (STR_NO_SAVE_AND_EXIT),
-    STRING_TOKEN (STR_NULL_STRING),
-    EFI_IFR_FLAG_CALLBACK,
-    0
-    );
+  //HiiCreateActionOpCode (
+  //  mStartOpCodeHandle,
+  //  KEY_VALUE_NO_SAVE_AND_EXIT,
+  //  STRING_TOKEN (STR_NO_SAVE_AND_EXIT),
+  //  STRING_TOKEN (STR_NULL_STRING),
+  //  EFI_IFR_FLAG_CALLBACK,
+  //  0
+  //  );
 
   HiiUpdateForm (
     CallbackData->BmmHiiHandle,
