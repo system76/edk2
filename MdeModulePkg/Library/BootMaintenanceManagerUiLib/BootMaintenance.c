@@ -1646,6 +1646,28 @@ BmmInitialBootModeInfo (
   mBmmModeInitialized           = TRUE;
 }
 
+STATIC
+EFI_STATUS
+UnregisterHotKeys(VOID)
+{
+  EFI_STATUS Status;
+  EFI_INPUT_KEY HotKey;
+  EDKII_FORM_BROWSER_EXTENSION2_PROTOCOL *FormBrowserEx2;
+
+  Status = gBS->LocateProtocol (&gEdkiiFormBrowserEx2ProtocolGuid, NULL, (VOID **) &FormBrowserEx2);
+  if (!EFI_ERROR (Status)) {
+    HotKey.UnicodeChar = CHAR_NULL;
+
+    HotKey.ScanCode = SCAN_F9;
+    FormBrowserEx2->RegisterHotKey(&HotKey, BROWSER_ACTION_UNREGISTER, 0, NULL);
+
+    HotKey.ScanCode = SCAN_F10;
+    FormBrowserEx2->RegisterHotKey(&HotKey, BROWSER_ACTION_UNREGISTER, 0, NULL);
+  }
+
+  return Status;
+}
+
 /**
 
   Install Boot Maintenance Manager Menu driver.
@@ -1733,6 +1755,11 @@ BootMaintenanceManagerUiLibConstructor (
   InitializeBmmConfig(mBmmCallbackInfo);
 
   BmmInitialBootModeInfo();
+
+  //
+  // Remove the F9 and F10 hotkeys
+  //
+  UnregisterHotKeys();
 
   return EFI_SUCCESS;
 }
