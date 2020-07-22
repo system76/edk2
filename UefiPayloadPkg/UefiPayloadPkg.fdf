@@ -122,6 +122,7 @@ INF MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
   !endif
 !endif
 INF UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
+INF UefiPayloadPkg/BlSupportDxe/BlSupportDxeSmbios.inf
 
 INF MdeModulePkg/Universal/SmbiosDxe/SmbiosDxe.inf
 INF MdeModulePkg/Logo/LogoDxe.inf
