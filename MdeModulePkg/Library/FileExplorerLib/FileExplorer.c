@@ -835,9 +835,8 @@ LibFindFileSystem (
       UnicodeSPrint (
         MenuEntry->DisplayString,
         MAX_CHAR,
-        L"%s, [%s]",
-        VolumeLabel,
-        MenuEntry->HelpString
+        L"%s",
+        VolumeLabel
         );
       MenuEntry->DisplayStringToken = HiiSetString (
                                              gFileExplorerPrivate.FeHiiHandle,
@@ -845,6 +844,13 @@ LibFindFileSystem (
                                              MenuEntry->DisplayString,
                                              NULL
                                              );
+
+      MenuEntry->HelpStringToken = HiiSetString (
+              gFileExplorerPrivate.FeHiiHandle,
+              0,
+              MenuEntry->HelpString,
+              NULL
+              );
 
       if (Info != NULL)
         FreePool (Info);
@@ -1358,7 +1364,7 @@ LibUpdateFileExplorePage (
         mLibStartOpCodeHandle,
         (UINT16) (FILE_OPTION_OFFSET + Index + mQuestionIdUpdate),
         NewMenuEntry->DisplayStringToken,
-        STRING_TOKEN (STR_NULL_STRING),
+        NewMenuEntry->HelpStringToken,
         EFI_IFR_FLAG_CALLBACK,
         0
         );
@@ -1370,7 +1376,7 @@ LibUpdateFileExplorePage (
         mLibStartOpCodeHandle,
         FORM_FILE_EXPLORER_ID,
         NewMenuEntry->DisplayStringToken,
-        STRING_TOKEN (STR_NULL_STRING),
+        NewMenuEntry->HelpStringToken,
         EFI_IFR_FLAG_CALLBACK,
         (UINT16) (FILE_OPTION_OFFSET + Index + mQuestionIdUpdate)
         );
