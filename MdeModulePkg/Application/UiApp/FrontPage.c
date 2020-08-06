@@ -7,6 +7,10 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
 
+#include <Register/Amd/Cpuid.h>
+#include <Register/Intel/Cpuid.h>
+#include <Register/Intel/Msr.h>
+
 #include "FrontPage.h"
 #include "FrontPageCustomizedUi.h"
 
@@ -32,6 +36,8 @@ UINT32    mSetupTextModeColumn         = 0;
 UINT32    mSetupTextModeRow            = 0;
 UINT32    mSetupHorizontalResolution   = 0;
 UINT32    mSetupVerticalResolution     = 0;
+
+EFI_SYSTEM_TABLE * gSystemTable = NULL;
 
 FRONT_PAGE_CALLBACK_DATA  gFrontPagePrivate = {
   FRONT_PAGE_CALLBACK_DATA_SIGNATURE,
@@ -564,6 +570,216 @@ WarnNoBootableMedia (
   FreePool(String);
 }
 
+BOOLEAN
+StandardSignatureIsAuthenticAMD (
+  VOID
+  )
+{
+  UINT32  RegEbx;
+  UINT32  RegEcx;
+  UINT32  RegEdx;
+
+  AsmCpuid (CPUID_SIGNATURE, NULL, &RegEbx, &RegEcx, &RegEdx);
+  return (RegEbx == CPUID_SIGNATURE_AUTHENTIC_AMD_EBX &&
+          RegEcx == CPUID_SIGNATURE_AUTHENTIC_AMD_ECX &&
+          RegEdx == CPUID_SIGNATURE_AUTHENTIC_AMD_EDX);
+}
+
+BOOLEAN
+StandardSignatureIsGenuineIntel (
+  VOID
+  )
+{
+  UINT32  RegEbx;
+  UINT32  RegEcx;
+  UINT32  RegEdx;
+
+  AsmCpuid (CPUID_SIGNATURE, NULL, &RegEbx, &RegEcx, &RegEdx);
+  return (RegEbx == CPUID_SIGNATURE_GENUINE_INTEL_EBX &&
+          RegEcx == CPUID_SIGNATURE_GENUINE_INTEL_ECX &&
+          RegEdx == CPUID_SIGNATURE_GENUINE_INTEL_EDX);
+}
+
+typedef struct {
+  CHAR8     Signature[8];
+  UINT8     Checksum;
+  CHAR8     OemId[6];
+  UINT8     Revision;
+  UINT32    RsdtAddress;
+} ACPI_RSDP;
+
+CHAR8 RSDP_SIGNATURE[8] = {'R', 'S', 'D', ' ', 'P', 'T', 'R', ' '};
+
+typedef struct {
+  CHAR8     Signature[4];
+  UINT32    Length;
+  UINT8     Revision;
+  UINT8     Checksum;
+  CHAR8     OemId[6];
+  CHAR8     OemTableId[8];
+  UINT32    OemRevision;
+  UINT32    CreatorId;
+  UINT32    CreatorRevision;
+} ACPI_SDT_HEADER;
+
+CHAR8 RSDT_SIGNATURE[4] = {'R', 'S', 'D', 'T'};
+
+STATIC ACPI_SDT_HEADER* FindAcpiTable(CHAR8 Name[4]) {
+  UINTN                    Index;
+  EFI_CONFIGURATION_TABLE* ConfigurationTable;
+  UINTN                    RsdpPtr;
+  ACPI_RSDP*               Rsdp;
+  UINTN                    RsdtPtr;
+  ACPI_SDT_HEADER*         Rsdt;
+  UINTN                    TablePtr;
+  ACPI_SDT_HEADER*         Table;
+
+  DEBUG ((EFI_D_INFO, "FindAcpiTable: '%c%c%c%c'\n",
+    Name[0],
+    Name[1],
+    Name[2],
+    Name[3]
+  ));
+
+  if (gSystemTable == NULL) {
+      DEBUG ((EFI_D_INFO, "  System Table missing\n"));
+      return NULL;
+  }
+
+  // Search the table for an entry that matches the ACPI Table Guid
+  for (Index = 0; Index < gSystemTable->NumberOfTableEntries; Index++) {
+    if (CompareGuid (&gEfiAcpiTableGuid, &(gSystemTable->ConfigurationTable[Index].VendorGuid))) {
+      ConfigurationTable = &gSystemTable->ConfigurationTable[Index];
+      break;
+    }
+  }
+
+  if (ConfigurationTable == NULL) {
+      DEBUG ((EFI_D_INFO, "  ACPI Configuration Table missing\n"));
+      return NULL;
+  }
+
+  RsdpPtr = (UINTN)ConfigurationTable->VendorTable;
+  DEBUG ((EFI_D_INFO, "  RSDP 0x%x\n", RsdpPtr));
+  Rsdp = (ACPI_RSDP*)RsdpPtr;
+  DEBUG ((EFI_D_INFO, "    Signature: '%c%c%c%c%c%c%c%c'\n",
+    Rsdp->Signature[0],
+    Rsdp->Signature[1],
+    Rsdp->Signature[2],
+    Rsdp->Signature[3],
+    Rsdp->Signature[4],
+    Rsdp->Signature[5],
+    Rsdp->Signature[6],
+    Rsdp->Signature[7]
+  ));
+  if (CompareMem(Rsdp->Signature, RSDP_SIGNATURE, 8) != 0) {
+      DEBUG ((EFI_D_INFO, "    RSDP invalid signature\n"));
+      return NULL;
+  }
+  DEBUG ((EFI_D_INFO, "    Revision: 0x%x\n", Rsdp->Revision));
+
+  RsdtPtr = (UINTN)Rsdp->RsdtAddress;
+  DEBUG ((EFI_D_INFO, "  RSDT 0x%x\n", RsdpPtr));
+  Rsdt = (ACPI_SDT_HEADER*)RsdtPtr;
+  DEBUG ((EFI_D_INFO, "    Signature: '%c%c%c%c'\n",
+    Rsdt->Signature[0],
+    Rsdt->Signature[1],
+    Rsdt->Signature[2],
+    Rsdt->Signature[3]
+  ));
+  if (CompareMem(Rsdt->Signature, RSDT_SIGNATURE, 4) != 0) {
+      DEBUG ((EFI_D_INFO, "    RSDT invalid signature\n"));
+      return NULL;
+  }
+  DEBUG ((EFI_D_INFO, "    Revision: 0x%x\n", Rsdt->Revision));
+  DEBUG ((EFI_D_INFO, "    Length: 0x%x\n", Rsdt->Length));
+
+  for (Index = sizeof(ACPI_SDT_HEADER); Index < Rsdt->Length; Index += 4) {
+      TablePtr = (UINTN)(*(UINT32*)(RsdtPtr + Index));
+      DEBUG ((EFI_D_INFO, "  Table %d: 0x%x\n", Index, TablePtr));
+      Table = (ACPI_SDT_HEADER*)TablePtr;
+      DEBUG ((EFI_D_INFO, "    Signature: '%c%c%c%c'\n",
+        Table->Signature[0],
+        Table->Signature[1],
+        Table->Signature[2],
+        Table->Signature[3]
+      ));
+      DEBUG ((EFI_D_INFO, "    Revision: 0x%x\n", Table->Revision));
+      DEBUG ((EFI_D_INFO, "    Length: 0x%x\n", Table->Length));
+
+      if (CompareMem(Table->Signature, Name, 4) == 0) {
+          DEBUG ((EFI_D_INFO, "  Match found\n"));
+          return Table;
+      }
+  }
+
+  DEBUG ((EFI_D_INFO, "  No match found\n"));
+  return NULL;
+}
+
+STATIC VOID FirmwareConfigurationInformation(VOID) {
+    EFI_STRING_ID Token;
+
+    Token = STRING_TOKEN (STR_VIRTUALIZATION);
+    if (StandardSignatureIsGenuineIntel()) {
+        HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"Intel Virtualization", NULL);
+
+        Token = STRING_TOKEN (STR_VIRTUALIZATION_STATUS);
+        IA32_CR4 Cr4;
+        Cr4.UintN = AsmReadCr4 ();
+        if (Cr4.Bits.VMXE) {
+            HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"VT-x: Active", NULL);
+        } else {
+            HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"VT-x: Deactivated", NULL);
+        }
+
+        Token = STRING_TOKEN (STR_IOMMU_STATUS);
+        CHAR8 TableName[4] = {'D', 'M', 'A', 'R'};
+        if (FindAcpiTable(TableName)) {
+            HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"VT-d: Active", NULL);
+        } else {
+            HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"VT-d: Deactivated", NULL);
+        }
+
+        Token = STRING_TOKEN(STR_ME_STATUS);
+        //TODO: proper test for ME
+        BOOLEAN me_active = FALSE;
+        if (!me_active) {
+            HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"The Intel Management Engine is disabled at runtime to increase security.", NULL);
+        }
+    } else if (StandardSignatureIsAuthenticAMD()) {
+        //TODO: verify AMD tests
+
+        HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD Virtualization", NULL);
+
+        Token = STRING_TOKEN (STR_VIRTUALIZATION_STATUS);
+        MSR_IA32_EFER_REGISTER MsrEfer;
+        MsrEfer.Uint64 = AsmReadMsr64 (MSR_CORE_IA32_EFER);
+        if (MsrEfer.Bits.SVME) {
+            HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD-V: Active", NULL);
+        } else {
+            HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD-V: Deactivated", NULL);
+        }
+
+        Token = STRING_TOKEN (STR_IOMMU_STATUS);
+        //TODO: proper test for AMD IOMMU
+        BOOLEAN iommu_active = FALSE;
+        if (iommu_active) {
+            HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD-Vi: Active", NULL);
+        } else {
+            HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD-Vi: Deactivated", NULL);
+        }
+    }
+
+    Token = STRING_TOKEN (STR_TPM_STATUS);
+    CHAR8 TableName[4] = {'T', 'P', 'M', '2'};
+    if (FindAcpiTable(TableName)) {
+        HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"Trusted Platform Module: Active", NULL);
+    } else {
+        HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"Trusted Platform Module: Deactivated", NULL);
+    }
+}
+
 /**
 
   Update the information for the Front Page based on Smbios information.
@@ -586,6 +802,8 @@ UpdateFrontPageStrings (
   SMBIOS_STRUCTURE_POINTER          SmbiosTable;
 
   WarnNoBootableMedia ();
+
+  FirmwareConfigurationInformation();
 
   Status = EfiGetSystemConfigurationTable (&gEfiSmbiosTableGuid, (VOID **)  &Table);
   if (EFI_ERROR (Status) || Table == NULL) {
@@ -876,6 +1094,8 @@ InitializeUserInterface (
   UINTN                              BootTextColumn;
   UINTN                              BootTextRow;
 
+  gSystemTable = SystemTable;
+
   if (!mModeInitialized) {
     //
     // After the console is ready, get current video resolution
@@ -1081,4 +1301,3 @@ SetupResetReminder (
     gRT->ResetSystem (EfiResetCold, EFI_SUCCESS, 0, NULL);
   }
 }
-
