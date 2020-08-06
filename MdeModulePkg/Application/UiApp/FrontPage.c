@@ -788,6 +788,7 @@ VOID WebcamStatus(VOID) {
   UINTN                         Index;
   EFI_USB_IO_PROTOCOL           *UsbIo;
   EFI_USB_DEVICE_DESCRIPTOR     DevDesc;
+  EFI_USB_INTERFACE_DESCRIPTOR  IntfDesc;
   UINTN                         Webcams;
   EFI_STRING_ID                 Token;
 
@@ -825,16 +826,27 @@ VOID WebcamStatus(VOID) {
     }
 
     DEBUG ((EFI_D_INFO, "  ID: 0x%04X:0x%04X\n", DevDesc.IdVendor, DevDesc.IdProduct));
-    DEBUG ((EFI_D_INFO, "  Class: %d\n", DevDesc.DeviceClass));
-    DEBUG ((EFI_D_INFO, "  SubClass: %d\n", DevDesc.DeviceSubClass));
-    DEBUG ((EFI_D_INFO, "  Protocol: %d\n", DevDesc.DeviceProtocol));
+    DEBUG ((EFI_D_INFO, "  DeviceClass: %d\n", DevDesc.DeviceClass));
+    DEBUG ((EFI_D_INFO, "  DeviceSubClass: %d\n", DevDesc.DeviceSubClass));
+    DEBUG ((EFI_D_INFO, "  DeviceProtocol: %d\n", DevDesc.DeviceProtocol));
+
+    Status = UsbIo->UsbGetInterfaceDescriptor (UsbIo, &IntfDesc);
+    if (EFI_ERROR (Status)) {
+      DEBUG ((EFI_D_INFO, "  Failed to get interface descriptor\n"));
+      continue;
+    }
+
+    DEBUG ((EFI_D_INFO, "  Interface: %d\n", IntfDesc.InterfaceNumber));
+    DEBUG ((EFI_D_INFO, "  InterfaceClass: %d\n", IntfDesc.InterfaceClass));
+    DEBUG ((EFI_D_INFO, "  InterfaceSubClass: %d\n", IntfDesc.InterfaceSubClass));
+    DEBUG ((EFI_D_INFO, "  InterfaceProtocol: %d\n", IntfDesc.InterfaceProtocol));
 
     //TODO: make sure this picks up all of our laptop webcams and nothing else
     UINT32 Id = (((UINT32)DevDesc.IdVendor) << 16) | ((UINT32)DevDesc.IdProduct);
     switch (Id) {
         case 0x04f2b5a7: // Chicony Camera (bonw13, serw10, oryp4)
         case 0x04f2b649: // Chicony Camera (galp4)
-        case 0x04f2b685: // Chicony Camera (darp6, gaze14, gaze15, lemp9)
+        case 0x04f2b685: // Chicony Camera (bonw14, darp6, gaze14, gaze15, lemp9, serw12)
         case 0x59869102: // Acer BisonCam (addw1, addw2, oryp6)
             Webcams++;
             break;
