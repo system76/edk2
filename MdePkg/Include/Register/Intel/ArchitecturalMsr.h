@@ -6239,9 +6239,13 @@ typedef union {
     ///
     /// [Bit 11] Execute Disable Bit Enable: IA32_EFER.NXE (R/W).
     ///
-    UINT32    NXE       : 1;
-    UINT32    Reserved3 : 20;
-    UINT32    Reserved4 : 32;
+    UINT32  NXE:1;
+    ///
+    /// [ Bit 12] Secure Virtual Machine Enable (AMD only)
+    ///
+    UINT32    SVME:1;
+    UINT32    Reserved3:19;
+    UINT32    Reserved4:32;
   } Bits;
   ///
   /// All bit fields as a 32-bit value

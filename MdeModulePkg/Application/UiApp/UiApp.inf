@@ -56,6 +56,7 @@
   UefiBootManagerLib
 
 [Guids]
+  gEfiAcpiTableGuid                             ## CONSUMES ## GUID
   gEfiIfrTianoGuid                              ## CONSUMES ## GUID (Extended IFR Guid Opcode)
   gEfiIfrFrontPageGuid                          ## CONSUMES ## GUID
   gEfiSmbiosTableGuid                           ## CONSUMES ## GUID
