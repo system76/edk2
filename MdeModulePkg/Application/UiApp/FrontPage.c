@@ -832,10 +832,10 @@ VOID WebcamStatus(VOID) {
     //TODO: make sure this picks up all of our laptop webcams and nothing else
     UINT32 Id = (((UINT32)DevDesc.IdVendor) << 16) | ((UINT32)DevDesc.IdProduct);
     switch (Id) {
-        case 0x04f2b5a7: // Chicony Camera (bonw13, oryp4)
+        case 0x04f2b5a7: // Chicony Camera (bonw13, serw10, oryp4)
         case 0x04f2b649: // Chicony Camera (galp4)
-        case 0x04f2b685: // Chicony Camera (darp6, gaze15, lemp9)
-        case 0x59869102: // Acer BisonCam (addw2, oryp6)
+        case 0x04f2b685: // Chicony Camera (darp6, gaze14, gaze15, lemp9)
+        case 0x59869102: // Acer BisonCam (addw1, addw2, oryp6)
             Webcams++;
             break;
     }
