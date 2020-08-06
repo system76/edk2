@@ -42,6 +42,7 @@ formset
 
     subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
     subtitle text = STRING_TOKEN(STR_NO_BOOTABLE_MEDIA);
+    subtitle text = STRING_TOKEN(STR_WEBCAM_STATUS);
 
   endform;
 

@@ -7,6 +7,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
 
+#include <Protocol/UsbIo.h>
 #include <Register/Amd/Cpuid.h>
 #include <Register/Intel/Cpuid.h>
 #include <Register/Intel/Msr.h>
@@ -780,6 +781,75 @@ STATIC VOID FirmwareConfigurationInformation(VOID) {
     }
 }
 
+VOID WebcamStatus(VOID) {
+  EFI_STATUS                    Status;
+  UINTN                         UsbIoHandleCount;
+  EFI_HANDLE                    *UsbIoBuffer;
+  UINTN                         Index;
+  EFI_USB_IO_PROTOCOL           *UsbIo;
+  EFI_USB_DEVICE_DESCRIPTOR     DevDesc;
+  UINTN                         Webcams;
+  EFI_STRING_ID                 Token;
+
+  //
+  // Get all Usb IO handles in system
+  //
+  UsbIoHandleCount = 0;
+  Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiUsbIoProtocolGuid, NULL, &UsbIoHandleCount, &UsbIoBuffer);
+  if (EFI_ERROR(Status)) {
+    DEBUG ((EFI_D_INFO, "Failed to read UsbIo handles: 0x%x\n", Status));
+    return;
+  }
+
+  Webcams = 0;
+  for (Index = 0; Index < UsbIoHandleCount; Index++) {
+    DEBUG ((EFI_D_INFO, "UsbIo Handle %d\n", Index));
+
+    //
+    // Get the child Usb IO interface
+    //
+    Status = gBS->HandleProtocol(
+                     UsbIoBuffer[Index],
+                     &gEfiUsbIoProtocolGuid,
+                     (VOID **) &UsbIo
+                     );
+    if (EFI_ERROR (Status)) {
+      DEBUG ((EFI_D_INFO, "  Failed to find UsbIo protocol\n"));
+      continue;
+    }
+
+    Status = UsbIo->UsbGetDeviceDescriptor (UsbIo, &DevDesc);
+    if (EFI_ERROR (Status)) {
+      DEBUG ((EFI_D_INFO, "  Failed to get device descriptor\n"));
+      continue;
+    }
+
+    DEBUG ((EFI_D_INFO, "  ID: 0x%04X:0x%04X\n", DevDesc.IdVendor, DevDesc.IdProduct));
+    DEBUG ((EFI_D_INFO, "  Class: %d\n", DevDesc.DeviceClass));
+    DEBUG ((EFI_D_INFO, "  SubClass: %d\n", DevDesc.DeviceSubClass));
+    DEBUG ((EFI_D_INFO, "  Protocol: %d\n", DevDesc.DeviceProtocol));
+
+    //TODO: make sure this picks up all of our laptop webcams and nothing else
+    UINT32 Id = (((UINT32)DevDesc.IdVendor) << 16) | ((UINT32)DevDesc.IdProduct);
+    switch (Id) {
+        case 0x04f2b5a7: // Chicony Camera (bonw13, oryp4)
+        case 0x04f2b649: // Chicony Camera (galp4)
+        case 0x04f2b685: // Chicony Camera (darp6, gaze15, lemp9)
+        case 0x59869102: // Acer BisonCam (addw2, oryp6)
+            Webcams++;
+            break;
+    }
+  }
+
+  FreePool (UsbIoBuffer);
+
+  //TODO: logic for not showing the warning on desktops
+  Token = STRING_TOKEN (STR_WEBCAM_STATUS);
+  if (Webcams == 0) {
+    HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"Info: Webcam Module Disconnected", NULL);
+  }
+}
+
 /**
 
   Update the information for the Front Page based on Smbios information.
@@ -801,9 +871,9 @@ UpdateFrontPageStrings (
   SMBIOS_TABLE_ENTRY_POINT          *EntryPoint;
   SMBIOS_STRUCTURE_POINTER          SmbiosTable;
 
-  WarnNoBootableMedia ();
-
   FirmwareConfigurationInformation();
+  WarnNoBootableMedia ();
+  WebcamStatus();
 
   Status = EfiGetSystemConfigurationTable (&gEfiSmbiosTableGuid, (VOID **)  &Table);
   if (EFI_ERROR (Status) || Table == NULL) {
