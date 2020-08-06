@@ -725,9 +725,9 @@ STATIC VOID FirmwareConfigurationInformation(VOID) {
         HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"Intel Virtualization", NULL);
 
         Token = STRING_TOKEN (STR_VIRTUALIZATION_STATUS);
-        IA32_CR4 Cr4;
-        Cr4.UintN = AsmReadCr4 ();
-        if (Cr4.Bits.VMXE) {
+        CPUID_VERSION_INFO_ECX VersionInfoEcx;
+        AsmCpuid (CPUID_VERSION_INFO, NULL, NULL, &VersionInfoEcx.Uint32, NULL);
+        if (VersionInfoEcx.Bits.VMX) {
             HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"VT-x: Active", NULL);
         } else {
             HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"VT-x: Deactivated", NULL);
@@ -753,9 +753,9 @@ STATIC VOID FirmwareConfigurationInformation(VOID) {
         HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD Virtualization", NULL);
 
         Token = STRING_TOKEN (STR_VIRTUALIZATION_STATUS);
-        MSR_IA32_EFER_REGISTER MsrEfer;
-        MsrEfer.Uint64 = AsmReadMsr64 (MSR_CORE_IA32_EFER);
-        if (MsrEfer.Bits.SVME) {
+        CPUID_AMD_EXTENDED_CPU_SIG_ECX AmdExtendedCpuSigEcx;
+        AsmCpuid (CPUID_EXTENDED_CPU_SIG, NULL, NULL, &AmdExtendedCpuSigEcx.Uint32, NULL);
+        if (AmdExtendedCpuSigEcx.Bits.SVM) {
             HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD-V: Active", NULL);
         } else {
             HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD-V: Deactivated", NULL);
