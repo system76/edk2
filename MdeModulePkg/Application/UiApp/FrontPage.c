@@ -846,7 +846,7 @@ VOID WebcamStatus(VOID) {
     switch (Id) {
         case 0x04f2b5a7: // Chicony Camera (bonw13, serw10, oryp4)
         case 0x04f2b649: // Chicony Camera (galp4)
-        case 0x04f2b685: // Chicony Camera (bonw14, darp6, gaze14, gaze15, lemp9, serw12)
+        case 0x04f2b685: // Chicony Camera (bonw14, darp5, darp6, gaze14, gaze15, lemp9, serw12)
         case 0x59869102: // Acer BisonCam (addw1, addw2, oryp6)
             Webcams++;
             break;
