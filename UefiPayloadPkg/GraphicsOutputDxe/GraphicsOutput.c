@@ -320,13 +320,13 @@ GraphicsOutputDriverBindingStart (
   VOID                               *HobStart;
   EFI_PEI_GRAPHICS_INFO_HOB          *GraphicsInfo;
   EFI_PEI_GRAPHICS_DEVICE_INFO_HOB   *DeviceInfo;
-  EFI_PHYSICAL_ADDRESS               FrameBufferBase;
-
-  FrameBufferBase = 0;
 
   HobStart = GetFirstGuidHob (&gEfiGraphicsInfoHobGuid);
   ASSERT ((HobStart != NULL) && (GET_GUID_HOB_DATA_SIZE (HobStart) == sizeof (EFI_PEI_GRAPHICS_INFO_HOB)));
   GraphicsInfo = (EFI_PEI_GRAPHICS_INFO_HOB *)(GET_GUID_HOB_DATA (HobStart));
+
+  DEBUG ((DEBUG_INFO, "[%a]: GraphicsInfo HOB: FrameBufferBase = %lx, FrameBufferSize = %lx\n",
+          gEfiCallerBaseName, GraphicsInfo->FrameBufferBase, GraphicsInfo->FrameBufferSize));
 
   HobStart = GetFirstGuidHob (&gEfiGraphicsDeviceInfoHobGuid);
   if ((HobStart == NULL) || (GET_GUID_HOB_DATA_SIZE (HobStart) < sizeof (*DeviceInfo))) {
@@ -424,24 +424,9 @@ GraphicsOutputDriverBindingStart (
             Resources->AddrRangeMin,
             Resources->AddrLen
             ));
-          if ((Resources->Desc == ACPI_ADDRESS_SPACE_DESCRIPTOR) &&
-              (Resources->Len == (UINT16)(sizeof (EFI_ACPI_ADDRESS_SPACE_DESCRIPTOR) - 3)) &&
-              (Resources->ResType == ACPI_ADDRESS_SPACE_TYPE_MEM) &&
-              (Resources->AddrLen >= GraphicsInfo->FrameBufferSize)
-              )
-          {
-            if (FrameBufferBase == 0) {
-              FrameBufferBase = Resources->AddrRangeMin;
-            }
-
-            if (DeviceInfo->BarIndex == MAX_UINT8) {
-              if (Resources->AddrRangeMin == GraphicsInfo->FrameBufferBase) {
-                FrameBufferBase = Resources->AddrRangeMin;
-                break;
-              }
-            } else {
-              break;
-            }
+          if (Resources->AddrRangeMin <= GraphicsInfo->FrameBufferBase &&
+              (Resources->AddrRangeMin + Resources->AddrLen) >= (GraphicsInfo->FrameBufferBase + GraphicsInfo->FrameBufferSize)) {
+            break;
           }
         }
       }
@@ -468,7 +453,7 @@ GraphicsOutputDriverBindingStart (
     goto CloseProtocols;
   }
 
-  Private->GraphicsOutputMode.FrameBufferBase = FrameBufferBase;
+  Private->GraphicsOutputMode.FrameBufferBase = GraphicsInfo->FrameBufferBase;
   Private->GraphicsOutputMode.FrameBufferSize = GraphicsInfo->FrameBufferSize;
   Private->GraphicsOutputMode.Info            = &GraphicsInfo->GraphicsMode;
 
