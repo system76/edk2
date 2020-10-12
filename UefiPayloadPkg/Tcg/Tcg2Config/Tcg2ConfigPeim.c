@@ -62,6 +62,12 @@ TestTpm12 (
     return Status;
   }
 
+  if ((SwapBytes16(Response.Hdr.tag) != TPM_TAG_RSP_COMMAND) ||
+      (SwapBytes32(Response.Hdr.returnCode) != TPM_SUCCESS)) {
+    DEBUG ((EFI_D_INFO, "TestTpm12: Response Code error! 0x%08x\r\n", SwapBytes32(Response.Hdr.returnCode)));
+    return EFI_DEVICE_ERROR;
+  }
+
   return EFI_SUCCESS;
 }
 
