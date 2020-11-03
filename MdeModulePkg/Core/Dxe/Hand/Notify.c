@@ -67,6 +67,10 @@ CoreRemoveInterfaceFromProtocol (
     for (Link = ProtEntry->Notify.ForwardLink; Link != &ProtEntry->Notify; Link = Link->ForwardLink) {
       ProtNotify = CR (Link, PROTOCOL_NOTIFY, Link, PROTOCOL_NOTIFY_SIGNATURE);
 
+      // Signal notify events before removing the protocol too.
+      // XXX: What effect does this have on other code?
+      CoreSignalEvent (ProtNotify->Event);
+
       if (ProtNotify->Position == &Prot->ByProtocol) {
         ProtNotify->Position = Prot->ByProtocol.BackLink;
       }
