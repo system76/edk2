@@ -7,6 +7,7 @@
 //
 //**/
 #define FORMSET_GUID  { 0x847bc3fe, 0xb974, 0x446d, 0x94, 0x49, 0x5a, 0xd5, 0x41, 0x2e, 0x99, 0x3b }
+#define BOOT_MANAGER_REFRESH_GUID { 0x7648C827, 0xBE32, 0x44D2, { 0xA1, 0x33, 0xF1, 0x7F, 0x93, 0x76, 0xC7, 0x00 }}
 
 #define BOOT_MANAGER_FORM_ID     0x1030
 
@@ -21,6 +22,7 @@ formset
 
   form formid = BOOT_MANAGER_FORM_ID,
     title  = STRING_TOKEN(STR_BM_BANNER);
+    refreshguid = BOOT_MANAGER_REFRESH_GUID;
 
     //
     //Add this invisable text in order to indicate enter Boot Manager form.
