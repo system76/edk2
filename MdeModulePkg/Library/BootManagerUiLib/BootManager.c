@@ -8,6 +8,8 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 #include "BootManager.h"
 
+#include <Protocol/BlockIo.h>
+
 UINT16    mKeyInput;
 EFI_GUID  mBootManagerGuid = BOOT_MANAGER_FORMSET_GUID;
 //
@@ -26,6 +28,10 @@ UINT32  mBmSetupHorizontalResolution = 0;
 UINT32  mBmSetupVerticalResolution   = 0;
 
 BOOLEAN  mBmModeInitialized = FALSE;
+
+STATIC EFI_EVENT mBmRefreshEvent;
+STATIC CONST EFI_GUID mBmRefreshGuid = BOOT_MANAGER_REFRESH_GUID;
+STATIC VOID *mBlockIoRegistration; // Unused
 
 CHAR16  *mDeviceTypeStr[] = {
   L"Legacy BEV",
@@ -497,19 +503,6 @@ UpdateBootManager (
 
   DeviceType = (UINT16)-1;
 
-  //
-  // for better user experience
-  // 1. User changes HD configuration (e.g.: unplug HDD), here we have a chance to remove the HDD boot option
-  // 2. User enables/disables UEFI PXE, here we have a chance to add/remove EFI Network boot option
-  //
-  EfiBootManagerRefreshAllBootOption ();
-
-  //
-  // BdsDxe doesn't group the legacy boot options for the same device type
-  // It's UI's choice.
-  //
-  GroupMultipleLegacyBootOption4SameType ();
-
   BootOption = EfiBootManagerGetLoadOptions (&BootOptionCount, LoadOptionTypeBoot);
 
   HiiHandle = gBootManagerPrivate.HiiHandle;
@@ -853,6 +846,26 @@ BootManagerCallback (
   return EFI_SUCCESS;
 }
 
+STATIC
+VOID
+EFIAPI
+RefreshBootOptions(
+  IN  EFI_EVENT   Event,
+  IN  VOID        *Context
+  )
+{
+  EFI_TPL OldTpl = gBS->RaiseTPL(TPL_CALLBACK);
+
+  EfiBootManagerRefreshAllBootOption();
+
+  // BdsDxe doesn't group the legacy boot options for the same device type. It's UI's choice.
+  GroupMultipleLegacyBootOption4SameType();
+
+  UpdateBootManager();
+
+  gBS->RestoreTPL (OldTpl);
+}
+
 /**
 
   Install Boot Manager Menu driver.
@@ -901,6 +914,23 @@ BootManagerUiLibConstructor (
 
   BmInitialBootModeInfo ();
 
+  Status = gBS->CreateEventEx(
+      EVT_NOTIFY_SIGNAL,
+      TPL_CALLBACK,
+      RefreshBootOptions,
+      NULL,
+      &mBmRefreshGuid,
+      &mBmRefreshEvent
+      );
+  ASSERT_EFI_ERROR(Status);
+
+  Status = gBS->RegisterProtocolNotify (
+      &gEfiBlockIoProtocolGuid,
+      mBmRefreshEvent,
+      &mBlockIoRegistration
+      );
+  ASSERT_EFI_ERROR (Status);
+
   return EFI_SUCCESS;
 }
 
@@ -920,6 +950,8 @@ BootManagerUiLibDestructor (
   )
 {
   EFI_STATUS  Status;
+
+  gBS->CloseEvent(mBmRefreshEvent);
 
   Status = gBS->UninstallMultipleProtocolInterfaces (
                   gBootManagerPrivate.DriverHandle,
