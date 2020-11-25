@@ -61,6 +61,18 @@ struct smmstore_params_append {
         UINT32 valsize;
 };
 
+BOOLEAN starts_with(CHAR16 *string, CHAR16 *prefix) {
+	return StrnCmp(prefix, string, StrLen(prefix)) == 0;
+}
+
+// Do not store variables that change too often
+BOOLEAN store_variable(CHAR16 *VariableName) {
+	return	(
+		!starts_with(VariableName, L"Con") &&
+		!starts_with(VariableName, L"SystemSleepCheckpoint")
+	);
+}
+
 ///
 /// Don't use module globals after the SetVirtualAddress map is signaled
 ///
@@ -1100,13 +1112,13 @@ UpdateVariable (
 Store:
   // If the store is initialized
   // And we are storing or deleting a non volatile variable
-  // And variable name doesn't start with  'Con'
+  // And variable should be stored
   // Send the new data to SMMSTORE
   if (storeInitialized && (
       (Attributes & EFI_VARIABLE_NON_VOLATILE) != 0 || (
         Delete &&
         (Variable->CurrPtr->Attributes & EFI_VARIABLE_NON_VOLATILE) != 0
-      )) && (StrnCmp(L"Con", VariableName, StrLen(L"Con")))
+      )) && store_variable(VariableName)
     ) {
 
     /* TODO: add hook for logging nv changes here */
@@ -1979,8 +1991,8 @@ VariableCommonInitialize (
       EFI_GUID *guid = (EFI_GUID *)(buf + i + 8);
       VOID *data = (VOID *)(buf + i + 8 + keysz);
 
-      // don't update console variables 
-      if (StrnCmp(L"Con", varname, StrLen(L"Con"))) {
+      // Skip variables that do not need to be stored
+      if (store_variable(varname)) {
         DEBUG ((DEBUG_WARN, "Fetching variable: %s\n", varname));
         DEBUG ((DEBUG_WARN, "buf: %p, buf+i: %p, guid: %p, varname: %p, data: %p\n", buf, buf + i, guid, varname, data));
         VARIABLE_POINTER_TRACK Variable;
@@ -1997,7 +2009,7 @@ VariableCommonInitialize (
           &Variable
         );
       } else {
-        DEBUG ((DEBUG_WARN, "Skipping console variable: %s\n", varname));
+        DEBUG ((DEBUG_WARN, "Skipping variable: %s\n", varname));
       }
     }
     // no UEFI variable since it's at most the GUID part, so skip
