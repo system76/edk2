@@ -7,6 +7,9 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
 
+#include <IndustryStandard/Pci.h>
+#include <Protocol/PciIo.h>
+#include <Protocol/PciRootBridgeIo.h>
 #include <Protocol/UsbIo.h>
 #include <Register/Amd/Cpuid.h>
 #include <Register/Intel/Cpuid.h>
@@ -718,6 +721,101 @@ STATIC ACPI_SDT_HEADER* FindAcpiTable(CHAR8 Name[4]) {
   return NULL;
 }
 
+// From PciBusDxe
+STATIC
+EFI_STATUS
+PciDevicePresent(
+    OUT PCI_TYPE00  *Pci,
+    IN  UINT8       Bus,
+    IN  UINT8       Device,
+    IN  UINT8       Func
+    )
+{
+    UINT64 Address = EFI_PCI_ADDRESS(Bus, Device, Func, 0);
+    EFI_PCI_ROOT_BRIDGE_IO_PROTOCOL *PciRootBridgeIo;
+    EFI_STATUS Status;
+    EFI_HANDLE *PciIoBuffer;
+    UINTN PciIoHandleCount = 0;
+
+    Status = gBS->LocateHandleBuffer(
+        ByProtocol,
+        &gEfiPciRootBridgeIoProtocolGuid,
+        NULL,
+        &PciIoHandleCount,
+        &PciIoBuffer
+    );
+
+    if (EFI_ERROR(Status)) {
+        DEBUG((EFI_D_INFO, "%a: Failed to get PciRootBridgeIo handles: %r\n", __FUNCTION__, Status));
+        return Status;
+    }
+
+    for (UINTN Index = 0; Index < PciIoHandleCount; Index++) {
+        Status = gBS->OpenProtocol(
+            PciIoBuffer[Index],
+            &gEfiPciRootBridgeIoProtocolGuid,
+            (VOID *)&PciRootBridgeIo,
+            NULL,
+            NULL,
+            EFI_OPEN_PROTOCOL_GET_PROTOCOL
+        );
+
+        if (EFI_ERROR(Status)) {
+            DEBUG((EFI_D_INFO, "%a: Failed to open PciRootBridgeIo protocol: %r\n", __FUNCTION__, Status));
+            continue;
+        }
+
+        // Read the Vendor ID register
+        Status = PciRootBridgeIo->Pci.Read(
+            PciRootBridgeIo,
+            EfiPciWidthUint32,
+            Address,
+            1,
+            Pci
+        );
+
+        if (EFI_ERROR(Status)) {
+            DEBUG((EFI_D_INFO, "%a: Failed to read vendor ID: %r\n", __FUNCTION__, Status));
+            continue;
+        }
+
+        // Read the entire config header for the device
+        Status = PciRootBridgeIo->Pci.Read(
+            PciRootBridgeIo,
+            EfiPciWidthUint32,
+            Address,
+            sizeof(PCI_TYPE00) / sizeof(UINT32),
+            Pci
+        );
+
+        FreePool(PciIoBuffer);
+        return Status;
+    }
+
+    FreePool(PciIoBuffer);
+    return EFI_NOT_FOUND;
+}
+
+/*
+ * Check for Intel device with class [0780] at 00:16.0.
+ */
+STATIC
+BOOLEAN
+HasCsmeDevice(VOID)
+{
+    PCI_TYPE00 Pci;
+
+    if (!EFI_ERROR(PciDevicePresent(&Pci, 0x00, 0x16, 0x00))) {
+        DEBUG((EFI_D_INFO, "%a: vid=0x%04X, class=[%02X,%02X,%02X]\n", __FUNCTION__,
+            Pci.Hdr.VendorId, Pci.Hdr.ClassCode[0], Pci.Hdr.ClassCode[1], Pci.Hdr.ClassCode[2]));
+        return Pci.Hdr.VendorId == 0x8086 &&
+            Pci.Hdr.ClassCode[2] == PCI_CLASS_SCC &&
+            Pci.Hdr.ClassCode[1] == PCI_SUBCLASS_SCC_OTHER;
+    }
+
+    return FALSE;
+}
+
 STATIC VOID FirmwareConfigurationInformation(VOID) {
     EFI_STRING_ID Token;
 
@@ -743,9 +841,9 @@ STATIC VOID FirmwareConfigurationInformation(VOID) {
         }
 
         Token = STRING_TOKEN(STR_ME_STATUS);
-        //TODO: proper test for ME
-        BOOLEAN me_active = FALSE;
-        if (!me_active) {
+        if (HasCsmeDevice()) {
+            HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"The Intel Management Engine is enabled.", NULL);
+        } else {
             HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"The Intel Management Engine is disabled at runtime to increase security.", NULL);
         }
     } else if (StandardSignatureIsAuthenticAMD()) {
