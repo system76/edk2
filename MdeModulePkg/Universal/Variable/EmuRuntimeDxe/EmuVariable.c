@@ -69,6 +69,7 @@ BOOLEAN starts_with(CHAR16 *string, CHAR16 *prefix) {
 BOOLEAN store_variable(CHAR16 *VariableName) {
 	return	(
 		!starts_with(VariableName, L"Con") &&
+		!starts_with(VariableName, L"ErrOut") &&
 		!starts_with(VariableName, L"SystemSleepCheckpoint")
 	);
 }
