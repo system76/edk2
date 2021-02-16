@@ -192,6 +192,14 @@ PlatformBootManagerBeforeConsole (
   PlatformConsoleInit ();
 }
 
+// GUID for System76 security driver
+EFI_GUID SYSTEM76_SECURITY_PROTOCOL_GUID = {0x764247c4, 0xa859, 0x4a6b, {0xb5, 0x00, 0xed, 0x5d, 0x7a, 0x70, 0x7d, 0xd4}};
+
+typedef struct  {
+  // Run System76 security driver, will return true if we should boot immediately
+  BOOLEAN (EFIAPI *Run)();
+} SYSTEM76_SECURITY_PROTOCOL;
+
 /**
   Do the platform specific action after the console is connected.
 
@@ -210,6 +218,8 @@ PlatformBootManagerAfterConsole (
 {
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL  Black;
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL  White;
+  EFI_STATUS Status;
+  SYSTEM76_SECURITY_PROTOCOL * system76_security;
 
   if (mUniversalPayloadPlatformBootManagerOverrideInstance != NULL){
     mUniversalPayloadPlatformBootManagerOverrideInstance->AfterConsole();
@@ -249,6 +259,16 @@ PlatformBootManagerAfterConsole (
 
   // Inject boot logo into BGRT table
   AddBGRT();
+
+  // If System76 security driver is installed
+  Status = gBS->LocateProtocol (&SYSTEM76_SECURITY_PROTOCOL_GUID, NULL, (VOID **) &system76_security);
+  if (!EFI_ERROR(Status)) {
+      // Run System76 security driver
+      if (system76_security->Run ()) {
+          // Skip boot timeout if requested
+          PcdSet16S (PcdPlatformBootTimeOut, 0);
+      }
+  }
 }
 
 /**
