@@ -202,6 +202,14 @@ INF MdeModulePkg/Bus/Usb/UsbBusDxe/UsbBusDxe.inf
 INF MdeModulePkg/Bus/Usb/UsbKbDxe/UsbKbDxe.inf
 INF MdeModulePkg/Bus/Usb/UsbMassStorageDxe/UsbMassStorageDxe.inf
 
+#
+# RNG Support
+#
+INF  SecurityPkg/RandomNumberGenerator/RngDxe/RngDxe.inf
+
+#
+# TPM Support
+#
 !if $(TPM_ENABLE) == TRUE
 INF  SecurityPkg/Tcg/TcgDxe/TcgDxe.inf
 INF  SecurityPkg/Tcg/Tcg2Dxe/Tcg2Dxe.inf
