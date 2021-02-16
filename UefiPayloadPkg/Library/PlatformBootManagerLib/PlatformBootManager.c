@@ -193,6 +193,11 @@ PlatformBootManagerAfterConsole (
   VOID
 )
 {
+  // Notify System76 security callback
+  EFI_GUID SYSTEM76_SECURITY_EVENT_GROUP = {0x764247c4, 0xa859, 0x4a6b, {0xb5, 0x00, 0xed, 0x5d, 0x7a, 0x70, 0x7d, 0xd4}};
+  EfiEventGroupSignal (&SYSTEM76_SECURITY_EVENT_GROUP);
+
+  // Show boot logo
   gST->ConOut->ClearScreen (gST->ConOut);
   BootLogoEnableLogo ();
 
@@ -298,4 +303,3 @@ PlatformBootManagerUnableToBoot (
     EfiBootManagerBoot (&BootManagerMenu);
   }
 }
-
