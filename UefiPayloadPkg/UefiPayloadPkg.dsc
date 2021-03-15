@@ -95,7 +95,7 @@
   # Security options:
   #
   DEFINE SECURE_BOOT_ENABLE           = FALSE
-  DEFINE TPM_ENABLE                   = FALSE
+  DEFINE TPM_ENABLE                   = TRUE
 
 [BuildOptions]
   *_*_*_CC_FLAGS                 = -D DISABLE_NEW_DEPRECATED_INTERFACES
