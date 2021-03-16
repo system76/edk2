@@ -66,7 +66,7 @@
   DEFINE DEFAULT_TERMINAL_TYPE        = 0
 
   # Enabling the serial terminal will slow down the boot menu redering!
-  DEFINE DISABLE_SERIAL_TERMINAL      = FALSE
+  DEFINE DISABLE_SERIAL_TERMINAL      = TRUE
 
   #
   #  typedef struct {
