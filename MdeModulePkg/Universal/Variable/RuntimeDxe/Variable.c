@@ -1596,6 +1596,11 @@ AutoUpdateLangVariable (
   }
 }
 
+static BOOLEAN starts_with(CHAR16 *str, CHAR16 *prefix)
+{
+  return StrnCmp(prefix, str, StrLen(prefix)) == 0;
+}
+
 /**
   Update the variable region with Variable information. If EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS is set,
   index of associated public key is needed.
@@ -2086,6 +2091,13 @@ UpdateVariable (
         }
       }
       goto Done;
+    }
+
+    // Skip storing variables that change often
+    if (starts_with(VariableName, L"Con") ||
+        starts_with(VariableName, L"ErrOut") ||
+        starts_with(VariableName, L"SystemSleepCheckpoint")) {
+        goto Done;
     }
 
     if (!mVariableModuleGlobal->VariableGlobal.EmuNvMode) {
