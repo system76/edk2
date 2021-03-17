@@ -1596,6 +1596,20 @@ AutoUpdateLangVariable (
   }
 }
 
+static BOOLEAN starts_with(CHAR16 *str, CHAR16 *prefix)
+{
+  return StrnCmp(prefix, str, StrLen(prefix)) == 0;
+}
+
+// Skip storing variables that change often
+static BOOLEAN should_skip(CHAR16* VariableName)
+{
+  return VariableName != NULL &&
+      (starts_with(VariableName, L"Con") ||
+       starts_with(VariableName, L"ErrOut") ||
+       starts_with(VariableName, L"SystemSleepCheckpoint"));
+}
+
 /**
   Update the variable region with Variable information. If EFI_VARIABLE_AUTHENTICATED_WRITE_ACCESS is set,
   index of associated public key is needed.
@@ -2030,6 +2044,11 @@ UpdateVariable (
   //
   VarSize = VarDataOffset + DataSize + GET_PAD_SIZE (DataSize);
   if ((Attributes & EFI_VARIABLE_NON_VOLATILE) != 0) {
+    if (should_skip(VariableName)) {
+      DEBUG ((EFI_D_INFO, "%a: Skipping variable: %s\n", __FUNCTION__, VariableName));
+      goto Done;
+    }
+
     //
     // Create a nonvolatile variable.
     //
