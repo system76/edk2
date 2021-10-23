@@ -9,64 +9,23 @@
 
 #define FORMSET_GUID  { 0x9e0c30bc, 0x3f06, 0x4ba6, 0x82, 0x88, 0x9, 0x17, 0x9b, 0x85, 0x5d, 0xbe }
 
-#define FRONT_PAGE_FORM_ID             0x1000
+#define FRONT_PAGE_FORM_ID             0x7600
 
 #define LABEL_FRONTPAGE_INFORMATION    0x1000
 #define LABEL_END                      0xffff
 
 formset
-  guid     = FORMSET_GUID,
-  title    = STRING_TOKEN(STR_FRONT_PAGE_TITLE),
-  help     = STRING_TOKEN(STR_EMPTY_STRING ),
+  guid      = FORMSET_GUID,
+  title     = STRING_TOKEN(STR_FRONT_PAGE_TITLE),
+  help      = STRING_TOKEN(STR_EMPTY_STRING),
   classguid = FORMSET_GUID,
 
   form formid = FRONT_PAGE_FORM_ID,
-       title  = STRING_TOKEN(STR_FRONT_PAGE_TITLE);
+    title  = STRING_TOKEN(STR_FRONT_PAGE_TITLE);
 
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_COMPUTER_MODEL),
-      line  1,
-      align left;
-
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_CPU_MODEL),
-      line  2,
-      align left;
-
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_CPU_SPEED),
-      line  2,
-      align right;
-
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_BIOS_VERSION),
-      line  3,
-      align left;
-
-    banner
-      title = STRING_TOKEN(STR_FRONT_PAGE_MEMORY_SIZE),
-      line  3,
-      align right;
-
-    banner
-      title = STRING_TOKEN(STR_CUSTOMIZE_BANNER_LINE4_LEFT),
-      line  4,
-      align left;
-
-    banner
-      title = STRING_TOKEN(STR_CUSTOMIZE_BANNER_LINE4_RIGHT),
-      line  4,
-      align right;
-
-    banner
-      title = STRING_TOKEN(STR_CUSTOMIZE_BANNER_LINE5_LEFT),
-      line  5,
-      align left;
-
-    banner
-      title = STRING_TOKEN(STR_CUSTOMIZE_BANNER_LINE5_RIGHT),
-      line  5,
-      align right;
+    subtitle text = STRING_TOKEN(STR_FRONT_PAGE_COMPUTER_MODEL);
+    subtitle text = STRING_TOKEN(STR_FRONT_PAGE_BIOS_VERSION);
+    subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
 
     label LABEL_FRONTPAGE_INFORMATION;
     //
