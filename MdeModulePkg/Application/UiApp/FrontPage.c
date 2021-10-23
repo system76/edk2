@@ -17,7 +17,6 @@ EFI_GUID   mFrontPageGuid      = FRONT_PAGE_FORMSET_GUID;
 BOOLEAN   mResetRequired  = FALSE;
 
 EFI_FORM_BROWSER2_PROTOCOL      *gFormBrowser2;
-CHAR8     *mLanguageString;
 BOOLEAN   mModeInitialized = FALSE;
 //
 // Boot video resolution and text mode.
@@ -36,7 +35,6 @@ UINT32    mSetupVerticalResolution     = 0;
 
 FRONT_PAGE_CALLBACK_DATA  gFrontPagePrivate = {
   FRONT_PAGE_CALLBACK_DATA_SIGNATURE,
-  NULL,
   NULL,
   NULL,
   {
@@ -211,7 +209,7 @@ UpdateFrontPageForm (
   //
   StartGuidLabel = (EFI_IFR_GUID_LABEL *) HiiCreateGuidOpCode (StartOpCodeHandle, &gEfiIfrTianoGuid, NULL, sizeof (EFI_IFR_GUID_LABEL));
   StartGuidLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
-  StartGuidLabel->Number       = LABEL_FRANTPAGE_INFORMATION;
+  StartGuidLabel->Number       = LABEL_FRONTPAGE_INFORMATION;
   //
   // Create Hii Extend Label OpCode as the end opcode
   //
@@ -367,10 +365,6 @@ FreeFrontPage(
   // Publish our HII data
   //
   HiiRemovePackages (gFrontPagePrivate.HiiHandle);
-  if (gFrontPagePrivate.LanguageToken != NULL) {
-    FreePool (gFrontPagePrivate.LanguageToken);
-    gFrontPagePrivate.LanguageToken = NULL;
-  }
 }
 
 /**
@@ -539,129 +533,81 @@ UpdateFrontPageBannerStrings (
   VOID
   )
 {
-  CHAR16                            *MemoryStr;
   EFI_STATUS                        Status;
   EFI_STRING_ID                     TokenToUpdate;
   EFI_PHYSICAL_ADDRESS              *Table;
   SMBIOS_TABLE_ENTRY_POINT          *EntryPoint;
   SMBIOS_STRUCTURE_POINTER          SmbiosTable;
-  UINT64                            InstalledMemory;
 
-  InstalledMemory = 0;
-
-  //
-  // Update Front Page strings
-  //
   Status = EfiGetSystemConfigurationTable (&gEfiSmbiosTableGuid, (VOID **)  &Table);
   if (EFI_ERROR (Status) || Table == NULL) {
-  } else {
-    EntryPoint = (SMBIOS_TABLE_ENTRY_POINT*)Table;
+    return;
+  }
 
-    SmbiosTable = GetSmbiosTableFromType (EntryPoint, EFI_SMBIOS_TYPE_BIOS_INFORMATION , 0);
+  EntryPoint = (SMBIOS_TABLE_ENTRY_POINT*)Table;
 
-	if (SmbiosTable.Raw != NULL) {
-	  CHAR16 *FwVersion;
-	  CHAR16 *FwDate;
-	  CHAR16 *TmpBuffer;
-	  UINT8 VersionIdx;
-	  UINT8 DateIdx;
+  SmbiosTable = GetSmbiosTableFromType (EntryPoint, EFI_SMBIOS_TYPE_BIOS_INFORMATION , 0);
+  if (SmbiosTable.Raw != NULL) {
+    CHAR16 *FwVersion;
+    CHAR16 *TmpBuffer;
+    UINT8 VersionIdx;
 
-      TmpBuffer = AllocateZeroPool (0x60);
+    TmpBuffer = AllocateZeroPool (0x60);
 
-      VersionIdx = SmbiosTable.Type0->BiosVersion;
-      DateIdx = SmbiosTable.Type0->BiosReleaseDate;
+    VersionIdx = SmbiosTable.Type0->BiosVersion;
+    GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), VersionIdx, &FwVersion);
 
-      GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), VersionIdx, &FwVersion);
-      GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), DateIdx, &FwDate);
-      
-	  StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), L"FW: ");
-      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), FwVersion);
-      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), L" ");
-      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), FwDate);
-      
-	  TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION);
-      HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, TmpBuffer, NULL);
+    StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), L"Version: ");
+    StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), FwVersion);
 
-	  FreePool (FwVersion);
-	  FreePool (FwDate);
-	  FreePool (TmpBuffer);
-    }
+    TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION);
+    HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, TmpBuffer, NULL);
 
-    SmbiosTable = GetSmbiosTableFromType (EntryPoint, SMBIOS_TYPE_SYSTEM_INFORMATION , 0);
-    
-	if (SmbiosTable.Raw != NULL) {
-      CHAR16 *ProductName;
-	  CHAR16 *Manufacturer;
-	  CHAR16 *DeviceName;
-	  CHAR16 *TmpBuffer;
-	  UINT8 ProductIdx;
-	  UINT8 ManIdx;
+    FreePool (FwVersion);
+    FreePool (TmpBuffer);
+  }
 
-	  TmpBuffer = AllocateZeroPool (0x60);
-	  DeviceName = AllocateZeroPool (0x60);
+  SmbiosTable = GetSmbiosTableFromType (EntryPoint, SMBIOS_TYPE_SYSTEM_INFORMATION , 0);
+  if (SmbiosTable.Raw != NULL) {
+    CHAR16 *Manufacturer;
+    CHAR16 *ProductName;
+    CHAR16 *ProductVersion;
+    CHAR16 *Title;
+    CHAR16 *Model;
+    UINT8 ModelIdx;
+    UINT8 ManIdx;
+    UINT8 VersionIdx;
 
-      ProductIdx = SmbiosTable.Type1->ProductName;
-      ManIdx = SmbiosTable.Type1->Manufacturer;
-      
-	  GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), ProductIdx, &ProductName);
-      GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), ManIdx, &Manufacturer);
+    Title = AllocateZeroPool (0x60);
+    Model = AllocateZeroPool (0x60);
 
-      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), Manufacturer);
-      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), L" ");
-      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), ProductName);
-      
-	  TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL);
-      HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, TmpBuffer, NULL);
-      
-	  FreePool (ProductName);
-	  FreePool (Manufacturer);
-	  FreePool (DeviceName);
-	  FreePool (TmpBuffer);
-	  
-    }
+    ManIdx = SmbiosTable.Type1->Manufacturer;
+    ModelIdx = SmbiosTable.Type1->ProductName;
 
-    SmbiosTable = GetSmbiosTableFromType (EntryPoint, SMBIOS_TYPE_PROCESSOR_INFORMATION , 0);
-    if (SmbiosTable.Raw != NULL) {
-	  CHAR16 *ProcessorVersion;
-	  CHAR16 *TmpBuffer;
-	  UINT8 CpuIdx;
+    GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), ModelIdx, &ProductName);
+    GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), ManIdx, &Manufacturer);
 
-      TmpBuffer = AllocateZeroPool (0x60);
+    StrCatS (Title, 0x60 / sizeof (CHAR16), Manufacturer);
+    StrCatS (Title, 0x60 / sizeof (CHAR16), L" ");
+    StrCatS (Title, 0x60 / sizeof (CHAR16), ProductName);
 
-	  CpuIdx = SmbiosTable.Type4->ProcessorVersion;
+    TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_TITLE);
+    HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, Title, NULL);
 
-      GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), CpuIdx, &ProcessorVersion);
-      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), ProcessorVersion);
-      
-	  // Trim leading spaces
-	  while (TmpBuffer[0] == 0x20) {
-        TmpBuffer = &TmpBuffer[1];
-      }
-      
-	  TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_CPU_MODEL);
-      HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, TmpBuffer, NULL);
-      
-	  FreePool (ProcessorVersion);
-	  FreePool (TmpBuffer);
-    }
+    VersionIdx = SmbiosTable.Type1->Version;
+    GetOptionalStringByIndex ((CHAR8*)((UINT8*)SmbiosTable.Raw + SmbiosTable.Hdr->Length), VersionIdx, &ProductVersion);
 
-    SmbiosTable = GetSmbiosTableFromType (EntryPoint, SMBIOS_TYPE_MEMORY_ARRAY_MAPPED_ADDRESS , 0);
-    if (SmbiosTable.Raw != NULL) {
-      if (SmbiosTable.Type19->StartingAddress != 0xFFFFFFFF ) {
-        InstalledMemory += RShiftU64(SmbiosTable.Type19->EndingAddress -
-                                     SmbiosTable.Type19->StartingAddress + 1, 10);
-      } else {
-        InstalledMemory += RShiftU64(SmbiosTable.Type19->ExtendedEndingAddress -
-                                     SmbiosTable.Type19->ExtendedStartingAddress + 1, 20);
-      }
+    StrCatS (Model, 0x60 / sizeof (CHAR16), L"Model: ");
+    StrCatS (Model, 0x60 / sizeof (CHAR16), ProductVersion);
 
-      // now update the total installed RAM size
-      ConvertMemorySizeToString ((UINT32)InstalledMemory, &MemoryStr );
-      TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_MEMORY_SIZE);
-      HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, MemoryStr, NULL);
-      
-	  FreePool (MemoryStr);
-    }
+    TokenToUpdate = STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL);
+    HiiSetString (gFrontPagePrivate.HiiHandle, TokenToUpdate, Model, NULL);
+
+    FreePool (Model);
+    FreePool (Title);
+    FreePool (ProductVersion);
+    FreePool (ProductName);
+    FreePool (Manufacturer);
   }
 }
 
@@ -1029,11 +975,6 @@ UiEntry (
 
   FreeFrontPage ();
 
-  if (mLanguageString != NULL) {
-    FreePool (mLanguageString);
-    mLanguageString = NULL;
-  }
-
   //
   //Will leave browser, check any reset required change is applied? if yes, reset system
   //
@@ -1045,10 +986,6 @@ UiEntry (
 //  Setup Browser reset reminder feature is that an reset reminder will be given before user leaves the setup browser  if
 //  user change any option setting which needs a reset to be effective, and  the reset will be applied according to  the user selection.
 //
-
-
-
-
 
 /**
   Record the info that  a reset is required.
@@ -1063,10 +1000,6 @@ EnableResetRequired (
 {
   mResetRequired = TRUE;
 }
-
-
-
-
 
 /**
   Check if  user changed any option setting which needs a system reset to be effective.
