@@ -169,7 +169,7 @@ BmGetDescriptionFromDiskInfo (
                          &BufferSize
                          );
     if (!EFI_ERROR (Status)) {
-      Description = AllocateZeroPool (StrSize (L"SATA: ") + ModelNameLength * sizeof (CHAR16));
+      Description = AllocateZeroPool (ModelNameLength * sizeof (CHAR16));
       ASSERT (Description != NULL);
       for (Index = 0; Index + 1 < ModelNameLength; Index += 2) {
         Description[Index]     = (CHAR16) IdentifyData.ModelName[Index + 1];
@@ -179,11 +179,6 @@ BmGetDescriptionFromDiskInfo (
       BmEliminateExtraSpaces (Description);
 
       DescTemp = AllocateZeroPool (0x60);
-      if (CompareGuid (&DiskInfo->Interface, &gEfiDiskInfoAhciInterfaceGuid)) {
-        StrCatS (DescTemp, 0x60 / sizeof (CHAR16), L"SATA: ");
-      } else {
-        StrCatS (DescTemp, 0x60 / sizeof (CHAR16), L"IDE: ");
-      }
       StrCatS (DescTemp, 0x60 / sizeof (CHAR16), Description);
       StrCpyS(Description, StrSize (DescTemp) / sizeof (CHAR16), DescTemp);
       FreePool (DescTemp);
@@ -310,10 +305,9 @@ BmGetUsbDescription (
     return NULL;
   }
 
-  DescMaxSize = StrSize (L"USB: ") + StrSize (Manufacturer) + StrSize (Product);
+  DescMaxSize = StrSize (Manufacturer) + StrSize (Product);
   Description = AllocateZeroPool (DescMaxSize);
   ASSERT (Description != NULL);
-  StrCatS (Description, DescMaxSize/sizeof(CHAR16), L"USB: ");
   StrCatS (Description, DescMaxSize/sizeof(CHAR16), Manufacturer);
   StrCatS (Description, DescMaxSize/sizeof(CHAR16), L" ");
 
@@ -326,7 +320,7 @@ BmGetUsbDescription (
   if (Product != &NullChar) {
     FreePool (Product);
   }
- 
+
   BmEliminateExtraSpaces (Description);
 
   return Description;
@@ -613,7 +607,6 @@ BmGetNvmeDescription (
     }
     BmEliminateExtraSpaces (Description);
     DescTemp = AllocateZeroPool (0x60);
-    StrCatS (DescTemp, 0x60 / sizeof (CHAR16), L"NVMe: ");
     StrCatS (DescTemp, 0x60 / sizeof (CHAR16), Description);
     StrCpyS(Description, StrSize (DescTemp) / sizeof (CHAR16), DescTemp);
     FreePool (DescTemp);
