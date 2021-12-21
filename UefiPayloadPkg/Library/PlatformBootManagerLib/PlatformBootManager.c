@@ -270,7 +270,7 @@ PlatformBootManagerAfterConsole (
   BootLogoUpdateProgress (
       White,
       Black,
-      L"Press ESC for Boot Options/Settings",
+      L"Press ESC for Boot Options/Settings, or SPACE for Pop!_OS Recovery",
       White,
       0,
       0
