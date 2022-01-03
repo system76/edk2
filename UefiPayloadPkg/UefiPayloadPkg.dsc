@@ -100,6 +100,11 @@
   DEFINE SHELL_TYPE                   = BUILD_SHELL
 
   #
+  # Security options:
+  #
+  DEFINE SECURE_BOOT_ENABLE           = FALSE
+
+  #
   # EMU:      UEFI payload with EMU variable
   # SPI:      UEFI payload with SPI NV variable support
   # SMMSTORE: UEFI payload with coreboot SMM NV variable support
@@ -186,6 +191,10 @@
   CacheMaintenanceLib|MdePkg/Library/BaseCacheMaintenanceLib/BaseCacheMaintenanceLib.inf
   SafeIntLib|MdePkg/Library/BaseSafeIntLib/BaseSafeIntLib.inf
   DxeHobListLib|UefiPayloadPkg/Library/DxeHobListLib/DxeHobListLib.inf
+!if $(SECURE_BOOT_ENABLE) == TRUE
+  SecureBootVariableLib|SecurityPkg/Library/SecureBootVariableLib/SecureBootVariableLib.inf
+  SecureBootVariableProvisionLib|SecurityPkg/Library/SecureBootVariableProvisionLib/SecureBootVariableProvisionLib.inf
+!endif
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
   TlsLib|CryptoPkg/Library/TlsLib/TlsLib.inf
   IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
@@ -272,7 +281,6 @@
   DebugLib|MdeModulePkg/Library/PeiDxeDebugLibReportStatusCode/PeiDxeDebugLibReportStatusCode.inf
   LockBoxLib|MdeModulePkg/Library/LockBoxNullLib/LockBoxNullLib.inf
   FileExplorerLib|MdeModulePkg/Library/FileExplorerLib/FileExplorerLib.inf
-  AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
 !if $(VARIABLE_SUPPORT) == "EMU"
   TpmMeasurementLib|MdeModulePkg/Library/TpmMeasurementLibNull/TpmMeasurementLibNull.inf
 !elseif $(VARIABLE_SUPPORT) == "SMMSTORE"
@@ -290,6 +298,9 @@
   VariableFlashInfoLib|MdeModulePkg/Library/BaseVariableFlashInfoLib/BaseVariableFlashInfoLib.inf
   VmgExitLib|UefiCpuPkg/Library/VmgExitLibNull/VmgExitLibNull.inf
   ReportStatusCodeLib|MdeModulePkg/Library/DxeReportStatusCodeLib/DxeReportStatusCodeLib.inf
+
+[LibraryClasses.common]
+  BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
 
 [LibraryClasses.common.SEC]
   HobLib|UefiPayloadPkg/Library/PayloadEntryHobLib/HobLib.inf
@@ -311,6 +322,18 @@
 !if $(PERFORMANCE_MEASUREMENT_ENABLE)
   PerformanceLib|MdeModulePkg/Library/DxeCorePerformanceLib/DxeCorePerformanceLib.inf
 !endif
+  SmbusLib|MdePkg/Library/DxeSmbusLib/DxeSmbusLib.inf
+  OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLibCrypto.inf
+  IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
+  RngLib|MdePkg/Library/BaseRngLibTimerLib/BaseRngLibTimerLib.inf
+
+!if $(SECURE_BOOT_ENABLE) == TRUE
+  AuthVariableLib|SecurityPkg/Library/AuthVariableLib/AuthVariableLib.inf
+  # re-use the UserPhysicalPresent() dummy implementation from the ovmf tree
+  PlatformSecureLib|OvmfPkg/Library/PlatformSecureLib/PlatformSecureLib.inf
+!else
+  AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
+!endif
 
 [LibraryClasses.common.DXE_DRIVER]
   PcdLib|MdePkg/Library/DxePcdLib/DxePcdLib.inf
@@ -325,6 +348,17 @@
 !if $(PERFORMANCE_MEASUREMENT_ENABLE)
   PerformanceLib|MdeModulePkg/Library/DxePerformanceLib/DxePerformanceLib.inf
 !endif
+  OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLibCrypto.inf
+  IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
+  RngLib|MdePkg/Library/BaseRngLibTimerLib/BaseRngLibTimerLib.inf
+
+!if $(SECURE_BOOT_ENABLE) == TRUE
+  AuthVariableLib|SecurityPkg/Library/AuthVariableLib/AuthVariableLib.inf
+  # re-use the UserPhysicalPresent() dummy implementation from the ovmf tree
+  PlatformSecureLib|OvmfPkg/Library/PlatformSecureLib/PlatformSecureLib.inf
+!else
+  AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
+!endif
 
 [LibraryClasses.common.DXE_RUNTIME_DRIVER]
   PcdLib|MdePkg/Library/DxePcdLib/DxePcdLib.inf
@@ -333,6 +367,19 @@
   VariablePolicyLib|MdeModulePkg/Library/VariablePolicyLib/VariablePolicyLibRuntimeDxe.inf
 !if $(PERFORMANCE_MEASUREMENT_ENABLE)
   PerformanceLib|MdeModulePkg/Library/DxePerformanceLib/DxePerformanceLib.inf
+!endif
+  SmbusLib|MdePkg/Library/DxeSmbusLib/DxeSmbusLib.inf
+  BaseCryptLib|CryptoPkg/Library/BaseCryptLib/RuntimeCryptLib.inf
+  OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLibCrypto.inf
+  IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
+  RngLib|MdePkg/Library/BaseRngLibTimerLib/BaseRngLibTimerLib.inf
+
+!if $(SECURE_BOOT_ENABLE) == TRUE
+  AuthVariableLib|SecurityPkg/Library/AuthVariableLib/AuthVariableLib.inf
+  # re-use the UserPhysicalPresent() dummy implementation from the ovmf tree
+  PlatformSecureLib|OvmfPkg/Library/PlatformSecureLib/PlatformSecureLib.inf
+!else
+  AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
 !endif
 
 [LibraryClasses.common.UEFI_DRIVER,LibraryClasses.common.UEFI_APPLICATION]
@@ -573,7 +620,19 @@
   # Components that produce the architectural protocols
   #
 !if $(SECURITY_STUB_ENABLE) == TRUE
-  MdeModulePkg/Universal/SecurityStubDxe/SecurityStubDxe.inf
+  MdeModulePkg/Universal/SecurityStubDxe/SecurityStubDxe.inf {
+    <LibraryClasses>
+!if $(SECURE_BOOT_ENABLE) == TRUE
+      NULL|SecurityPkg/Library/DxeImageVerificationLib/DxeImageVerificationLib.inf
+!endif
+  }
+
+!if $(SECURE_BOOT_ENABLE) == TRUE
+  SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigDxe.inf
+  SecurityPkg/VariableAuthenticated/SecureBootDefaultKeysDxe/SecureBootDefaultKeysDxe.inf
+  UefiPayloadPkg/SecureBootEnrollDefaultKeys/SecureBootSetup.inf
+!endif
+
 !endif
   UefiCpuPkg/CpuDxe/CpuDxe.inf
   MdeModulePkg/Universal/BdsDxe/BdsDxe.inf
@@ -598,7 +657,10 @@
 !endif
   PcAtChipsetPkg/PcatRealTimeClockRuntimeDxe/PcatRealTimeClockRuntimeDxe.inf
 !if $(EMU_VARIABLE_ENABLE) == TRUE
-  MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
+  MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf {
+    <LibraryClasses>
+      NULL|MdeModulePkg/Library/VarCheckUefiLib/VarCheckUefiLib.inf
+  }
 !endif
   #
   # Following are the DXE drivers
