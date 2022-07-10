@@ -31,6 +31,7 @@
   DEFINE UNIVERSAL_PAYLOAD            = FALSE
 
   DEFINE PLATFORM_BOOT_TIMEOUT        = 2
+  DEFINE BOOTSPLASH_IMAGE             = FALSE
 
   #
   # Send logs to System76 EC
@@ -554,7 +555,9 @@
 
   UefiCpuPkg/CpuDxe/CpuDxe.inf
   MdeModulePkg/Universal/BdsDxe/BdsDxe.inf
+!if $(BOOTSPLASH_IMAGE)
   MdeModulePkg/Logo/LogoDxe.inf
+!endif
   MdeModulePkg/Application/UiApp/UiApp.inf {
     <LibraryClasses>
       NULL|MdeModulePkg/Library/BootManagerUiLib/BootManagerUiLib.inf

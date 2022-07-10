@@ -142,7 +142,9 @@ INF MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
 INF UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
 
 INF MdeModulePkg/Universal/SmbiosDxe/SmbiosDxe.inf
+!if $(BOOTSPLASH_IMAGE)
 INF MdeModulePkg/Logo/LogoDxe.inf
+!endif
 INF UefiPayloadPkg/BlSMMStoreDxe/BlSMMStoreDxe.inf
 
 #
