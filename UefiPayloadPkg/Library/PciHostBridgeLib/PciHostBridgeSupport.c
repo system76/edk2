@@ -529,6 +529,7 @@ RetrieveRootBridgeInfoFromHob (
     return NULL;
   }
   if (PciRootBridgeInfo->Count == 0) {
+    PcdSetBoolS (PcdPciDisableBusEnumeration, FALSE);
     return NULL;
   }
   Size = PciRootBridgeInfo->Count * sizeof (PCI_ROOT_BRIDGE);
@@ -567,9 +568,8 @@ RetrieveRootBridgeInfoFromHob (
   if (PciRootBridgeInfo->ResourceAssigned) {
     PcdSetBoolS (PcdPciDisableBusEnumeration, TRUE);
   } else {
-    DEBUG ((DEBUG_ERROR, "There is root bridge whose ResourceAssigned is FALSE\n"));
+    DEBUG ((DEBUG_INFO, "There is root bridge whose ResourceAssigned is FALSE\n"));
     PcdSetBoolS (PcdPciDisableBusEnumeration, FALSE);
-    return NULL;
   }
 
   return PciRootBridges;
