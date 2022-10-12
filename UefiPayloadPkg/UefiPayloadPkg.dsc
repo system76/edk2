@@ -31,7 +31,7 @@
   DEFINE UNIVERSAL_PAYLOAD            = FALSE
 
   DEFINE PLATFORM_BOOT_TIMEOUT        = 2
-  DEFINE BOOTSPLASH_IMAGE             = FALSE
+  DEFINE BOOTSPLASH_IMAGE             = TRUE
 
   #
   # Send logs to System76 EC
