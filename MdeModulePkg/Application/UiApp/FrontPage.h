@@ -33,8 +33,10 @@ extern EFI_FORM_BROWSER2_PROTOCOL      *gFormBrowser2;
 // These are defined as the same with vfr file
 //
 #define FRONT_PAGE_FORM_ID             0x7600
+#define FIRMWARE_INFO_FORM_ID          0x7601
 
 #define LABEL_FRONTPAGE_INFORMATION    0x1000
+#define LABEL_DEVICES_LIST             0x2000
 #define LABEL_END                      0xffff
 
 #define FRONT_PAGE_FORMSET_GUID \

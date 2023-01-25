@@ -247,6 +247,125 @@ UpdateFrontPageForm (
   HiiFreeOpCodeHandle (EndOpCodeHandle);
 }
 
+void UpdateFirmwareInfoForm(void)
+{
+    void *StartHandle;
+    void *EndHandle;
+    EFI_IFR_GUID_LABEL *StartLabel;
+    EFI_IFR_GUID_LABEL *EndLabel;
+    EFI_HII_HANDLE *HiiHandles;
+    EFI_HII_HANDLE HiiHandle = gFrontPagePrivate.HiiHandle;
+    UINTN Index;
+    EFI_STRING String;
+    EFI_STRING_ID Token;
+    EFI_STRING_ID TokenHelp;
+    EFI_IFR_FORM_SET *Buffer = NULL;
+    UINTN BufferSize = 0;
+    UINT8 ClassGuidNum;
+    EFI_GUID *ClassGuid;
+    UINTN TempSize = 0;
+    UINT8 *Ptr;
+    EFI_STATUS Status;
+    // XXX: Copied from SecureBootConfigDxe
+    EFI_GUID SecureBootConfigGuid = { 0x5daf50a5, 0xea81, 0x4de2, {0x8f, 0x9b, 0xca, 0xbd, 0xa9, 0xcf, 0x5c, 0x14}};
+
+    StartHandle = HiiAllocateOpCodeHandle();
+    ASSERT(StartHandle != NULL);
+
+    EndHandle = HiiAllocateOpCodeHandle();
+    ASSERT(EndHandle != NULL);
+
+    StartLabel = (EFI_IFR_GUID_LABEL *)HiiCreateGuidOpCode(StartHandle, &gEfiIfrTianoGuid, NULL, sizeof(*StartLabel));
+    StartLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
+    StartLabel->Number = LABEL_DEVICES_LIST;
+
+    EndLabel = (EFI_IFR_GUID_LABEL *)HiiCreateGuidOpCode(EndHandle, &gEfiIfrTianoGuid, NULL, sizeof(*EndLabel));
+    EndLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
+    EndLabel->Number = LABEL_END;
+
+    // FIXME: Copied from Device Manager; clean up
+
+    // Get SecureBootConfig handle
+    HiiHandles = HiiGetHiiHandles(&SecureBootConfigGuid);
+    ASSERT(HiiHandles != NULL);
+
+    // Search for formset of each class type
+    for (Index = 0; HiiHandles[Index] != NULL; Index++) {
+        Status = HiiGetFormSetFromHiiHandle(HiiHandles[Index], &Buffer, &BufferSize);
+        if (EFI_ERROR(Status)) {
+            continue;
+        }
+
+        Ptr = (UINT8 *)Buffer;
+        while (TempSize < BufferSize) {
+            TempSize += ((EFI_IFR_OP_HEADER *)Ptr)->Length;
+            if (((EFI_IFR_OP_HEADER *)Ptr)->Length <= OFFSET_OF (EFI_IFR_FORM_SET, Flags)) {
+                Ptr += ((EFI_IFR_OP_HEADER *)Ptr)->Length;
+                continue;
+            }
+
+            ClassGuidNum = (UINT8)(((EFI_IFR_FORM_SET *)Ptr)->Flags & 0x3);
+            ClassGuid = (EFI_GUID *)(VOID *)(Ptr + sizeof(EFI_IFR_FORM_SET));
+            while (ClassGuidNum-- > 0) {
+                if (CompareGuid(&gEfiHiiPlatformSetupFormsetGuid, ClassGuid) == 0) {
+                    ClassGuid++;
+                    continue;
+                }
+
+                String = HiiGetString(HiiHandles[Index], ((EFI_IFR_FORM_SET *)Ptr)->FormSetTitle, NULL);
+                if (String == NULL) {
+                    String = HiiGetString(HiiHandle, STRING_TOKEN (STR_MISSING_STRING), NULL);
+                    ASSERT (String != NULL);
+                }
+
+                Token = HiiSetString(HiiHandle, 0, String, NULL);
+                FreePool(String);
+
+                String = HiiGetString(HiiHandles[Index], ((EFI_IFR_FORM_SET *)Ptr)->Help, NULL);
+                if (String == NULL) {
+                    String = HiiGetString(HiiHandle, STRING_TOKEN (STR_MISSING_STRING), NULL);
+                    ASSERT(String != NULL);
+                }
+
+                TokenHelp = HiiSetString(HiiHandle, 0, String, NULL);
+                FreePool(String);
+
+                HiiCreateGotoExOpCode(
+                    StartHandle,
+                    0,
+                    Token,
+                    TokenHelp,
+                    0,
+                    0,
+                    0,
+                    &SecureBootConfigGuid,
+                    0
+                );
+
+                break;
+            }
+
+            Ptr += ((EFI_IFR_OP_HEADER *)Ptr)->Length;
+        }
+
+        FreePool (Buffer);
+        Buffer     = NULL;
+        TempSize   = 0;
+        BufferSize = 0;
+    }
+
+    HiiUpdateForm(
+        HiiHandle,
+        &mFrontPageGuid,
+        FIRMWARE_INFO_FORM_ID,
+        StartHandle,
+        EndHandle
+    );
+
+    HiiFreeOpCodeHandle(StartHandle);
+    HiiFreeOpCodeHandle(EndHandle);
+}
+
 /**
   Initialize HII information for the FrontPage
 
@@ -304,6 +423,8 @@ InitializeFrontPage (
   // Update front page menus.
   //
   UpdateFrontPageForm();
+
+  UpdateFirmwareInfoForm();
 
   return Status;
 }

@@ -13,6 +13,7 @@
 #define FIRMWARE_INFO_FORM_ID          0x7601
 
 #define LABEL_FRONTPAGE_INFORMATION    0x1000
+#define LABEL_DEVICES_LIST             0x2000
 #define LABEL_END                      0xffff
 
 formset
@@ -56,6 +57,10 @@ formset
     subtitle text = STRING_TOKEN(STR_TPM_STATUS);
     subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
     subtitle text = STRING_TOKEN(STR_ME_STATUS);
+    subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
+
+    label LABEL_DEVICES_LIST;
+    label LABEL_END;
   endform;
 
 endformset;
