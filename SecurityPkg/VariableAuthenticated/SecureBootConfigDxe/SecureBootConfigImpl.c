@@ -4414,27 +4414,14 @@ SecureBootCallback (
   if (Action == EFI_BROWSER_ACTION_CHANGING) {
 
     switch (QuestionId) {
-    case KEY_SECURE_BOOT_ENABLE:
+    //case KEY_SECURE_BOOT_ENABLE:
+    case KEY_SECURE_BOOT_STATE_ENABLE:
       GetVariable2 (EFI_SECURE_BOOT_ENABLE_NAME, &gEfiSecureBootEnableDisableGuid, (VOID**)&SecureBootEnable, NULL);
-      if (NULL != SecureBootEnable) {
-        FreePool (SecureBootEnable);
-        if (EFI_ERROR (SaveSecureBootVariable (Value->u8))) {
-          CreatePopUp (
-            EFI_LIGHTGRAY | EFI_BACKGROUND_BLUE,
-            &Key,
-            L"Only Physical Presence User could disable secure boot!",
-            NULL
-            );
-          Status = EFI_UNSUPPORTED;
-        } else {
-          CreatePopUp (
-            EFI_LIGHTGRAY | EFI_BACKGROUND_BLUE,
-            &Key,
-            L"Configuration changed, please reset the platform to take effect!",
-            NULL
-            );
-        }
-      }
+      Status = SaveSecureBootVariable(1);
+      break;
+    case KEY_SECURE_BOOT_STATE_DISABLE:
+      GetVariable2 (EFI_SECURE_BOOT_ENABLE_NAME, &gEfiSecureBootEnableDisableGuid, (VOID**)&SecureBootEnable, NULL);
+      Status = SaveSecureBootVariable(0);
       break;
 
     case KEY_SECURE_BOOT_KEK_OPTION:
@@ -4850,8 +4837,12 @@ SecureBootCallback (
     }
   } else if (Action == EFI_BROWSER_ACTION_CHANGED) {
     switch (QuestionId) {
-    case KEY_SECURE_BOOT_ENABLE:
+    //case KEY_SECURE_BOOT_ENABLE:
+    case KEY_SECURE_BOOT_STATE_ENABLE:
+    case KEY_SECURE_BOOT_STATE_DISABLE:
       *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_APPLY;
+      // XXX: Is this safe?
+      gRT->ResetSystem(EfiResetCold, Status, 0, NULL);
       break;
     case KEY_SECURE_BOOT_MODE:
       mIsEnterSecureBootForm = FALSE;
