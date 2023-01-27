@@ -247,7 +247,8 @@ UpdateFrontPageForm (
   HiiFreeOpCodeHandle (EndOpCodeHandle);
 }
 
-void UpdateFirmwareInfoForm(void)
+// FIXME: Copied from Device Manager; clean up
+void ShowSecureBootConfig(void)
 {
     void *StartHandle;
     void *EndHandle;
@@ -282,8 +283,6 @@ void UpdateFirmwareInfoForm(void)
     EndLabel = (EFI_IFR_GUID_LABEL *)HiiCreateGuidOpCode(EndHandle, &gEfiIfrTianoGuid, NULL, sizeof(*EndLabel));
     EndLabel->ExtendOpCode = EFI_IFR_EXTEND_OP_LABEL;
     EndLabel->Number = LABEL_END;
-
-    // FIXME: Copied from Device Manager; clean up
 
     // Get SecureBootConfig handle
     HiiHandles = HiiGetHiiHandles(&SecureBootConfigGuid);
@@ -357,7 +356,7 @@ void UpdateFirmwareInfoForm(void)
     HiiUpdateForm(
         HiiHandle,
         &mFrontPageGuid,
-        FIRMWARE_INFO_FORM_ID,
+        FRONT_PAGE_FORM_ID,
         StartHandle,
         EndHandle
     );
@@ -424,7 +423,7 @@ InitializeFrontPage (
   //
   UpdateFrontPageForm();
 
-  UpdateFirmwareInfoForm();
+  ShowSecureBootConfig();
 
   return Status;
 }

@@ -138,3 +138,18 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #string STR_SIGNATURE_DATA_HELP_FORMAT_TIME       #language en-US "Revocation Time:\n%s"
 
 #string STR_SIGNATURE_DELETE_ALL_CONFIRM          #language en-US "Press 'Y' to delete all signature List."
+
+#string STR_SECURE_BOOT_ENABLE_PROMPT           #language en-US "Enable Secure Boot"
+#string STR_SECURE_BOOT_DISABLE_PROMPT          #language en-US "Disable Secure Boot"
+#string STR_DELETE_KEYS_PROMPT                  #language en-US "Delete System76 and Microsoft keys (Use your own)"
+#string STR_RESTORE_KEYS_PROMPT                 #language en-US "Restore System76 and Microsoft keys"
+
+#string STR_ENABLE_NOTICE               #language en-US "An operating system that includes Secure Boot support is required.\r\nDisable Secure Boot if your operating system does not boot."
+#string STR_ENABLE_SELECTION            #language en-US "Enable Secure Boot and reboot"
+#string STR_DISABLE_NOTICE              #language en-US "Disabling Secure Boot allows non-verified operating systems to boot\r\nand may disable some operating system security features."
+#string STR_DISABLE_SELECTION           #language en-US "Disable Secure Boot and reboot"
+#string STR_DELETE_KEYS_NOTICE          #language en-US "System and Microsoft keys will be deleted. Enroll custom keys from your\r\noperating system. Check your OS documentation for details. To facilitate setup, Secure Boot is disabled until you manually activate it."
+#string STR_DELETE_KEYS_SELECTION       #language en-US "Delete System76 and Microsoft keys and restart"
+#string STR_RESTORE_KEYS_NOTICE         #language en-US "Restoring System76 and Microsoft keys will remove any custom keys you\r\nhave installed and may make your OS unbootable. Disable Secure Boot if your operating system does not boot."
+#string STR_RESTORE_KEYS_SELECTION      #language en-US "Restore System76 and Microsoft keys and restart"
+#string STR_CANCEL                      #language en-US "Cancel"
