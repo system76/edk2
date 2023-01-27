@@ -69,6 +69,12 @@ formset
     subtitle text = STRING_TOKEN(STR_ENABLE_NOTICE);
     subtitle text = STRING_TOKEN(STR_NULL);
 
+    text
+      help = STRING_TOKEN(STR_NULL),
+      text = STRING_TOKEN(STR_ENABLE_SELECTION),
+      flags = INTERACTIVE,
+      key = KEY_SECURE_BOOT_STATE_ENABLE;
+
     goto SECUREBOOT_CONFIGURATION_FORM_ID,
       prompt = STRING_TOKEN(STR_CANCEL),
       help = STRING_TOKEN(STR_NULL);
@@ -79,6 +85,12 @@ formset
 
     subtitle text = STRING_TOKEN(STR_DISABLE_NOTICE);
     subtitle text = STRING_TOKEN(STR_NULL);
+
+    text
+      help = STRING_TOKEN(STR_NULL),
+      text = STRING_TOKEN(STR_DISABLE_SELECTION),
+      flags = INTERACTIVE,
+      key = KEY_SECURE_BOOT_STATE_DISABLE;
 
     goto SECUREBOOT_CONFIGURATION_FORM_ID,
       prompt = STRING_TOKEN(STR_CANCEL),
@@ -91,6 +103,12 @@ formset
     subtitle text = STRING_TOKEN(STR_DELETE_KEYS_NOTICE);
     subtitle text = STRING_TOKEN(STR_NULL);
 
+    text
+      help = STRING_TOKEN(STR_NULL),
+      text = STRING_TOKEN(STR_DELETE_KEYS_SELECTION),
+      flags = INTERACTIVE,
+      key = KEY_DELETE_KEYS;
+
     goto SECUREBOOT_CONFIGURATION_FORM_ID,
       prompt = STRING_TOKEN(STR_CANCEL),
       help = STRING_TOKEN(STR_NULL);
@@ -101,6 +119,12 @@ formset
 
     subtitle text = STRING_TOKEN(STR_RESTORE_KEYS_NOTICE);
     subtitle text = STRING_TOKEN(STR_NULL);
+
+    text
+      help = STRING_TOKEN(STR_NULL),
+      text = STRING_TOKEN(STR_RESTORE_KEYS_SELECTION),
+      flags = INTERACTIVE,
+      key = KEY_RESTORE_KEYS;
 
     goto SECUREBOOT_CONFIGURATION_FORM_ID,
       prompt = STRING_TOKEN(STR_CANCEL),
