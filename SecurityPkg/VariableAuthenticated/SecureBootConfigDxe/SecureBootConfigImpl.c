@@ -4519,26 +4519,7 @@ SecureBootCallback (
       break;
 
     case KEY_SECURE_BOOT_DELETE_PK:
-      if (Value->u8) {
-        CreatePopUp (
-          EFI_LIGHTGRAY | EFI_BACKGROUND_BLUE,
-          &Key,
-          L"Are you sure you want to delete PK? Secure boot will be disabled!",
-          L"Press 'Y' to delete PK and exit, 'N' to discard change and return",
-          NULL
-          );
-        if (Key.UnicodeChar == 'y' || Key.UnicodeChar == 'Y') {
-          Status = DeletePlatformKey ();
-          if (EFI_ERROR (Status)) {
-            CreatePopUp (
-              EFI_LIGHTGRAY | EFI_BACKGROUND_BLUE,
-              &Key,
-              L"Only Physical Presence User could delete PK in custom mode!",
-              NULL
-              );
-          }
-        }
-      }
+      Status = DeletePlatformKey();
       break;
 
     case KEY_DELETE_KEK:
@@ -4859,19 +4840,21 @@ SecureBootCallback (
       *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_APPLY;
       break;
     case KEY_SECURE_BOOT_DELETE_PK:
-      GetVariable2 (EFI_SETUP_MODE_NAME, &gEfiGlobalVariableGuid, (VOID**)&SetupMode, NULL);
-      if (SetupMode == NULL || (*SetupMode) == SETUP_MODE) {
-        IfrNvData->DeletePk = TRUE;
-        IfrNvData->HasPk    = FALSE;
-        *ActionRequest = EFI_BROWSER_ACTION_REQUEST_SUBMIT;
-      } else  {
-        IfrNvData->DeletePk = FALSE;
-        IfrNvData->HasPk    = TRUE;
-        *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_APPLY;
-      }
-      if (SetupMode != NULL) {
-        FreePool (SetupMode);
-      }
+      //GetVariable2 (EFI_SETUP_MODE_NAME, &gEfiGlobalVariableGuid, (VOID**)&SetupMode, NULL);
+      //if (SetupMode == NULL || (*SetupMode) == SETUP_MODE) {
+      //  IfrNvData->DeletePk = TRUE;
+      //  IfrNvData->HasPk    = FALSE;
+      //  *ActionRequest = EFI_BROWSER_ACTION_REQUEST_SUBMIT;
+      //} else  {
+      //  IfrNvData->DeletePk = FALSE;
+      //  IfrNvData->HasPk    = TRUE;
+      //  *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_APPLY;
+      //}
+      //if (SetupMode != NULL) {
+      //  FreePool (SetupMode);
+      //}
+      // XXX: Is this safe?
+      gRT->ResetSystem(EfiResetCold, Status, 0, NULL);
       break;
     //case KEY_SECURE_BOOT_RESET_TO_DEFAULT:
     case KEY_RESTORE_KEYS:

@@ -107,7 +107,7 @@ formset
       help = STRING_TOKEN(STR_NULL),
       text = STRING_TOKEN(STR_DELETE_KEYS_SELECTION),
       flags = INTERACTIVE,
-      key = KEY_DELETE_KEYS;
+      key = KEY_SECURE_BOOT_DELETE_PK;
 
     goto SECUREBOOT_CONFIGURATION_FORM_ID,
       prompt = STRING_TOKEN(STR_CANCEL),
