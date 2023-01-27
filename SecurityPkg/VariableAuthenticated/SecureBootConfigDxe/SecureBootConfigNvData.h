@@ -119,6 +119,15 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #define PE_IMAGE_FILE_TYPE                    2
 #define AUTHENTICATION_2_FILE_TYPE            3
 
+#define FORMID_SECURE_BOOT_ENABLE           0x101
+#define FORMID_SECURE_BOOT_DISABLE          0x102
+#define FORMID_DELETE_KEYS                  0x103
+#define FORMID_RESTORE_KEYS                 0x104
+#define KEY_SECURE_BOOT_STATE_ENABLE        0x1120
+#define KEY_SECURE_BOOT_STATE_DISABLE       0x1121
+#define KEY_DELETE_KEYS                     0x1122
+#define KEY_RESTORE_KEYS                    0x1123
+
 //
 // Nv Data structure referenced by IFR
 //

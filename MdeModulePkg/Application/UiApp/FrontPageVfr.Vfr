@@ -37,6 +37,12 @@ formset
     label LABEL_END;
 
     subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
+
+    label LABEL_DEVICES_LIST;
+    label LABEL_END;
+
+    subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
+
     goto FIRMWARE_INFO_FORM_ID,
       prompt = STRING_TOKEN(STR_FIRMWARE_INFO),
       help = STRING_TOKEN(STR_EMPTY_STRING);
@@ -58,9 +64,6 @@ formset
     subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
     subtitle text = STRING_TOKEN(STR_ME_STATUS);
     subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
-
-    label LABEL_DEVICES_LIST;
-    label LABEL_END;
   endform;
 
 endformset;

@@ -3142,9 +3142,9 @@ UpdateSecureBootString(
   }
 
   if (*SecureBoot == SECURE_BOOT_MODE_ENABLE) {
-    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_STATE_CONTENT), L"Enabled", NULL);
+    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_STATE_PROMPT), L"Secure Boot state: Enabled", NULL);
   } else {
-    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_STATE_CONTENT), L"Disabled", NULL);
+    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_STATE_PROMPT), L"Secure Boot state: Disabled", NULL);
   }
 
   FreePool(SecureBoot);
