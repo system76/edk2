@@ -4332,8 +4332,6 @@ SecureBootCallback (
   SECUREBOOT_CONFIG_PRIVATE_DATA  *PrivateData;
   BOOLEAN                         GetBrowserDataResult;
   ENROLL_KEY_ERROR                EnrollKeyErrorCode;
-  EFI_HII_POPUP_PROTOCOL          *HiiPopup;
-  EFI_HII_POPUP_SELECTION         UserSelection;
 
   Status             = EFI_SUCCESS;
   SecureBootEnable   = NULL;
@@ -4875,31 +4873,17 @@ SecureBootCallback (
         FreePool (SetupMode);
       }
       break;
-    case KEY_SECURE_BOOT_RESET_TO_DEFAULT:
-    {
-      Status = gBS->LocateProtocol (&gEfiHiiPopupProtocolGuid, NULL, (VOID **) &HiiPopup);
-      if (EFI_ERROR (Status)) {
-        return Status;
-      }
-      Status = HiiPopup->CreatePopup (
-                           HiiPopup,
-                           EfiHiiPopupStyleInfo,
-                           EfiHiiPopupTypeYesNo,
-                           Private->HiiHandle,
-                           STRING_TOKEN (STR_RESET_TO_DEFAULTS_POPUP),
-                           &UserSelection
-                           );
-      if (UserSelection == EfiHiiPopupSelectionYes) {
-        Status = KeyEnrollReset ();
-      }
-      //
+    //case KEY_SECURE_BOOT_RESET_TO_DEFAULT:
+    case KEY_RESTORE_KEYS:
+      Status = KeyEnrollReset();
       // Update secure boot strings after key reset
-      //
       if (Status == EFI_SUCCESS) {
-        Status = UpdateSecureBootString (Private);
-        SecureBootExtractConfigFromVariable (Private, IfrNvData);
+        Status = UpdateSecureBootString(Private);
+        SecureBootExtractConfigFromVariable(Private, IfrNvData);
+        // XXX: Is this safe?
+        gRT->ResetSystem(EfiResetCold, Status, 0, NULL);
       }
-    }
+      break;
     default:
       break;
     }
