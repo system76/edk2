@@ -55,8 +55,6 @@ formset
       prompt = STRING_TOKEN(STR_DELETE_KEYS_PROMPT),
       help = STRING_TOKEN(STR_NULL);
 
-    subtitle text = STRING_TOKEN(STR_NULL);
-
     goto FORMID_RESTORE_KEYS,
       prompt = STRING_TOKEN(STR_RESTORE_KEYS_PROMPT),
       help = STRING_TOKEN(STR_NULL);
