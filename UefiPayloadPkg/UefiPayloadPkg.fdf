@@ -260,11 +260,13 @@ INF SecurityPkg/RandomNumberGenerator/RngDxe/RngDxe.inf
   }
 
   FILE FREEFORM = 6f64916e-9f7a-4c35-b952-cd041efb05a3 {
-    SECTION RAW = UefiPayloadPkg/SecureBootEnrollDefaultKeys/keys/kek.crt
+    SECTION RAW = UefiPayloadPkg/SecureBootEnrollDefaultKeys/keys/kek-system76.crt
+    SECTION RAW = UefiPayloadPkg/SecureBootEnrollDefaultKeys/keys/kek-microsoft.crt
     SECTION UI = "KEK Default"
   }
 
   FILE FREEFORM = c491d352-7623-4843-accc-2791a7574421 {
+    SECTION RAW = UefiPayloadPkg/SecureBootEnrollDefaultKeys/keys/db-system76.crt
     SECTION RAW = UefiPayloadPkg/SecureBootEnrollDefaultKeys/keys/db-1.crt
     SECTION RAW = UefiPayloadPkg/SecureBootEnrollDefaultKeys/keys/db-2.crt
     SECTION UI = "DB Default"
