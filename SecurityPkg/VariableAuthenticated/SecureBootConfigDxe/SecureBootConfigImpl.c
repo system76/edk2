@@ -4324,7 +4324,7 @@ SecureBootCallback (
   UINT8                           *SecureBootEnable;
   UINT8                           *Pk;
   UINT8                           *SecureBootMode;
-  UINT8                           *SetupMode;
+  //UINT8                           *SetupMode;
   CHAR16                          PromptString[100];
   EFI_DEVICE_PATH_PROTOCOL        *File;
   UINTN                           NameLength;
@@ -4336,7 +4336,7 @@ SecureBootCallback (
   Status             = EFI_SUCCESS;
   SecureBootEnable   = NULL;
   SecureBootMode     = NULL;
-  SetupMode          = NULL;
+  //SetupMode          = NULL;
   File               = NULL;
   EnrollKeyErrorCode = None_Error;
 
