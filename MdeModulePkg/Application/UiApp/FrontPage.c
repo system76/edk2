@@ -1088,10 +1088,10 @@ UpdateFrontPageBannerStrings (
   EFI_PHYSICAL_ADDRESS              *Table;
   SMBIOS_TABLE_ENTRY_POINT          *EntryPoint;
   SMBIOS_STRUCTURE_POINTER          SmbiosTable;
+  BOOLEAN                           CheckWebcam;
 
   FirmwareConfigurationInformation();
   WarnNoBootableMedia ();
-  WebcamStatus();
 
   Status = EfiGetSystemConfigurationTable (&gEfiSmbiosTableGuid, (VOID **)  &Table);
   if (EFI_ERROR (Status) || Table == NULL) {
@@ -1100,7 +1100,7 @@ UpdateFrontPageBannerStrings (
 
   EntryPoint = (SMBIOS_TABLE_ENTRY_POINT*)Table;
 
-  SmbiosTable = GetSmbiosTableFromType (EntryPoint, EFI_SMBIOS_TYPE_BIOS_INFORMATION , 0);
+  SmbiosTable = GetSmbiosTableFromType (EntryPoint, SMBIOS_TYPE_BIOS_INFORMATION , 0);
   if (SmbiosTable.Raw != NULL) {
     CHAR16 *FwVersion;
     CHAR16 *TmpBuffer;
@@ -1162,6 +1162,24 @@ UpdateFrontPageBannerStrings (
     FreePool (ProductVersion);
     FreePool (ProductName);
     FreePool (Manufacturer);
+  }
+
+  SmbiosTable = GetSmbiosTableFromType (EntryPoint, SMBIOS_TYPE_SYSTEM_ENCLOSURE, 0);
+  if (SmbiosTable.Raw != NULL) {
+      switch (SmbiosTable.Type3->Type) {
+          //TODO: System76 laptops will always report the laptop chassis type,
+          //but we should probably handle all potential types
+          case MiscChassisTypeLapTop:
+              CheckWebcam = TRUE;
+              break;
+          default:
+              CheckWebcam = FALSE;
+              break;
+      }
+  }
+
+  if (CheckWebcam) {
+      WebcamStatus();
   }
 }
 
