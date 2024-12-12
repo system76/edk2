@@ -44,7 +44,6 @@
   MemoryAllocationLib
   DevicePathLib
   HiiLib
-  PrintLib
   PlatformHookLib
 
 [Guids]
@@ -70,4 +69,3 @@
   gEfiMdePkgTokenSpaceGuid.PcdUartDefaultDataBits
   gEfiMdePkgTokenSpaceGuid.PcdUartDefaultParity
   gEfiMdePkgTokenSpaceGuid.PcdUartDefaultStopBits
-  gSystem76PayloadPkgTokenSpaceGuid.PcdBootManagerEscape
