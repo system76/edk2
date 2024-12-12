@@ -65,8 +65,7 @@ PlatformBootManagerBeforeConsole (
   )
 {
   EFI_INPUT_KEY                 Enter;
-  EFI_INPUT_KEY                 CustomKey;
-  EFI_INPUT_KEY                 Down;
+  EFI_INPUT_KEY                 Escape;
   EFI_BOOT_MANAGER_LOAD_OPTION  BootOption;
 
   //
@@ -76,30 +75,14 @@ PlatformBootManagerBeforeConsole (
   Enter.UnicodeChar = CHAR_CARRIAGE_RETURN;
   EfiBootManagerRegisterContinueKeyOption (0, &Enter, NULL);
 
-  if (FixedPcdGetBool (PcdBootManagerEscape)) {
-    //
-    // Map Esc to Boot Manager Menu
-    //
-    CustomKey.ScanCode    = SCAN_ESC;
-    CustomKey.UnicodeChar = CHAR_NULL;
-  } else {
-    //
-    // Map Esc to Boot Manager Menu
-    //
-    CustomKey.ScanCode    = SCAN_F2;
-    CustomKey.UnicodeChar = CHAR_NULL;
-  }
+  //
+  // Map Esc to Boot Manager Menu
+  //
+  Escape.ScanCode    = SCAN_ESC;
+  Escape.UnicodeChar = CHAR_NULL;
 
   EfiBootManagerGetBootManagerMenu (&BootOption);
-  EfiBootManagerAddKeyOptionVariable (NULL, (UINT16)BootOption.OptionNumber, 0, &CustomKey, NULL);
-
-  //
-  // Also add Down key to Boot Manager Menu since some serial terminals don't support F2 key.
-  //
-  Down.ScanCode    = SCAN_DOWN;
-  Down.UnicodeChar = CHAR_NULL;
-  EfiBootManagerGetBootManagerMenu (&BootOption);
-  EfiBootManagerAddKeyOptionVariable (NULL, (UINT16)BootOption.OptionNumber, 0, &Down, NULL);
+  EfiBootManagerAddKeyOptionVariable (NULL, (UINT16)BootOption.OptionNumber, 0, &Escape, NULL);
 
   //
   // Install ready to lock.
@@ -153,22 +136,6 @@ PlatformBootManagerAfterConsole (
   // Process TPM PPI request
   //
   Tcg2PhysicalPresenceLibProcessRequest (NULL);
-
-  if (FixedPcdGetBool (PcdBootManagerEscape)) {
-    Print (
-      L"\n"
-      L"    Esc or Down      to enter Boot Manager Menu.\n"
-      L"    ENTER            to boot directly.\n"
-      L"\n"
-      );
-  } else {
-    Print (
-      L"\n"
-      L"    F2 or Down      to enter Boot Manager Menu.\n"
-      L"    ENTER           to boot directly.\n"
-      L"\n"
-      );
-  }
 }
 
 /**
