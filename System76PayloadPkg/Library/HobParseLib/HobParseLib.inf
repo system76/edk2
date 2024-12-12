@@ -25,7 +25,7 @@
 [Packages]
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
-  UefiPayloadPkg/UefiPayloadPkg.dec
+  System76PayloadPkg/System76PayloadPkg.dec
 
 [LibraryClasses]
   BaseLib
@@ -36,5 +36,5 @@
   HobLib
 
 [Pcd.IA32,Pcd.X64,Pcd.RISCV64]
-  gUefiPayloadPkgTokenSpaceGuid.PcdSystemMemoryUefiRegionSize
-  gUefiPayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable
+  gSystem76PayloadPkgTokenSpaceGuid.PcdSystemMemoryUefiRegionSize
+  gSystem76PayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable
