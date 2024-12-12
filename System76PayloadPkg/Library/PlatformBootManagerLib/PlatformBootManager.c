@@ -127,6 +127,16 @@ PlatformBootManagerAfterConsole (
   if (!EFI_ERROR (Status)) {
     gST->ConOut->ClearScreen (gST->ConOut);
     BootLogoEnableLogo ();
+
+    // Show prompt at bottom center
+    BootLogoUpdateProgress (
+        White,
+        Black,
+        L"Press ESC for Boot Options/Settings",
+        White,
+        0,
+        0
+        );
   }
 
   EfiBootManagerConnectAll ();
