@@ -42,6 +42,7 @@
   DEFINE NVME_ENABLE                  = TRUE
   DEFINE CAPSULE_SUPPORT              = FALSE
   DEFINE LOCKBOX_SUPPORT              = FALSE
+  DEFINE USE_GOP_POLICY               = FALSE
 
   #
   # Crypto Support
@@ -893,7 +894,9 @@
 !if $(DISABLE_SERIAL_TERMINAL) == FALSE
   MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
 !endif
+!if $(USE_GOP_POLICY) == FALSE
   System76PayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
+!endif
 !if $(PERFORMANCE_MEASUREMENT_ENABLE)
   MdeModulePkg/Universal/Acpi/FirmwarePerformanceDataTableDxe/FirmwarePerformanceDxe.inf
 !endif
