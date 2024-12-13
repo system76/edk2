@@ -290,7 +290,20 @@ INF MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
 !if $(DISABLE_SERIAL_TERMINAL) == FALSE
 INF MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
 !endif
-INF System76PayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
+
+!if $(USE_GOP_POLICY) == TRUE
+  # Use GOP blob and rust GOP Policy driver
+  INF RuleOverride=BINARY USE=X64 $(FIRMWARE_OPEN_GOP)
+  INF RuleOverride=BINARY USE=X64 $(FIRMWARE_OPEN_GOP_POLICY)
+
+  # gIntelSiliconPkgTokenSpaceGuid.PcdIntelGraphicsVbtFileGuid
+  FILE FREEFORM = 56752da9-de6b-4895-8819-1945b6b76c22 {
+    SECTION RAW = vbt.rom
+    SECTION UI = "IntelGopVbt"
+  }
+!else
+  INF System76PayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
+!endif
 
 !if $(LOAD_OPTION_ROMS) == TRUE
 INF System76PayloadPkg/PciPlatformDxe/PciPlatformDxe.inf
