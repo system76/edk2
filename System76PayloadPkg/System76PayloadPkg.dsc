@@ -32,7 +32,6 @@
   DEFINE SIO_BUS_ENABLE               = FALSE
   DEFINE SECURITY_STUB_ENABLE         = TRUE
   DEFINE SMM_SUPPORT                  = FALSE
-  DEFINE PLATFORM_BOOT_TIMEOUT        = 3
   DEFINE ATA_ENABLE                   = TRUE
   DEFINE SD_ENABLE                    = TRUE
   DEFINE PS2_MOUSE_ENABLE             = TRUE
@@ -596,6 +595,9 @@
 #
 ################################################################################
 
+[PcdsDynamicHii]
+  gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut|L"Timeout"|gEfiGlobalVariableGuid|0x0|2
+
 [PcdsDynamicExDefault]
   gEfiMdePkgTokenSpaceGuid.PcdUartDefaultBaudRate|$(UART_DEFAULT_BAUD_RATE)
   gEfiMdePkgTokenSpaceGuid.PcdUartDefaultDataBits|$(UART_DEFAULT_DATA_BITS)
@@ -621,7 +623,6 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableBase64|0
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingBase|0
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareBase|0
-  gEfiMdePkgTokenSpaceGuid.PcdPlatformBootTimeOut|$(PLATFORM_BOOT_TIMEOUT)
 !if $(VARIABLE_SUPPORT) == "SPI"
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageVariableSize  |0
   gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwWorkingSize|0
