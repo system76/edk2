@@ -24,5 +24,3 @@
 
 [Sources]
   System76EcLib.c
-
-[Pcd]

@@ -6,6 +6,7 @@
 
 **/
 
+#include <Library/SerialPortLib.h>
 #include <Library/IoLib.h>
 
 // From coreboot/src/drivers/system76_ec/system76_ec.c {
@@ -51,9 +52,6 @@ void system76_ec_print(UINT8 byte) {
     }
 }
 // } From coreboot/src/drivers/system76_ec/system76_ec.c
-
-// Implement SerialPortLib {
-#include <Library/SerialPortLib.h>
 
 RETURN_STATUS
 EFIAPI
@@ -128,17 +126,3 @@ SerialPortSetAttributes (
 {
     return RETURN_UNSUPPORTED;
 }
-// } Implement SerialPortLib
-
-// Implement PlatformHookLib {
-#include <Library/PlatformHookLib.h>
-
-RETURN_STATUS
-EFIAPI
-PlatformHookSerialPortInitialize (
-  VOID
-  )
-{
-    return RETURN_SUCCESS;
-}
-// } Implement PlatformHookLib
