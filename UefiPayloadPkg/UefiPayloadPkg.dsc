@@ -227,7 +227,7 @@
   ResetSystemLib|UefiPayloadPkg/Library/ResetSystemLib/ResetSystemLib.inf
 !if $(SYSTEM76_EC_LOGGING) == TRUE
   SerialPortLib|UefiPayloadPkg/Library/System76EcLib/System76EcLib.inf
-  PlatformHookLib|UefiPayloadPkg/Library/System76EcLib/System76EcLib.inf
+  PlatformHookLib|MdeModulePkg/Library/BasePlatformHookLibNull/BasePlatformHookLibNull.inf
 !else
     SerialPortLib|MdeModulePkg/Library/BaseSerialPortLib16550/BaseSerialPortLib16550.inf
     !if $(UNIVERSAL_PAYLOAD) == TRUE
