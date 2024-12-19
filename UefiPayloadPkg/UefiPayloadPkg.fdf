@@ -307,6 +307,11 @@ SET gEfiMdeModulePkgTokenSpaceGuid.PcdFlashNvStorageFtwSpareSize = $(BLOCK_SIZE)
   !else
   INF  RuleOverride=BINARY USE = X64 $(FIRMWARE_OPEN_GOP_POLICY)
   !endif
+
+  FILE FREEFORM = 56752da9-de6b-4895-8819-1945b6b76c22 {
+    SECTION RAW = vbt.rom
+    SECTION UI = "IntelGopVbt"
+  }
 !endif
 !ifdef $(FIRMWARE_OPEN_GOP)
   # Use IntelGopDriver binary
