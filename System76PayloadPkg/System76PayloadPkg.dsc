@@ -45,6 +45,7 @@
   DEFINE CAPSULE_SUPPORT              = FALSE
   DEFINE LOCKBOX_SUPPORT              = FALSE
   DEFINE LOAD_OPTION_ROMS             = FALSE
+  DEFINE SYSTEM76_EC_LOGGING          = FALSE
 
   #
   # Crypto Support
@@ -284,7 +285,10 @@
   CustomizedDisplayLib|MdeModulePkg/Library/CustomizedDisplayLib/CustomizedDisplayLib.inf
   FrameBufferBltLib|MdeModulePkg/Library/FrameBufferBltLib/FrameBufferBltLib.inf
   ResetSystemLib|System76PayloadPkg/Library/ResetSystemLib/ResetSystemLib.inf
-!if $(USE_CBMEM_FOR_CONSOLE) == TRUE
+!if $(SYSTEM76_EC_LOGGING) == TRUE
+  SerialPortLib|System76PayloadPkg/Library/System76EcLib/System76EcLib.inf
+  PlatformHookLib|MdeModulePkg/Library/BasePlatformHookLibNull/BasePlatformHookLibNull.inf
+!elseif $(USE_CBMEM_FOR_CONSOLE) == TRUE
   SerialPortLib|System76PayloadPkg/Library/CbSerialPortLib/CbSerialPortLib.inf
   PlatformHookLib|MdeModulePkg/Library/BasePlatformHookLibNull/BasePlatformHookLibNull.inf
 !else
