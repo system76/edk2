@@ -2551,10 +2551,12 @@ PciEnumeratorLight (
       //
       RemoveRejectedPciDevices (RootBridgeDev->Handle, RootBridgeDev);
 
-      //
-      // Process option rom light
-      //
-      ProcessOptionRomLight (RootBridgeDev);
+      if (!PcdGetBool (PcdPciDisableBusEnumeration)) {
+        //
+        // Process option rom light
+        //
+        ProcessOptionRomLight (RootBridgeDev);
+      }
 
       //
       // Determine attributes for all devices under this root bridge
