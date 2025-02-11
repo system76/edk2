@@ -795,6 +795,11 @@
   # Disable MTRR programming
   gUefiCpuPkgTokenSpaceGuid.PcdCpuDisableMtrrProgramming|TRUE
 
+  # Do not publish the EFI Memory Attribute Protocol: the page tables handed off
+  # by coreboot use coarse/mixed attributes that CpuDxe cannot report accurately,
+  # which would cause DxeCore CoreFreePages() to leak freed pages.
+  gUefiCpuPkgTokenSpaceGuid.PcdProduceMemoryAttributeProtocol|FALSE
+
 [PcdsFixedAtBuild.AARCH64]
   # System Memory Base -- fixed at 0x4000_0000
   gArmTokenSpaceGuid.PcdSystemMemoryBase|0x40000000
