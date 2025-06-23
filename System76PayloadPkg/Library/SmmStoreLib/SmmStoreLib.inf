@@ -37,4 +37,4 @@
 [Packages]
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
-  UefiPayloadPkg/UefiPayloadPkg.dec
+  System76PayloadPkg/System76PayloadPkg.dec

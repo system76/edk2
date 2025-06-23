@@ -127,7 +127,7 @@ def BuildUniversalPayload(Args):
         Args.Macro.append("UNIVERSAL_PAYLOAD_FORMAT=ELF")
         UpldEntryFile = "UniversalPayloadEntry"
 
-    BuildDir     = os.path.join(os.environ['WORKSPACE'], os.path.normpath("Build/UefiPayloadPkg{}").format (Args.Arch))
+    BuildDir     = os.path.join(os.environ['WORKSPACE'], os.path.normpath("Build/System76PayloadPkg{}").format (Args.Arch))
     if Args.Arch == 'X64':
         BuildArch      = "X64"
         FitArch        = "x86_64"
@@ -143,8 +143,8 @@ def BuildUniversalPayload(Args):
     else:
         print("Incorrect arch option provided")
 
-    EntryOutputDir = os.path.join(BuildDir, "{}_{}".format (BuildTarget, PayloadEntryToolChain), os.path.normpath("{}/UefiPayloadPkg/UefiPayloadEntry/{}/DEBUG/{}.dll".format (Args.Arch, UpldEntryFile, UpldEntryFile)))
-    EntryModuleInf = os.path.normpath("UefiPayloadPkg/UefiPayloadEntry/{}.inf".format (UpldEntryFile))
+    EntryOutputDir = os.path.join(BuildDir, "{}_{}".format (BuildTarget, PayloadEntryToolChain), os.path.normpath("{}/System76PayloadPkg/UefiPayloadEntry/{}/DEBUG/{}.dll".format (Args.Arch, UpldEntryFile, UpldEntryFile)))
+    EntryModuleInf = os.path.normpath("System76PayloadPkg/UefiPayloadEntry/{}.inf".format (UpldEntryFile))
     DxeFvOutputDir = os.path.join(BuildDir, "{}_{}".format (BuildTarget, ToolChain), os.path.normpath("FV/DXEFV.Fv"))
     BdsFvOutputDir = os.path.join(BuildDir, "{}_{}".format (BuildTarget, ToolChain), os.path.normpath("FV/BDSFV.Fv"))
     SecFvOutputDir = os.path.join(BuildDir, "{}_{}".format (BuildTarget, ToolChain), os.path.normpath("FV/SECFV.Fv"))
@@ -338,7 +338,7 @@ def InitArgumentParser(LoadDefault):
     parser.add_argument("-af", "--AddFv", type=ValidateAddFv, action='append', help='Add or replace specific FV into payload, Ex: uefi_fv=XXX.fv')
     parser.add_argument("-f", "--Fit", action='store_true', help='Build UniversalPayload file as UniversalPayload.fit', default=False)
     parser.add_argument('-l', "--LoadAddress", type=int, help='Specify payload load address', default =0x000800000)
-    parser.add_argument('-c', '--DscPath', type=str, default="UefiPayloadPkg/UefiPayloadPkg.dsc", help='Path to the DSC file')
+    parser.add_argument('-c', '--DscPath', type=str, default="System76PayloadPkg/System76PayloadPkg.dsc", help='Path to the DSC file')
     parser.add_argument('-ac', '--add_cc_flags', action='append', help='Add specified CC compile flags')
     parser.add_argument('-ci','--CiBuild', action='store_true', help='Call from edk2 CI Build Process or not', default=False)
     if LoadDefault:

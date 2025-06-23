@@ -28,7 +28,7 @@
 
 [Packages]
   MdePkg/MdePkg.dec
-  UefiPayloadPkg/UefiPayloadPkg.dec
+  System76PayloadPkg/System76PayloadPkg.dec
   MdeModulePkg/MdeModulePkg.dec
 
 [LibraryClasses]

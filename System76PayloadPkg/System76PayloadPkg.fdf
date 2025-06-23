@@ -24,8 +24,8 @@ DEFINE NUM_BLOCKS  = 0x800
 
 ################################################################################
 [FD.UefiPayload]
-BaseAddress   = $(FD_BASE) | gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemBase
-Size          = $(FD_SIZE) | gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemSize
+BaseAddress   = $(FD_BASE) | gSystem76PayloadPkgTokenSpaceGuid.PcdPayloadFdMemBase
+Size          = $(FD_SIZE) | gSystem76PayloadPkgTokenSpaceGuid.PcdPayloadFdMemSize
 ErasePolarity = 1
 BlockSize     = $(FD_BLOCK_SIZE)
 NumBlocks     = $(NUM_BLOCKS)
@@ -55,7 +55,7 @@ READ_LOCK_CAP      = TRUE
 READ_LOCK_STATUS   = TRUE
 
 !if $(UNIVERSAL_PAYLOAD) == FALSE
-INF UefiPayloadPkg/UefiPayloadEntry/UefiPayloadEntry.inf
+INF System76PayloadPkg/UefiPayloadEntry/UefiPayloadEntry.inf
 !endif
 FILE FV_IMAGE = 4E35FD93-9C72-4c15-8C4B-E77F1DB2D793 {
     SECTION FV_IMAGE = DXEFV
@@ -143,7 +143,7 @@ APRIORI DXE {
   INF  MdeModulePkg/Universal/PCD/Dxe/Pcd.inf
   INF  MdeModulePkg/Universal/ReportStatusCodeRouter/RuntimeDxe/ReportStatusCodeRouterRuntimeDxe.inf
   INF  MdeModulePkg/Universal/StatusCodeHandler/RuntimeDxe/StatusCodeHandlerRuntimeDxe.inf
-  INF  UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
+  INF  System76PayloadPkg/BlSupportDxe/BlSupportDxe.inf
 }
 
 #
@@ -208,14 +208,14 @@ INF MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf
 # SMM Support
 #
 !if $(SMM_SUPPORT) == TRUE
-  INF UefiPayloadPkg/SmmAccessDxe/SmmAccessDxe.inf
-  INF UefiPayloadPkg/SmmControlRuntimeDxe/SmmControlRuntimeDxe.inf
-  INF UefiPayloadPkg/BlSupportSmm/BlSupportSmm.inf
+  INF System76PayloadPkg/SmmAccessDxe/SmmAccessDxe.inf
+  INF System76PayloadPkg/SmmControlRuntimeDxe/SmmControlRuntimeDxe.inf
+  INF System76PayloadPkg/BlSupportSmm/BlSupportSmm.inf
   INF MdeModulePkg/Core/PiSmmCore/PiSmmIpl.inf
   INF MdeModulePkg/Core/PiSmmCore/PiSmmCore.inf
   INF UefiCpuPkg/CpuIo2Smm/CpuIo2Smm.inf
   INF UefiCpuPkg/PiSmmCpuDxeSmm/PiSmmCpuDxeSmm.inf
-  INF UefiPayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
+  INF System76PayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
 !if $(PERFORMANCE_MEASUREMENT_ENABLE)
   INF  MdeModulePkg/Universal/Acpi/FirmwarePerformanceDataTableSmm/FirmwarePerformanceSmm.inf
 !endif
@@ -224,11 +224,11 @@ INF MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf
 !if $(VARIABLE_SUPPORT) == "EMU"
   INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
 !elseif $(VARIABLE_SUPPORT) == "SMMSTORE"
-  INF UefiPayloadPkg/SmmStoreFvb/SmmStoreFvbRuntimeDxe.inf
+  INF System76PayloadPkg/SmmStoreFvb/SmmStoreFvbRuntimeDxe.inf
   INF MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteDxe.inf
   INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
 !elseif $(VARIABLE_SUPPORT) == "SPI"
-  INF UefiPayloadPkg/FvbRuntimeDxe/FvbSmm.inf
+  INF System76PayloadPkg/FvbRuntimeDxe/FvbSmm.inf
   INF MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteSmm.inf
   INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmm.inf
   INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmmRuntimeDxe.inf
@@ -237,50 +237,50 @@ INF MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf
 !if $(UNIVERSAL_PAYLOAD) == FALSE
   !if $(SECURE_BOOT_ENABLE) == TRUE
     INF SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigDxe.inf
-    INF UefiPayloadPkg/EnrollDefaultKeys/EnrollDefaultKeys.inf
+    INF System76PayloadPkg/EnrollDefaultKeys/EnrollDefaultKeys.inf
 
     FILE FREEFORM = 4e52dd60-d79e-42c5-8337-089232ea5c87 {
-      SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/dbx_microsoft_update.bin
+      SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/dbx_microsoft_update.bin
       SECTION UI = "Microsoft Corporation DBX Update"
     }
 
     FILE FREEFORM = 73282f84-7909-4e87-adf0-845d5da335ab {
-      SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/db_microsoft_uefi_2011.der
+      SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/db_microsoft_uefi_2011.der
       SECTION UI = "Microsoft Corporation DB UEFI 2011"
     }
 
     FILE FREEFORM = 9b29f606-5102-4de1-a88a-ff6210bd8b65 {
-      SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/db_microsoft_win_2011.der
+      SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/db_microsoft_win_2011.der
       SECTION UI = "Microsoft Corporation DB Windows 2011"
     }
 
     FILE FREEFORM = c7769261-fe8d-4e15-b334-cadf4364ad92 {
-      SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/db_microsoft_uefi_2023.der
+      SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/db_microsoft_uefi_2023.der
       SECTION UI = "Microsoft Corporation DB UEFI 2023"
     }
 
     FILE FREEFORM = 4ac66f32-6895-46fc-ad00-f1c81d06c668 {
-      SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/db_microsoft_win_uefi_2023.der
+      SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/db_microsoft_win_uefi_2023.der
       SECTION UI = "Microsoft Corporation DB Windows UEFI 2023"
     }
 
     FILE FREEFORM = 73f89874-b2ec-4c28-a7e3-7d8030134e0b {
-      SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/kek_microsoft_2011.der
+      SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/kek_microsoft_2011.der
       SECTION UI = "Microsoft Corporation KEK CA 2011"
     }
 
     FILE FREEFORM = cce7d8e7-aae8-4697-b5c0-ef35a92a059f {
-      SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/kek_microsoft_2023.der
+      SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/kek_microsoft_2023.der
       SECTION UI = "Microsoft Corporation KEK CA 2023"
     }
 
     FILE FREEFORM = f5a81b7b-419a-4a92-8212-1c369bcbe2cb {
-      SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/kek_microsoft_uefi_2023.der
+      SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/kek_microsoft_uefi_2023.der
       SECTION UI = "Microsoft Corporation UEFI KEK CA 2023"
     }
 
     FILE FREEFORM = 701649dd-8739-40b9-bbdb-9ca434fdcd3b {
-      SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/pk_microsoft_oem_2023.der
+      SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/pk_microsoft_oem_2023.der
       SECTION UI = "Microsoft Corporation OEM PK 2023"
     }
   !endif
@@ -298,7 +298,7 @@ INF MdeModulePkg/Universal/SetupBrowserDxe/SetupBrowserDxe.inf
 INF MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
 INF MdeModulePkg/Universal/PlatformDriOverrideDxe/PlatformDriOverrideDxe.inf
 INF MdeModulePkg/Universal/EbcDxe/EbcDxe.inf
-INF UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
+INF System76PayloadPkg/BlSupportDxe/BlSupportDxe.inf
 
 INF MdeModulePkg/Universal/SmbiosDxe/SmbiosDxe.inf
 !if $(BOOTSPLASH_IMAGE)
@@ -336,10 +336,10 @@ INF MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
 !if $(DISABLE_SERIAL_TERMINAL) == FALSE
 INF MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
 !endif
-INF UefiPayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
+INF System76PayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
 
 !if $(LOAD_OPTION_ROMS) == TRUE
-INF UefiPayloadPkg/PciPlatformDxe/PciPlatformDxe.inf
+INF System76PayloadPkg/PciPlatformDxe/PciPlatformDxe.inf
 !endif
 
 #
@@ -440,50 +440,50 @@ READ_LOCK_CAP      = TRUE
 READ_LOCK_STATUS   = TRUE
 
 INF SecurityPkg/VariableAuthenticated/SecureBootConfigDxe/SecureBootConfigDxe.inf
-INF UefiPayloadPkg/EnrollDefaultKeys/EnrollDefaultKeys.inf
+INF System76PayloadPkg/EnrollDefaultKeys/EnrollDefaultKeys.inf
 
 FILE FREEFORM = 4e52dd60-d79e-42c5-8337-089232ea5c87 {
-  SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/dbx_microsoft_update.bin
+  SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/dbx_microsoft_update.bin
   SECTION UI = "Microsoft Corporation DBX Update"
 }
 
 FILE FREEFORM = 73282f84-7909-4e87-adf0-845d5da335ab {
-  SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/db_microsoft_uefi_2011.der
+  SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/db_microsoft_uefi_2011.der
   SECTION UI = "Microsoft Corporation DB UEFI 2011"
 }
 
 FILE FREEFORM = 9b29f606-5102-4de1-a88a-ff6210bd8b65 {
-  SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/db_microsoft_win_2011.der
+  SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/db_microsoft_win_2011.der
   SECTION UI = "Microsoft Corporation DB Windows 2011"
 }
 
 FILE FREEFORM = c7769261-fe8d-4e15-b334-cadf4364ad92 {
-  SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/db_microsoft_uefi_2023.der
+  SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/db_microsoft_uefi_2023.der
   SECTION UI = "Microsoft Corporation DB UEFI 2023"
 }
 
 FILE FREEFORM = 4ac66f32-6895-46fc-ad00-f1c81d06c668 {
-  SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/db_microsoft_win_uefi_2023.der
+  SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/db_microsoft_win_uefi_2023.der
   SECTION UI = "Microsoft Corporation DB Windows UEFI 2023"
 }
 
 FILE FREEFORM = 73f89874-b2ec-4c28-a7e3-7d8030134e0b {
-  SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/kek_microsoft_2011.der
+  SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/kek_microsoft_2011.der
   SECTION UI = "Microsoft Corporation KEK CA 2011"
 }
 
 FILE FREEFORM = cce7d8e7-aae8-4697-b5c0-ef35a92a059f {
-  SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/kek_microsoft_2023.der
+  SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/kek_microsoft_2023.der
   SECTION UI = "Microsoft Corporation KEK CA 2023"
 }
 
 FILE FREEFORM = f5a81b7b-419a-4a92-8212-1c369bcbe2cb {
-  SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/kek_microsoft_uefi_2023.der
+  SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/kek_microsoft_uefi_2023.der
   SECTION UI = "Microsoft Corporation UEFI KEK CA 2023"
 }
 
 FILE FREEFORM = 701649dd-8739-40b9-bbdb-9ca434fdcd3b {
-  SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/pk_microsoft_oem_2023.der
+  SECTION RAW = System76PayloadPkg/EnrollDefaultKeys/keys/pk_microsoft_oem_2023.der
   SECTION UI = "Microsoft Corporation OEM PK 2023"
 }
 
