@@ -9,7 +9,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 #include "PlatformBootManager.h"
 #include "PlatformConsole.h"
-#include <Protocol/FirmwareVolume2.h>
 
 /**
   Signal EndOfDxe event and install SMM Ready to lock protocol.
@@ -49,167 +48,6 @@ InstallReadyToLock (
 
   DEBUG ((DEBUG_INFO, "InstallReadyToLock  end\n"));
   return;
-}
-
-/**
-  Return the index of the load option in the load option array.
-
-  The function consider two load options are equal when the
-  OptionType, Attributes, Description, FilePath and OptionalData are equal.
-
-  @param Key    Pointer to the load option to be found.
-  @param Array  Pointer to the array of load options to be found.
-  @param Count  Number of entries in the Array.
-
-  @retval -1          Key wasn't found in the Array.
-  @retval 0 ~ Count-1 The index of the Key in the Array.
-**/
-INTN
-PlatformFindLoadOption (
-  IN CONST EFI_BOOT_MANAGER_LOAD_OPTION  *Key,
-  IN CONST EFI_BOOT_MANAGER_LOAD_OPTION  *Array,
-  IN UINTN                               Count
-  )
-{
-  UINTN  Index;
-
-  for (Index = 0; Index < Count; Index++) {
-    if ((Key->OptionType == Array[Index].OptionType) &&
-        (Key->Attributes == Array[Index].Attributes) &&
-        (StrCmp (Key->Description, Array[Index].Description) == 0) &&
-        (CompareMem (Key->FilePath, Array[Index].FilePath, GetDevicePathSize (Key->FilePath)) == 0) &&
-        (Key->OptionalDataSize == Array[Index].OptionalDataSize) &&
-        (CompareMem (Key->OptionalData, Array[Index].OptionalData, Key->OptionalDataSize) == 0))
-    {
-      return (INTN)Index;
-    }
-  }
-
-  return -1;
-}
-
-/**
-  Get the FV device path for the shell file.
-
-  @return   A pointer to device path structure.
-**/
-EFI_DEVICE_PATH_PROTOCOL *
-BdsGetShellFvDevicePath (
-  VOID
-  )
-{
-  UINTN                          FvHandleCount;
-  EFI_HANDLE                     *FvHandleBuffer;
-  UINTN                          Index;
-  EFI_STATUS                     Status;
-  EFI_FIRMWARE_VOLUME2_PROTOCOL  *Fv;
-  UINTN                          Size;
-  UINT32                         AuthenticationStatus;
-  EFI_DEVICE_PATH_PROTOCOL       *DevicePath;
-  EFI_FV_FILETYPE                FoundType;
-  EFI_FV_FILE_ATTRIBUTES         FileAttributes;
-
-  Status = EFI_SUCCESS;
-  gBS->LocateHandleBuffer (
-         ByProtocol,
-         &gEfiFirmwareVolume2ProtocolGuid,
-         NULL,
-         &FvHandleCount,
-         &FvHandleBuffer
-         );
-
-  for (Index = 0; Index < FvHandleCount; Index++) {
-    Size = 0;
-    gBS->HandleProtocol (
-           FvHandleBuffer[Index],
-           &gEfiFirmwareVolume2ProtocolGuid,
-           (VOID **)&Fv
-           );
-    Status = Fv->ReadFile (
-                   Fv,
-                   &gUefiShellFileGuid,
-                   NULL,
-                   &Size,
-                   &FoundType,
-                   &FileAttributes,
-                   &AuthenticationStatus
-                   );
-    if (!EFI_ERROR (Status)) {
-      //
-      // Found the shell file
-      //
-      break;
-    }
-  }
-
-  if (EFI_ERROR (Status)) {
-    if (FvHandleCount) {
-      FreePool (FvHandleBuffer);
-    }
-
-    return NULL;
-  }
-
-  DevicePath = DevicePathFromHandle (FvHandleBuffer[Index]);
-
-  if (FvHandleCount) {
-    FreePool (FvHandleBuffer);
-  }
-
-  return DevicePath;
-}
-
-/**
-  Register a boot option using a file GUID in the FV.
-
-  @param FileGuid     The file GUID name in FV.
-  @param Description  The boot option description.
-  @param Attributes   The attributes used for the boot option loading.
-**/
-VOID
-PlatformRegisterFvBootOption (
-  EFI_GUID  *FileGuid,
-  CHAR16    *Description,
-  UINT32    Attributes
-  )
-{
-  EFI_STATUS                         Status;
-  UINTN                              OptionIndex;
-  EFI_BOOT_MANAGER_LOAD_OPTION       NewOption;
-  EFI_BOOT_MANAGER_LOAD_OPTION       *BootOptions;
-  UINTN                              BootOptionCount;
-  MEDIA_FW_VOL_FILEPATH_DEVICE_PATH  FileNode;
-  EFI_DEVICE_PATH_PROTOCOL           *DevicePath;
-
-  EfiInitializeFwVolDevicepathNode (&FileNode, FileGuid);
-  DevicePath = AppendDevicePathNode (
-                 BdsGetShellFvDevicePath (),
-                 (EFI_DEVICE_PATH_PROTOCOL *)&FileNode
-                 );
-
-  Status = EfiBootManagerInitializeLoadOption (
-             &NewOption,
-             LoadOptionNumberUnassigned,
-             LoadOptionTypeBoot,
-             Attributes,
-             Description,
-             DevicePath,
-             NULL,
-             0
-             );
-  if (!EFI_ERROR (Status)) {
-    BootOptions = EfiBootManagerGetLoadOptions (&BootOptionCount, LoadOptionTypeBoot);
-
-    OptionIndex = PlatformFindLoadOption (&NewOption, BootOptions, BootOptionCount);
-
-    if (OptionIndex == -1) {
-      Status = EfiBootManagerAddLoadOptionVariable (&NewOption, (UINTN)-1);
-      ASSERT_EFI_ERROR (Status);
-    }
-
-    EfiBootManagerFreeLoadOption (&NewOption);
-    EfiBootManagerFreeLoadOptions (BootOptions, BootOptionCount);
-  }
 }
 
 /**
@@ -315,11 +153,6 @@ PlatformBootManagerAfterConsole (
   // Process TPM PPI request
   //
   Tcg2PhysicalPresenceLibProcessRequest (NULL);
-
-  //
-  // Register UEFI Shell
-  //
-  PlatformRegisterFvBootOption (&gUefiShellFileGuid, L"UEFI Shell", LOAD_OPTION_ACTIVE);
 
   if (FixedPcdGetBool (PcdBootManagerEscape)) {
     Print (

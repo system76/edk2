@@ -31,7 +31,6 @@
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
   System76PayloadPkg/System76PayloadPkg.dec
-  ShellPkg/ShellPkg.dec
   SecurityPkg/SecurityPkg.dec
 
 [LibraryClasses]
@@ -52,7 +51,6 @@
 
 [Guids]
   gEfiEndOfDxeEventGroupGuid
-  gUefiShellFileGuid
 
 [Protocols]
   gEfiGenericMemTestProtocolGuid  ## CONSUMES

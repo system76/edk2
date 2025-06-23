@@ -367,17 +367,6 @@ INF MdeModulePkg/Application/BootManagerMenuApp/BootManagerMenuApp.inf
 !endif
 !endif
 
-#
-# Shell
-#
-!if $(SHELL_TYPE) == BUILD_SHELL
-INF ShellPkg/DynamicCommand/TftpDynamicCommand/TftpDynamicCommand.inf
-!if $(PERFORMANCE_MEASUREMENT_ENABLE) == TRUE
-INF ShellPkg/DynamicCommand/DpDynamicCommand/DpDynamicCommand.inf
-!endif
-INF ShellPkg/Application/Shell/Shell.inf
-!endif
-
 !if $(UNIVERSAL_PAYLOAD) == TRUE
 !if $(SECURE_BOOT_ENABLE) == TRUE
 

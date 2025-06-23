@@ -120,11 +120,6 @@
   DEFINE PCI_SERIAL_PARAMETERS        = {0xff,0xff, 0x00,0x00, 0x0,0x20,0x1c,0x00, 0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0, 0x00,    0x01, 0x0,0x0, 0x0,0x0, 0x0,0x0, 0xff,0xff}
 
   #
-  # Shell options: [BUILD_SHELL, MIN_BIN, NONE, UEFI_BIN]
-  #
-  DEFINE SHELL_TYPE                   = BUILD_SHELL
-
-  #
   # EMU:      UEFI payload with EMU variable
   # SPI:      UEFI payload with SPI NV variable support
   # SMMSTORE: UEFI payload with coreboot SMM NV variable support
@@ -1251,75 +1246,3 @@
 
   # ACPI Support
   OvmfPkg/PlatformHasAcpiDtDxe/PlatformHasAcpiDtDxe.inf
-
-  #------------------------------
-  #  Build the shell
-  #------------------------------
-
-!if $(SHELL_TYPE) == BUILD_SHELL
-
-  #
-  # Shell Lib
-  #
-[LibraryClasses]
-  BcfgCommandLib|ShellPkg/Library/UefiShellBcfgCommandLib/UefiShellBcfgCommandLib.inf
-  DevicePathLib|MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib.inf
-  FileHandleLib|MdePkg/Library/UefiFileHandleLib/UefiFileHandleLib.inf
-  ShellLib|ShellPkg/Library/UefiShellLib/UefiShellLib.inf
-  !include NetworkPkg/NetworkLibs.dsc.inc
-
-[Components.X64, Components.AARCH64]
-  ShellPkg/DynamicCommand/TftpDynamicCommand/TftpDynamicCommand.inf {
-    <PcdsFixedAtBuild>
-      ## This flag is used to control initialization of the shell library
-      #  This should be FALSE for compiling the dynamic command.
-      gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
-  }
-!if $(PERFORMANCE_MEASUREMENT_ENABLE) == TRUE
-  ShellPkg/DynamicCommand/DpDynamicCommand/DpDynamicCommand.inf {
-    <PcdsFixedAtBuild>
-      ## This flag is used to control initialization of the shell library
-      #  This should be FALSE for compiling the dynamic command.
-      gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
-  }
-!endif
-  ShellPkg/Application/Shell/Shell.inf {
-    <PcdsFixedAtBuild>
-      ## This flag is used to control initialization of the shell library
-      #  This should be FALSE for compiling the shell application itself only.
-      gEfiShellPkgTokenSpaceGuid.PcdShellLibAutoInitialize|FALSE
-
-    #------------------------------
-    #  Basic commands
-    #------------------------------
-
-    <LibraryClasses>
-      NULL|ShellPkg/Library/UefiShellLevel1CommandsLib/UefiShellLevel1CommandsLib.inf
-      NULL|ShellPkg/Library/UefiShellLevel2CommandsLib/UefiShellLevel2CommandsLib.inf
-      NULL|ShellPkg/Library/UefiShellLevel3CommandsLib/UefiShellLevel3CommandsLib.inf
-      NULL|ShellPkg/Library/UefiShellDriver1CommandsLib/UefiShellDriver1CommandsLib.inf
-      NULL|ShellPkg/Library/UefiShellInstall1CommandsLib/UefiShellInstall1CommandsLib.inf
-      NULL|ShellPkg/Library/UefiShellDebug1CommandsLib/UefiShellDebug1CommandsLib.inf
-
-    #------------------------------
-    #  Networking commands
-    #------------------------------
-
-    <LibraryClasses>
-      NULL|ShellPkg/Library/UefiShellNetwork1CommandsLib/UefiShellNetwork1CommandsLib.inf
-
-    #------------------------------
-    #  Support libraries
-    #------------------------------
-
-    <LibraryClasses>
-      DevicePathLib|MdePkg/Library/UefiDevicePathLib/UefiDevicePathLib.inf
-      HandleParsingLib|ShellPkg/Library/UefiHandleParsingLib/UefiHandleParsingLib.inf
-      OrderedCollectionLib|MdePkg/Library/BaseOrderedCollectionRedBlackTreeLib/BaseOrderedCollectionRedBlackTreeLib.inf
-      PcdLib|MdePkg/Library/DxePcdLib/DxePcdLib.inf
-      ShellCEntryLib|ShellPkg/Library/UefiShellCEntryLib/UefiShellCEntryLib.inf
-      ShellCommandLib|ShellPkg/Library/UefiShellCommandLib/UefiShellCommandLib.inf
-      SortLib|MdeModulePkg/Library/UefiSortLib/UefiSortLib.inf
-  }
-
-!endif
