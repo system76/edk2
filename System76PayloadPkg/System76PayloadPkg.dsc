@@ -281,7 +281,7 @@
   CapsuleLib|MdeModulePkg/Library/DxeCapsuleLibNull/DxeCapsuleLibNull.inf
   !endif
   SecurityManagementLib|MdeModulePkg/Library/DxeSecurityManagementLib/DxeSecurityManagementLib.inf
-  UefiBootManagerLib|MdeModulePkg/Library/UefiBootManagerLib/UefiBootManagerLib.inf
+  UefiBootManagerLib|System76PayloadPkg/Library/UefiBootManagerLib/UefiBootManagerLib.inf
   BootLogoLib|System76PayloadPkg/Library/BootLogoLib/BootLogoLib.inf
   CustomizedDisplayLib|MdeModulePkg/Library/CustomizedDisplayLib/CustomizedDisplayLib.inf
   FrameBufferBltLib|MdeModulePkg/Library/FrameBufferBltLib/FrameBufferBltLib.inf
@@ -961,10 +961,10 @@
 !if $(BOOTSPLASH_IMAGE)
   System76PayloadPkg/Logo/LogoDxe.inf
 !endif
-  MdeModulePkg/Application/UiApp/UiApp.inf {
+  System76PayloadPkg/Application/UiApp/UiApp.inf {
     <LibraryClasses>
-      NULL|MdeModulePkg/Library/BootManagerUiLib/BootManagerUiLib.inf
-      NULL|MdeModulePkg/Library/BootMaintenanceManagerUiLib/BootMaintenanceManagerUiLib.inf
+      NULL|System76PayloadPkg/Library/BootManagerUiLib/BootManagerUiLib.inf
+      NULL|System76PayloadPkg/Library/BootMaintenanceManagerUiLib/BootMaintenanceManagerUiLib.inf
   }
   MdeModulePkg/Application/BootManagerMenuApp/BootManagerMenuApp.inf
 
