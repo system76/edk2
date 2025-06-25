@@ -56,6 +56,7 @@
   UefiBootManagerLib
 
 [Guids]
+  gEfiAcpiTableGuid                             ## COMSUMES ## GUID
   gEfiIfrTianoGuid                              ## CONSUMES ## GUID (Extended IFR Guid Opcode)
   gEfiIfrFrontPageGuid                          ## CONSUMES ## GUID
 
@@ -66,7 +67,6 @@
 [FeaturePcd]
 
 [Pcd]
-  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultPlatformLangCodes  ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutRow                       ## PRODUCES
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutColumn                    ## PRODUCES
   gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution       ## PRODUCES
@@ -76,7 +76,3 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdSetupVideoHorizontalResolution  ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdSetupVideoVerticalResolution    ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString           ## CONSUMES
-  gEfiMdeModulePkgTokenSpaceGuid.PcdTestKeyUsed                     ## CONSUMES
-
-[UserExtensions.TianoCore."ExtraFiles"]
-  UiAppExtra.uni

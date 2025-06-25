@@ -10,6 +10,14 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "FrontPage.h"
 #include "FrontPageCustomizedUi.h"
 
+#include <IndustryStandard/Pci.h>
+#include <Protocol/PciIo.h>
+#include <Protocol/PciRootBridgeIo.h>
+#include <Protocol/UsbIo.h>
+#include <Register/Amd/Cpuid.h>
+#include <Register/Intel/Cpuid.h>
+#include <Register/Intel/Msr.h>
+
 #define MAX_STRING_LEN  200
 
 EFI_GUID  mFrontPageGuid = FRONT_PAGE_FORMSET_GUID;
@@ -17,7 +25,6 @@ EFI_GUID  mFrontPageGuid = FRONT_PAGE_FORMSET_GUID;
 BOOLEAN  mResetRequired = FALSE;
 
 EFI_FORM_BROWSER2_PROTOCOL  *gFormBrowser2;
-CHAR8                       *mLanguageString;
 BOOLEAN                     mModeInitialized = FALSE;
 //
 // Boot video resolution and text mode.
@@ -34,9 +41,10 @@ UINT32  mSetupTextModeRow          = 0;
 UINT32  mSetupHorizontalResolution = 0;
 UINT32  mSetupVerticalResolution   = 0;
 
+STATIC EFI_SYSTEM_TABLE *mSystemTable = NULL;
+
 FRONT_PAGE_CALLBACK_DATA  gFrontPagePrivate = {
   FRONT_PAGE_CALLBACK_DATA_SIGNATURE,
-  NULL,
   NULL,
   NULL,
   {
@@ -371,82 +379,6 @@ FreeFrontPage (
   // Publish our HII data
   //
   HiiRemovePackages (gFrontPagePrivate.HiiHandle);
-  if (gFrontPagePrivate.LanguageToken != NULL) {
-    FreePool (gFrontPagePrivate.LanguageToken);
-    gFrontPagePrivate.LanguageToken = NULL;
-  }
-}
-
-/**
-  Convert Processor Frequency Data to a string.
-
-  @param ProcessorFrequency The frequency data to process
-  @param Base10Exponent     The exponent based on 10
-  @param String             The string that is created
-
-**/
-VOID
-ConvertProcessorToString (
-  IN  UINT16  ProcessorFrequency,
-  IN  UINT16  Base10Exponent,
-  OUT CHAR16  **String
-  )
-{
-  CHAR16  *StringBuffer;
-  UINTN   Index;
-  UINTN   DestMax;
-  UINT32  FreqMhz;
-
-  if (Base10Exponent >= 6) {
-    FreqMhz = ProcessorFrequency;
-    for (Index = 0; Index < (UINT32)Base10Exponent - 6; Index++) {
-      FreqMhz *= 10;
-    }
-  } else {
-    FreqMhz = 0;
-  }
-
-  DestMax      = 0x20 / sizeof (CHAR16);
-  StringBuffer = AllocateZeroPool (0x20);
-  ASSERT (StringBuffer != NULL);
-  UnicodeValueToStringS (StringBuffer, sizeof (CHAR16) * DestMax, LEFT_JUSTIFY, FreqMhz / 1000, 3);
-  Index = StrnLenS (StringBuffer, DestMax);
-  StrCatS (StringBuffer, DestMax, L".");
-  UnicodeValueToStringS (
-    StringBuffer + Index + 1,
-    sizeof (CHAR16) * (DestMax - (Index + 1)),
-    PREFIX_ZERO,
-    (FreqMhz % 1000) / 10,
-    2
-    );
-  StrCatS (StringBuffer, DestMax, L" GHz");
-  *String = (CHAR16 *)StringBuffer;
-  return;
-}
-
-/**
-  Convert Memory Size to a string.
-
-  @param MemorySize      The size of the memory to process
-  @param String          The string that is created
-
-**/
-VOID
-ConvertMemorySizeToString (
-  IN  UINT32  MemorySize,
-  OUT CHAR16  **String
-  )
-{
-  CHAR16  *StringBuffer;
-
-  StringBuffer = AllocateZeroPool (0x24);
-  ASSERT (StringBuffer != NULL);
-  UnicodeValueToStringS (StringBuffer, 0x24, LEFT_JUSTIFY, MemorySize, 10);
-  StrCatS (StringBuffer, 0x24 / sizeof (CHAR16), L" MB RAM");
-
-  *String = (CHAR16 *)StringBuffer;
-
-  return;
 }
 
 /**
@@ -496,6 +428,427 @@ GetOptionalStringByIndex (
   return EFI_SUCCESS;
 }
 
+
+STATIC
+VOID
+WarnNoBootableMedia (
+  VOID
+  )
+{
+  CHAR16                        *String;
+  EFI_STRING_ID                 Token;
+  EFI_BOOT_MANAGER_LOAD_OPTION  *BootOption;
+  UINTN                         BootOptionCount;
+  UINTN                         Index;
+  UINTN                         Count = 0;
+
+  String = AllocateZeroPool (0x60);
+  BootOption = EfiBootManagerGetLoadOptions (&BootOptionCount, LoadOptionTypeBoot);
+
+  for (Index = 0; Index < BootOptionCount; Index++) {
+    //
+    // Don't count the hidden/inactive boot option
+    //
+    if (((BootOption[Index].Attributes & LOAD_OPTION_HIDDEN) != 0) || ((BootOption[Index].Attributes & LOAD_OPTION_ACTIVE) == 0)) {
+      continue;
+    }
+
+    Count++;
+  }
+
+  EfiBootManagerFreeLoadOptions (BootOption, BootOptionCount);
+
+  if (Count == 0) {
+    StrCatS (String, 0x60 / sizeof (CHAR16), L"Warning: No bootable media found");
+  } else {
+    StrCatS (String, 0x60 / sizeof (CHAR16), L"");
+  }
+
+  Token = STRING_TOKEN (STR_NO_BOOTABLE_MEDIA);
+  HiiSetString (gFrontPagePrivate.HiiHandle, Token, String, NULL);
+  FreePool(String);
+}
+
+STATIC
+BOOLEAN
+StandardSignatureIsAuthenticAMD (
+  VOID
+  )
+{
+  UINT32  RegEbx;
+  UINT32  RegEcx;
+  UINT32  RegEdx;
+
+  AsmCpuid (CPUID_SIGNATURE, NULL, &RegEbx, &RegEcx, &RegEdx);
+  return (RegEbx == CPUID_SIGNATURE_AUTHENTIC_AMD_EBX &&
+          RegEcx == CPUID_SIGNATURE_AUTHENTIC_AMD_ECX &&
+          RegEdx == CPUID_SIGNATURE_AUTHENTIC_AMD_EDX);
+}
+
+STATIC
+BOOLEAN
+StandardSignatureIsGenuineIntel (
+  VOID
+  )
+{
+  UINT32  RegEbx;
+  UINT32  RegEcx;
+  UINT32  RegEdx;
+
+  AsmCpuid (CPUID_SIGNATURE, NULL, &RegEbx, &RegEcx, &RegEdx);
+  return (RegEbx == CPUID_SIGNATURE_GENUINE_INTEL_EBX &&
+          RegEcx == CPUID_SIGNATURE_GENUINE_INTEL_ECX &&
+          RegEdx == CPUID_SIGNATURE_GENUINE_INTEL_EDX);
+}
+
+typedef struct {
+  CHAR8     Signature[8];
+  UINT8     Checksum;
+  CHAR8     OemId[6];
+  UINT8     Revision;
+  UINT32    RsdtAddress;
+} ACPI_RSDP;
+
+STATIC CONST CHAR8 RSDP_SIGNATURE[8] = {'R', 'S', 'D', ' ', 'P', 'T', 'R', ' '};
+
+typedef struct {
+  CHAR8     Signature[4];
+  UINT32    Length;
+  UINT8     Revision;
+  UINT8     Checksum;
+  CHAR8     OemId[6];
+  CHAR8     OemTableId[8];
+  UINT32    OemRevision;
+  UINT32    CreatorId;
+  UINT32    CreatorRevision;
+} ACPI_SDT_HEADER;
+
+STATIC CONST CHAR8 RSDT_SIGNATURE[4] = {'R', 'S', 'D', 'T'};
+
+STATIC
+ACPI_SDT_HEADER*
+FindAcpiTable(
+  CHAR8 Name[4]
+  )
+{
+  UINTN                    Index;
+  EFI_CONFIGURATION_TABLE* ConfigurationTable;
+  UINTN                    RsdpPtr;
+  ACPI_RSDP*               Rsdp;
+  UINTN                    RsdtPtr;
+  ACPI_SDT_HEADER*         Rsdt;
+  UINTN                    TablePtr;
+  ACPI_SDT_HEADER*         Table;
+
+  DEBUG ((DEBUG_INFO, "FindAcpiTable: '%c%c%c%c'\n", Name[0], Name[1], Name[2], Name[3]));
+
+  if (mSystemTable == NULL) {
+    DEBUG ((DEBUG_INFO, "  System Table missing\n"));
+    return NULL;
+  }
+
+  // Search the table for an entry that matches the ACPI Table Guid
+  for (Index = 0; Index < mSystemTable->NumberOfTableEntries; Index++) {
+    if (CompareGuid (&gEfiAcpiTableGuid, &(mSystemTable->ConfigurationTable[Index].VendorGuid))) {
+      ConfigurationTable = &mSystemTable->ConfigurationTable[Index];
+      break;
+    }
+  }
+
+  if (ConfigurationTable == NULL) {
+    DEBUG ((DEBUG_INFO, "  ACPI Configuration Table missing\n"));
+    return NULL;
+  }
+
+  RsdpPtr = (UINTN)ConfigurationTable->VendorTable;
+  DEBUG ((DEBUG_INFO, "  RSDP 0x%x\n", RsdpPtr));
+  Rsdp = (ACPI_RSDP*)RsdpPtr;
+  DEBUG ((DEBUG_INFO, "    Signature: '%c%c%c%c%c%c%c%c'\n",
+    Rsdp->Signature[0], Rsdp->Signature[1], Rsdp->Signature[2], Rsdp->Signature[3],
+    Rsdp->Signature[4], Rsdp->Signature[5], Rsdp->Signature[6], Rsdp->Signature[7]
+  ));
+  if (CompareMem(Rsdp->Signature, RSDP_SIGNATURE, 8) != 0) {
+    DEBUG ((DEBUG_INFO, "    RSDP invalid signature\n"));
+    return NULL;
+  }
+  DEBUG ((DEBUG_INFO, "    Revision: 0x%x\n", Rsdp->Revision));
+
+  RsdtPtr = (UINTN)Rsdp->RsdtAddress;
+  DEBUG ((DEBUG_INFO, "  RSDT 0x%x\n", RsdpPtr));
+  Rsdt = (ACPI_SDT_HEADER*)RsdtPtr;
+  DEBUG ((DEBUG_INFO, "    Signature: '%c%c%c%c'\n",
+    Rsdt->Signature[0], Rsdt->Signature[1], Rsdt->Signature[2], Rsdt->Signature[3]
+  ));
+  if (CompareMem(Rsdt->Signature, RSDT_SIGNATURE, 4) != 0) {
+      DEBUG ((DEBUG_INFO, "    RSDT invalid signature\n"));
+      return NULL;
+  }
+  DEBUG ((DEBUG_INFO, "    Revision: 0x%x\n", Rsdt->Revision));
+  DEBUG ((DEBUG_INFO, "    Length: 0x%x\n", Rsdt->Length));
+
+  for (Index = sizeof(ACPI_SDT_HEADER); Index < Rsdt->Length; Index += 4) {
+    TablePtr = (UINTN)(*(UINT32*)(RsdtPtr + Index));
+    DEBUG ((DEBUG_INFO, "  Table %d: 0x%x\n", Index, TablePtr));
+    Table = (ACPI_SDT_HEADER*)TablePtr;
+    DEBUG ((DEBUG_INFO, "    Signature: '%c%c%c%c'\n",
+      Table->Signature[0], Table->Signature[1], Table->Signature[2], Table->Signature[3]
+    ));
+    DEBUG ((DEBUG_INFO, "    Revision: 0x%x\n", Table->Revision));
+    DEBUG ((DEBUG_INFO, "    Length: 0x%x\n", Table->Length));
+
+    if (CompareMem(Table->Signature, Name, 4) == 0) {
+      DEBUG ((DEBUG_INFO, "  Match found\n"));
+      return Table;
+    }
+  }
+
+  DEBUG ((DEBUG_INFO, "  No match found\n"));
+  return NULL;
+}
+
+// From PciBusDxe
+STATIC
+EFI_STATUS
+PciDevicePresent(
+  OUT PCI_TYPE00  *Pci,
+  IN  UINT8       Bus,
+  IN  UINT8       Device,
+  IN  UINT8       Func
+  )
+{
+  UINT64 Address = EFI_PCI_ADDRESS (Bus, Device, Func, 0);
+  EFI_PCI_ROOT_BRIDGE_IO_PROTOCOL *PciRootBridgeIo;
+  EFI_STATUS Status;
+  EFI_HANDLE *PciIoBuffer;
+  UINTN PciIoHandleCount = 0;
+
+  Status = gBS->LocateHandleBuffer(
+    ByProtocol,
+    &gEfiPciRootBridgeIoProtocolGuid,
+    NULL,
+    &PciIoHandleCount,
+    &PciIoBuffer
+  );
+
+  if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_INFO, "%a: Failed to get PciRootBridgeIo handles: %r\n", __func__, Status));
+      return Status;
+  }
+
+  for (UINTN Index = 0; Index < PciIoHandleCount; Index++) {
+    Status = gBS->OpenProtocol(
+      PciIoBuffer[Index],
+      &gEfiPciRootBridgeIoProtocolGuid,
+      (VOID *)&PciRootBridgeIo,
+      NULL,
+      NULL,
+      EFI_OPEN_PROTOCOL_GET_PROTOCOL
+    );
+
+    if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_INFO, "%a: Failed to open PciRootBridgeIo protocol: %r\n", __func__, Status));
+      continue;
+    }
+
+    // Read the Vendor ID register
+    Status = PciRootBridgeIo->Pci.Read(
+      PciRootBridgeIo,
+      EfiPciWidthUint32,
+      Address,
+      1,
+      Pci
+    );
+
+    if (EFI_ERROR (Status)) {
+      DEBUG((DEBUG_INFO, "%a: Failed to read vendor ID: %r\n", __func__, Status));
+      continue;
+    }
+
+    // Read the entire config header for the device
+    Status = PciRootBridgeIo->Pci.Read(
+      PciRootBridgeIo,
+      EfiPciWidthUint32,
+      Address,
+      sizeof(PCI_TYPE00) / sizeof(UINT32),
+      Pci
+    );
+
+    FreePool (PciIoBuffer);
+    return Status;
+  }
+
+  FreePool (PciIoBuffer);
+  return EFI_NOT_FOUND;
+}
+
+/*
+ * Check for Intel device with class [0780] at 00:16.0.
+ */
+STATIC
+BOOLEAN
+HasCsmeDevice(
+  VOID
+  )
+{
+  PCI_TYPE00 Pci;
+
+  if (!EFI_ERROR (PciDevicePresent (&Pci, 0x00, 0x16, 0x00))) {
+    DEBUG ((DEBUG_INFO, "%a: vid=0x%04X, class=[%02X,%02X,%02X]\n", __func__,
+          Pci.Hdr.VendorId, Pci.Hdr.ClassCode[0], Pci.Hdr.ClassCode[1], Pci.Hdr.ClassCode[2]));
+    return Pci.Hdr.VendorId == 0x8086 &&
+        Pci.Hdr.ClassCode[2] == PCI_CLASS_SCC &&
+        Pci.Hdr.ClassCode[1] == PCI_SUBCLASS_SCC_OTHER;
+  }
+
+  return FALSE;
+}
+
+STATIC
+VOID
+FirmwareConfigurationInformation(
+  VOID
+  )
+{
+  EFI_STRING_ID Token;
+
+  Token = STRING_TOKEN (STR_VIRTUALIZATION);
+  if (StandardSignatureIsGenuineIntel()) {
+    HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"Intel Virtualization", NULL);
+
+    Token = STRING_TOKEN (STR_VIRTUALIZATION_STATUS);
+    CPUID_VERSION_INFO_ECX VersionInfoEcx;
+    AsmCpuid (CPUID_VERSION_INFO, NULL, NULL, &VersionInfoEcx.Uint32, NULL);
+    if (VersionInfoEcx.Bits.VMX) {
+      HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"VT-x: Active", NULL);
+    } else {
+      HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"VT-x: Deactivated", NULL);
+    }
+
+    Token = STRING_TOKEN (STR_IOMMU_STATUS);
+    CHAR8 TableName[4] = {'D', 'M', 'A', 'R'};
+    if (FindAcpiTable(TableName)) {
+      HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"VT-d: Active", NULL);
+    } else {
+      HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"VT-d: Deactivated", NULL);
+    }
+
+    Token = STRING_TOKEN(STR_ME_STATUS);
+    if (HasCsmeDevice()) {
+      HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"The Intel Management Engine is enabled.", NULL);
+    } else {
+      HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"The Intel Management Engine is disabled at runtime to increase security.", NULL);
+    }
+  } else if (StandardSignatureIsAuthenticAMD()) {
+    // TODO: verify AMD tests
+    HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD Virtualization", NULL);
+
+    Token = STRING_TOKEN (STR_VIRTUALIZATION_STATUS);
+    CPUID_AMD_EXTENDED_CPU_SIG_ECX AmdExtendedCpuSigEcx;
+    AsmCpuid (CPUID_EXTENDED_CPU_SIG, NULL, NULL, &AmdExtendedCpuSigEcx.Uint32, NULL);
+    if (AmdExtendedCpuSigEcx.Bits.SVM) {
+      HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD-V: Active", NULL);
+    } else {
+      HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD-V: Deactivated", NULL);
+    }
+
+    Token = STRING_TOKEN (STR_IOMMU_STATUS);
+    // TODO: proper test for AMD IOMMU
+    BOOLEAN iommu_active = FALSE;
+    if (iommu_active) {
+      HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD-Vi: Active", NULL);
+    } else {
+      HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"AMD-Vi: Deactivated", NULL);
+    }
+  }
+
+  Token = STRING_TOKEN (STR_TPM_STATUS);
+  CHAR8 TableName[4] = {'T', 'P', 'M', '2'};
+  if (FindAcpiTable(TableName)) {
+    HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"Trusted Platform Module: Active", NULL);
+  } else {
+    HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"Trusted Platform Module: Deactivated", NULL);
+  }
+}
+
+STATIC
+VOID
+WebcamStatus (
+  VOID
+  )
+{
+  EFI_STATUS                    Status;
+  UINTN                         UsbIoHandleCount;
+  EFI_HANDLE                    *UsbIoBuffer;
+  UINTN                         Index;
+  EFI_USB_IO_PROTOCOL           *UsbIo;
+  EFI_USB_DEVICE_DESCRIPTOR     DevDesc;
+  EFI_USB_INTERFACE_DESCRIPTOR  IntfDesc;
+  UINTN                         Webcams;
+
+  //
+  // Get all Usb IO handles in system
+  //
+  UsbIoHandleCount = 0;
+  Status = gBS->LocateHandleBuffer (ByProtocol, &gEfiUsbIoProtocolGuid, NULL, &UsbIoHandleCount, &UsbIoBuffer);
+  if (EFI_ERROR(Status)) {
+    DEBUG ((DEBUG_INFO, "Failed to read UsbIo handles: 0x%x\n", Status));
+    return;
+  }
+
+  Webcams = 0;
+  for (Index = 0; Index < UsbIoHandleCount; Index++) {
+    DEBUG ((DEBUG_INFO, "UsbIo Handle %d\n", Index));
+
+    //
+    // Get the child Usb IO interface
+    //
+    Status = gBS->HandleProtocol(
+                     UsbIoBuffer[Index],
+                     &gEfiUsbIoProtocolGuid,
+                     (VOID **) &UsbIo
+                     );
+    if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_INFO, "  Failed to find UsbIo protocol\n"));
+      continue;
+    }
+
+    Status = UsbIo->UsbGetDeviceDescriptor (UsbIo, &DevDesc);
+    if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_INFO, "  Failed to get device descriptor\n"));
+      continue;
+    }
+
+    DEBUG ((DEBUG_INFO, "  ID: 0x%04X:0x%04X\n", DevDesc.IdVendor, DevDesc.IdProduct));
+    DEBUG ((DEBUG_INFO, "  DeviceClass: %d\n", DevDesc.DeviceClass));
+    DEBUG ((DEBUG_INFO, "  DeviceSubClass: %d\n", DevDesc.DeviceSubClass));
+    DEBUG ((DEBUG_INFO, "  DeviceProtocol: %d\n", DevDesc.DeviceProtocol));
+
+    Status = UsbIo->UsbGetInterfaceDescriptor (UsbIo, &IntfDesc);
+    if (EFI_ERROR (Status)) {
+      DEBUG ((DEBUG_INFO, "  Failed to get interface descriptor\n"));
+      continue;
+    }
+
+    DEBUG ((DEBUG_INFO, "  Interface: %d\n", IntfDesc.InterfaceNumber));
+    DEBUG ((DEBUG_INFO, "  InterfaceClass: %d\n", IntfDesc.InterfaceClass));
+    DEBUG ((DEBUG_INFO, "  InterfaceSubClass: %d\n", IntfDesc.InterfaceSubClass));
+    DEBUG ((DEBUG_INFO, "  InterfaceProtocol: %d\n", IntfDesc.InterfaceProtocol));
+
+    if (IntfDesc.InterfaceClass == 14 && IntfDesc.InterfaceSubClass == 1) {
+        DEBUG ((DEBUG_INFO, "  Detected Video Control interface\n"));
+        Webcams++;
+    }
+  }
+
+  FreePool (UsbIoBuffer);
+
+  // TODO: logic for not showing the warning on desktops
+  if (Webcams == 0) {
+    EFI_STRING_ID Token = STRING_TOKEN (STR_WEBCAM_STATUS);
+    HiiSetString (gFrontPagePrivate.HiiHandle, Token, L"Info: Webcam Module Disconnected", NULL);
+  }
+}
+
 /**
 
   Update the banner information for the Front Page based on Smbios information.
@@ -506,79 +859,20 @@ UpdateFrontPageBannerStrings (
   VOID
   )
 {
-  UINT8                    StrIndex;
-  CHAR16                   *NewString;
-  CHAR16                   *FirmwareVersionString;
-  EFI_STATUS               Status;
-  EFI_SMBIOS_HANDLE        SmbiosHandle;
-  EFI_SMBIOS_PROTOCOL      *Smbios;
-  SMBIOS_TABLE_TYPE0       *Type0Record;
-  SMBIOS_TABLE_TYPE1       *Type1Record;
-  SMBIOS_TABLE_TYPE4       *Type4Record;
-  SMBIOS_TABLE_TYPE19      *Type19Record;
-  EFI_SMBIOS_TABLE_HEADER  *Record;
-  UINT64                   InstalledMemory;
-  BOOLEAN                  FoundCpu;
+  EFI_STATUS                Status;
+  EFI_SMBIOS_HANDLE         SmbiosHandle;
+  EFI_SMBIOS_PROTOCOL       *Smbios;
+  EFI_SMBIOS_TABLE_HEADER   *Record;
+  BOOLEAN                   CheckWebcam;
 
-  InstalledMemory = 0;
-  FoundCpu        = 0;
-
-  //
-  // Update default banner string.
-  //
-  NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE4_LEFT), NULL);
-  UiCustomizeFrontPageBanner (4, TRUE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE4_LEFT), NewString, NULL);
-  FreePool (NewString);
-
-  NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE4_RIGHT), NULL);
-  UiCustomizeFrontPageBanner (4, FALSE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE4_RIGHT), NewString, NULL);
-  FreePool (NewString);
-
-  NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE5_LEFT), NULL);
-  UiCustomizeFrontPageBanner (5, TRUE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE5_LEFT), NewString, NULL);
-  FreePool (NewString);
-
-  NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE5_RIGHT), NULL);
-  UiCustomizeFrontPageBanner (5, FALSE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_CUSTOMIZE_BANNER_LINE5_RIGHT), NewString, NULL);
-  FreePool (NewString);
+  FirmwareConfigurationInformation ();
+  WarnNoBootableMedia ();
 
   //
   // Update Front Page banner strings base on SmBios Table.
   //
   Status = gBS->LocateProtocol (&gEfiSmbiosProtocolGuid, NULL, (VOID **)&Smbios);
   if (EFI_ERROR (Status)) {
-    //
-    // Smbios protocol not found, get the default value.
-    //
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), NULL);
-    UiCustomizeFrontPageBanner (1, TRUE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), NewString, NULL);
-    FreePool (NewString);
-
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_MODEL), NULL);
-    UiCustomizeFrontPageBanner (2, TRUE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_MODEL), NewString, NULL);
-    FreePool (NewString);
-
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_SPEED), NULL);
-    UiCustomizeFrontPageBanner (2, FALSE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_SPEED), NewString, NULL);
-    FreePool (NewString);
-
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NULL);
-    UiCustomizeFrontPageBanner (3, TRUE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NewString, NULL);
-    FreePool (NewString);
-
-    NewString = HiiGetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_MEMORY_SIZE), NULL);
-    UiCustomizeFrontPageBanner (3, FALSE, &NewString);
-    HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_MEMORY_SIZE), NewString, NULL);
-    FreePool (NewString);
-
     return;
   }
 
@@ -586,80 +880,82 @@ UpdateFrontPageBannerStrings (
   Status       = Smbios->GetNext (Smbios, &SmbiosHandle, NULL, &Record, NULL);
   while (!EFI_ERROR (Status)) {
     if (Record->Type == SMBIOS_TYPE_BIOS_INFORMATION) {
-      Type0Record = (SMBIOS_TABLE_TYPE0 *)Record;
-      StrIndex    = Type0Record->BiosVersion;
-      GetOptionalStringByIndex ((CHAR8 *)((UINT8 *)Type0Record + Type0Record->Hdr.Length), StrIndex, &NewString);
+      SMBIOS_TABLE_TYPE0 *Type0Record = (SMBIOS_TABLE_TYPE0 *)Record;
+      CHAR16 *FwVersion;
+      CHAR16 *TmpBuffer;
+      UINT8 VersionIdx;
 
-      FirmwareVersionString = (CHAR16 *)PcdGetPtr (PcdFirmwareVersionString);
-      if (*FirmwareVersionString != 0x0000 ) {
-        FreePool (NewString);
-        NewString = (CHAR16 *)PcdGetPtr (PcdFirmwareVersionString);
-        UiCustomizeFrontPageBanner (3, TRUE, &NewString);
-        HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NewString, NULL);
-      } else {
-        UiCustomizeFrontPageBanner (3, TRUE, &NewString);
-        HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), NewString, NULL);
-        FreePool (NewString);
-      }
+      TmpBuffer = AllocateZeroPool (0x60);
+
+      VersionIdx = Type0Record->BiosVersion;
+      GetOptionalStringByIndex ((CHAR8 *)((UINT8 *)Type0Record + Type0Record->Hdr.Length), VersionIdx, &FwVersion);
+
+      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), L"Version: ");
+      StrCatS (TmpBuffer, 0x60 / sizeof (CHAR16), FwVersion);
+
+      HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_BIOS_VERSION), TmpBuffer, NULL);
+      FreePool (FwVersion);
+      FreePool (TmpBuffer);
     }
 
     if (Record->Type == SMBIOS_TYPE_SYSTEM_INFORMATION) {
-      Type1Record = (SMBIOS_TABLE_TYPE1 *)Record;
-      StrIndex    = Type1Record->ProductName;
-      GetOptionalStringByIndex ((CHAR8 *)((UINT8 *)Type1Record + Type1Record->Hdr.Length), StrIndex, &NewString);
-      UiCustomizeFrontPageBanner (1, TRUE, &NewString);
-      HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), NewString, NULL);
-      FreePool (NewString);
+      SMBIOS_TABLE_TYPE1 *Type1Record = (SMBIOS_TABLE_TYPE1 *)Record;
+      CHAR16 *Manufacturer;
+      CHAR16 *ProductName;
+      CHAR16 *ProductVersion;
+      CHAR16 *Title;
+      CHAR16 *Model;
+      UINT8 ModelIdx;
+      UINT8 MfgIdx;
+      UINT8 VersionIdx;
+
+      Title = AllocateZeroPool (0x60);
+      Model = AllocateZeroPool (0x60);
+
+      MfgIdx = Type1Record->Manufacturer;
+      GetOptionalStringByIndex ((CHAR8 *)((UINT8 *)Type1Record + Type1Record->Hdr.Length), MfgIdx, &Manufacturer);
+
+      ModelIdx = Type1Record->ProductName;
+      GetOptionalStringByIndex ((CHAR8 *)((UINT8 *)Type1Record + Type1Record->Hdr.Length), ModelIdx, &ProductName);
+
+      StrCatS (Title, 0x60 / sizeof (CHAR16), Manufacturer);
+      StrCatS (Title, 0x60 / sizeof (CHAR16), L" ");
+      StrCatS (Title, 0x60 / sizeof (CHAR16), ProductName);
+      HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_TITLE), Title, NULL);
+
+      VersionIdx = Type1Record->Version;
+      GetOptionalStringByIndex ((CHAR8 *)((UINT8 *)Type1Record + Type1Record->Hdr.Length), VersionIdx, &ProductVersion);
+
+      StrCatS (Model, 0x60 / sizeof (CHAR16), L"Model: ");
+      StrCatS (Model, 0x60 / sizeof (CHAR16), ProductVersion);
+      HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_COMPUTER_MODEL), Model, NULL);
+
+      FreePool (Model);
+      FreePool (Title);
+      FreePool (ProductVersion);
+      FreePool (ProductName);
+      FreePool (Manufacturer);
     }
 
-    if ((Record->Type == SMBIOS_TYPE_PROCESSOR_INFORMATION) && !FoundCpu) {
-      Type4Record = (SMBIOS_TABLE_TYPE4 *)Record;
-      //
-      // The information in the record should be only valid when the CPU Socket is populated.
-      //
-      if ((Type4Record->Status & SMBIOS_TYPE4_CPU_SOCKET_POPULATED) == SMBIOS_TYPE4_CPU_SOCKET_POPULATED) {
-        StrIndex = Type4Record->ProcessorVersion;
-        GetOptionalStringByIndex ((CHAR8 *)((UINT8 *)Type4Record + Type4Record->Hdr.Length), StrIndex, &NewString);
-        UiCustomizeFrontPageBanner (2, TRUE, &NewString);
-        HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_MODEL), NewString, NULL);
-        FreePool (NewString);
+    if (Record->Type == SMBIOS_TYPE_SYSTEM_ENCLOSURE) {
+      SMBIOS_TABLE_TYPE3 *Type3Record = (SMBIOS_TABLE_TYPE3 *)Record;
 
-        ConvertProcessorToString (Type4Record->CurrentSpeed, 6, &NewString);
-        UiCustomizeFrontPageBanner (2, FALSE, &NewString);
-        HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_CPU_SPEED), NewString, NULL);
-        FreePool (NewString);
-
-        FoundCpu = TRUE;
-      }
-    }
-
-    if ( Record->Type == SMBIOS_TYPE_MEMORY_ARRAY_MAPPED_ADDRESS ) {
-      Type19Record = (SMBIOS_TABLE_TYPE19 *)Record;
-      if (Type19Record->StartingAddress != 0xFFFFFFFF ) {
-        InstalledMemory += RShiftU64 (
-                             Type19Record->EndingAddress -
-                             Type19Record->StartingAddress + 1,
-                             10
-                             );
-      } else {
-        InstalledMemory += RShiftU64 (
-                             Type19Record->ExtendedEndingAddress -
-                             Type19Record->ExtendedStartingAddress + 1,
-                             20
-                             );
+      switch (Type3Record->Type) {
+        case MiscChassisTypeLapTop:
+          CheckWebcam = TRUE;
+          break;
+        default:
+          CheckWebcam = FALSE;
+          break;
       }
     }
 
     Status = Smbios->GetNext (Smbios, &SmbiosHandle, NULL, &Record, NULL);
   }
 
-  //
-  // Now update the total installed RAM size
-  //
-  ConvertMemorySizeToString ((UINT32)InstalledMemory, &NewString);
-  UiCustomizeFrontPageBanner (3, FALSE, &NewString);
-  HiiSetString (gFrontPagePrivate.HiiHandle, STRING_TOKEN (STR_FRONT_PAGE_MEMORY_SIZE), NewString, NULL);
-  FreePool (NewString);
+  if (CheckWebcam) {
+    WebcamStatus ();
+  }
 }
 
 /**
@@ -907,6 +1203,8 @@ InitializeUserInterface (
   UINTN                            BootTextColumn;
   UINTN                            BootTextRow;
 
+  mSystemTable = SystemTable;
+
   if (!mModeInitialized) {
     //
     // After the console is ready, get current video resolution
@@ -1031,11 +1329,6 @@ UiEntry (
   CallFrontPage ();
 
   FreeFrontPage ();
-
-  if (mLanguageString != NULL) {
-    FreePool (mLanguageString);
-    mLanguageString = NULL;
-  }
 
   //
   // Will leave browser, check any reset required change is applied? if yes, reset system
