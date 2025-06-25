@@ -957,7 +957,7 @@
 
   MdeModulePkg/Universal/BdsDxe/BdsDxe.inf
 !if $(BOOTSPLASH_IMAGE)
-  MdeModulePkg/Logo/LogoDxe.inf
+  System76PayloadPkg/Logo/LogoDxe.inf
 !endif
   MdeModulePkg/Application/UiApp/UiApp.inf {
     <LibraryClasses>

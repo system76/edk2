@@ -256,7 +256,7 @@ INF System76PayloadPkg/BlSupportDxe/BlSupportDxe.inf
 
 INF MdeModulePkg/Universal/SmbiosDxe/SmbiosDxe.inf
 !if $(BOOTSPLASH_IMAGE)
-INF MdeModulePkg/Logo/LogoDxe.inf
+INF System76PayloadPkg/Logo/LogoDxe.inf
 !endif
 
 #
