@@ -34,7 +34,7 @@
   DEFINE SIO_BUS_ENABLE               = FALSE
   DEFINE SECURITY_STUB_ENABLE         = TRUE
   DEFINE SMM_SUPPORT                  = FALSE
-  DEFINE PLATFORM_BOOT_TIMEOUT        = 3
+  DEFINE PLATFORM_BOOT_TIMEOUT        = 2
   DEFINE ATA_ENABLE                   = TRUE
   DEFINE SD_ENABLE                    = TRUE
   DEFINE PS2_MOUSE_ENABLE             = TRUE
