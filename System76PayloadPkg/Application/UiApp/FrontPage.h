@@ -1,10 +1,6 @@
-/** @file
-Head file for front page.
-
-Copyright (c) 2004 - 2016, Intel Corporation. All rights reserved.<BR>
-SPDX-License-Identifier: BSD-2-Clause-Patent
-
-**/
+// SPDX-License-Identifier: BSD-2-Clause-Patent
+// SPDX-FileCopyrightText: Copyright (c) 2004 - 2016, Intel Corporation. All rights reserved.<BR>
+// SPDX-FileCopyrightText: 2025 System76, Inc.
 
 #ifndef _FRONT_PAGE_H_
 #define _FRONT_PAGE_H_
@@ -22,26 +18,17 @@ extern EFI_FORM_BROWSER2_PROTOCOL  *gFormBrowser2;
 
 #define SMBIOS_TYPE4_CPU_SOCKET_POPULATED  BIT6
 
-//
-// This is the VFR compiler generated header file which defines the
-// string identifiers.
-//
-#define PRINTABLE_LANGUAGE_NAME_STRING_ID  0x0001
+// XXX: Must match VFR
 
-//
-// These are defined as the same with vfr file
-//
-#define FRONT_PAGE_FORM_ID  0x1000
+#define FRONT_PAGE_FORM_ID    0x7600
+#define FIRMWARE_INFO_FORM_ID 0x7601
 
-#define LABEL_FRONTPAGE_INFORMATION  0x1000
-#define LABEL_END                    0xffff
+#define LABEL_FRONTPAGE_INFORMATION   0x1000
+#define LABEL_DEVICES_LIST            0x2000
+#define LABEL_END                     0xffff
 
-#define FRONT_PAGE_FORMSET_GUID \
-  { \
-    0x9e0c30bc, 0x3f06, 0x4ba6, {0x82, 0x88, 0x9, 0x17, 0x9b, 0x85, 0x5d, 0xbe} \
-  }
-
-#define FRONT_PAGE_CALLBACK_DATA_SIGNATURE  SIGNATURE_32 ('F', 'P', 'C', 'B')
+#define FRONT_PAGE_FORMSET_GUID { 0x8940cf32, 0x4f58, 0x40b1, { 0x97, 0x0a, 0xe8, 0xc5, 0x1f, 0x3a, 0x03, 0x50 }}
+#define FRONT_PAGE_CALLBACK_DATA_SIGNATURE SIGNATURE_32('F', 'P', 'C', 'B')
 
 typedef struct {
   UINTN                             Signature;
@@ -51,7 +38,6 @@ typedef struct {
   //
   EFI_HII_HANDLE                    HiiHandle;
   EFI_HANDLE                        DriverHandle;
-  EFI_STRING_ID                     *LanguageToken;
 
   //
   // Produced protocols
