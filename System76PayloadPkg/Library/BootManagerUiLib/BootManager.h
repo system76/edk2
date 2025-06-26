@@ -1,10 +1,6 @@
-/** @file
-  The boot manager reference implementation
-
-Copyright (c) 2004 - 2017, Intel Corporation. All rights reserved.<BR>
-SPDX-License-Identifier: BSD-2-Clause-Patent
-
-**/
+// SPDX-License-Identifier: BSD-2-Clause-Patent
+// SPDX-FileCopyrightText: Copyright (c) 2004 - 2017, Intel Corporation. All rights reserved.<BR>
+// SPDX-FileCopyrightText: 2025 System76, Inc.
 
 #ifndef _EFI_BOOT_MANAGER_H_
 #define _EFI_BOOT_MANAGER_H_
@@ -38,19 +34,16 @@ typedef struct {
 } HII_VENDOR_DEVICE_PATH;
 #pragma pack()
 
-//
-// These are defined as the same with vfr file
-//
-#define BOOT_MANAGER_FORMSET_GUID \
-  { \
-  0x847bc3fe, 0xb974, 0x446d, {0x94, 0x49, 0x5a, 0xd5, 0x41, 0x2e, 0x99, 0x3b} \
-  }
+// XXX: Must match VFR
 
-#define BOOT_MANAGER_FORM_ID  0x1000
+#define BOOT_MANAGER_FORMSET_GUID { 0x3f56106a, 0xa83f, 0x4417, { 0x90, 0x21, 0xc7, 0x77, 0x5c, 0x1d, 0x73, 0xfe }}
+#define BOOT_MANAGER_REFRESH_GUID { 0x7648c827, 0xbe32, 0x44d2, { 0xa1, 0x33, 0xf1, 0x7f, 0x93, 0x76, 0xc7, 0x00 }}
 
-#define LABEL_BOOT_OPTION      0x00
-#define LABEL_BOOT_OPTION_END  0x01
-#define MAX_STRING_LEN         200
+#define BOOT_MANAGER_FORM_ID    0x1030
+
+#define LABEL_BOOT_OPTION       0x00
+#define LABEL_BOOT_OPTION_END   0x01
+#define MAX_STRING_LEN          200
 
 //
 // Variable created with this flag will be "Efi:...."

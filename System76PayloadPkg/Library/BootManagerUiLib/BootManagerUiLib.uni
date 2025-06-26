@@ -1,20 +1,5 @@
-// /** @file
-// Boot Manager Library used by UiApp.
-//
-// Boot Manager Library used by UiApp.
-//
-// Copyright (c) 2015, Intel Corporation. All rights reserved.<BR>
-//
 // SPDX-License-Identifier: BSD-2-Clause-Patent
-//
-// **/
+// SPDX-FileCopyrightText: 2025 System76, Inc.
 
-#string STR_MODULE_ABSTRACT
-#language en-US
-"Boot Manager Library used by UiApp."
-
-#string STR_MODULE_DESCRIPTION
-#language en-US
-"Boot Manager Library used by UiApp."
-
-
+#string STR_MODULE_ABSTRACT #language en-US "Boot manager library"
+#string STR_MODULE_DESCRIPTION #language en-US "Boot manager library"
