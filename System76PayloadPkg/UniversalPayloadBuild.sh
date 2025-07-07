@@ -13,5 +13,5 @@ fi
 uplbld_filepath=${BASH_SOURCE:-$0}
 # Remove ".sh" extension
 uplbld_filepath_noext=${uplbld_filepath%.*}
-# execute UniversalPayloadBuild.py to build UefiPayloadPkg
+# execute UniversalPayloadBuild.py to build System76PayloadPkg
 exec "${python_exe:-python}" "$uplbld_filepath_noext.py" "$@"

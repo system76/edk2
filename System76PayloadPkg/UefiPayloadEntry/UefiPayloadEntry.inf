@@ -46,7 +46,7 @@
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
   UefiCpuPkg/UefiCpuPkg.dec
-  UefiPayloadPkg/UefiPayloadPkg.dec
+  System76PayloadPkg/System76PayloadPkg.dec
 
 [LibraryClasses]
   BaseMemoryLib
@@ -90,15 +90,15 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdGhcbBase                            ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdGhcbSize                            ## CONSUMES
 
-  gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemBase
-  gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemSize
-  gUefiPayloadPkgTokenSpaceGuid.PcdBootloaderParameter
-  gUefiPayloadPkgTokenSpaceGuid.PcdSystemMemoryUefiRegionSize
-  gUefiPayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiACPIMemoryNVS
-  gUefiPayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiACPIReclaimMemory
-  gUefiPayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiReservedMemoryType
-  gUefiPayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiRuntimeServicesData
-  gUefiPayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiRuntimeServicesCode
+  gSystem76PayloadPkgTokenSpaceGuid.PcdPayloadFdMemBase
+  gSystem76PayloadPkgTokenSpaceGuid.PcdPayloadFdMemSize
+  gSystem76PayloadPkgTokenSpaceGuid.PcdBootloaderParameter
+  gSystem76PayloadPkgTokenSpaceGuid.PcdSystemMemoryUefiRegionSize
+  gSystem76PayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiACPIMemoryNVS
+  gSystem76PayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiACPIReclaimMemory
+  gSystem76PayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiReservedMemoryType
+  gSystem76PayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiRuntimeServicesData
+  gSystem76PayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiRuntimeServicesCode
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdSetNxForStack               ## SOMETIMES_CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdDxeNxMemoryProtectionPolicy ## SOMETIMES_CONSUMES

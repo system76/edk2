@@ -1,4 +1,4 @@
-# UefiPayloadPkg
+# System76PayloadPkg
 Provide UEFI Universal Payload for different bootloader to generate EFI environment
 
 # Spec
@@ -17,7 +17,7 @@ Provide UEFI Universal Payload for different bootloader to generate EFI environm
   - ELF
     ```
                   +  +-----------------------+
-                  |  | UniversalPayloadEntry | <----------- UefiPayloadPkg\UefiPayloadEntry\UniversalPayloadEntry.c:_ModuleEntryPoint (HOB)
+                  |  | UniversalPayloadEntry | <----------- System76PayloadPkg\UefiPayloadEntry\UniversalPayloadEntry.c:_ModuleEntryPoint (HOB)
                   |  +-----------------------+
                   |  | .upld_info            | patch it directly
     ELF Format    |  +-----------------------+
@@ -34,7 +34,7 @@ Provide UEFI Universal Payload for different bootloader to generate EFI environm
                   +  +-----------------------+
     FIT Data      |  | FIT Header            | <----------- Generate by pylibfdt
                   +  +-----------------------+
-    PECOFF Format |  | UniversalPayloadEntry | <----------- UefiPayloadPkg\UefiPayloadEntry\FitUniversalPayloadEntry.c:_ModuleEntryPoint (HOB)
+    PECOFF Format |  | UniversalPayloadEntry | <----------- System76PayloadPkg\UefiPayloadEntry\FitUniversalPayloadEntry.c:_ModuleEntryPoint (HOB)
                   +  +-----------------------+
     Relocate Data |  | reloc-start           |
                   +  +-----------------------+
@@ -69,16 +69,16 @@ Provide UEFI Universal Payload for different bootloader to generate EFI environm
     - source edksetup.sh
 
   - UniversalPayload.elf
-    - python UefiPayloadPkg/UniversalPayloadBuild.py -t <TOOL_CHAIN_TAG>
-    - llvm-objdump -h Build/UefiPayloadPkgX64/UniversalPayload.elf
+    - python System76PayloadPkg/UniversalPayloadBuild.py -t <TOOL_CHAIN_TAG>
+    - llvm-objdump -h Build/System76PayloadPkgX64/UniversalPayload.elf
 
   - UniversalPayload.fit
-    - python UefiPayloadPkg/UniversalPayloadBuild.py -t <TOOL_CHAIN_TAG> --Fit
+    - python System76PayloadPkg/UniversalPayloadBuild.py -t <TOOL_CHAIN_TAG> --Fit
 
 # How to dump payload binary data
   - UniversalPayload.elf
     - Install elf dump tools https://github.com/llvm/llvm-project/releases/tag/llvmorg-10.0.1
-    - llvm-objdump -h Build/UefiPayloadPkgX64/UniversalPayload.elf
+    - llvm-objdump -h Build/System76PayloadPkgX64/UniversalPayload.elf
 
   - UniversalPayload.fit
     - Install fdtdump tool
@@ -92,7 +92,7 @@ Provide UEFI Universal Payload for different bootloader to generate EFI environm
         sudo apt install -y u-boot-tools
         ```
 
-    - fdtdump Build/UefiPayloadPkgX64/UniversalPayload.fit
+    - fdtdump Build/System76PayloadPkgX64/UniversalPayload.fit
 
 # Edk2boot + UefiUniversalPayload
 ELF Edk2boot use below way to support compress and sign.
@@ -104,7 +104,7 @@ ELF Edk2boot use below way to support compress and sign.
   | Platform Init                                                                       | Universal Loader Interface                                                                                | OS                |
   +-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------+-------------------+
                                                                                                                                                                      HOBs
-  SEC -> PEI -> DXE -> DXE IPL -> UefiPayloadPkg\PayloadLoaderPeim\PayloadLoaderPeim.c ------------------------------------------------------------------------------------> Load UniversalPayload.elf -> Operation System
+  SEC -> PEI -> DXE -> DXE IPL -> System76PayloadPkg\PayloadLoaderPeim\PayloadLoaderPeim.c ------------------------------------------------------------------------------------> Load UniversalPayload.elf -> Operation System
 
 
   | Platform Initialize - Edk2                                                                                                                                                                      | UniversalPayload - Edk2        |
@@ -147,7 +147,7 @@ FIT Edk2boot use below way to support compress and sign
   | Platform Init                                                                       | Universal Loader Interface                                             | OS                |
   +-------------------------------------------------------------------------------------+------------------------------------------------------------------------+-------------------+
                                                                                                       HOBs
-  SEC -> PEI -> DXE -> DXE IPL -> *UefiPayloadPkg\PayloadLoaderPeim\PayloadLoaderPeim.c ----------------------------------------------> Load UniversalPayload.fit -> Operation System
+  SEC -> PEI -> DXE -> DXE IPL -> *System76PayloadPkg\PayloadLoaderPeim\PayloadLoaderPeim.c ----------------------------------------------> Load UniversalPayload.fit -> Operation System
 
   Binary Format
 

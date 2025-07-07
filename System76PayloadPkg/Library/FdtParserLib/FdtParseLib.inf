@@ -26,7 +26,7 @@
 [Packages]
   MdePkg/MdePkg.dec
   MdeModulePkg/MdeModulePkg.dec
-  UefiPayloadPkg/UefiPayloadPkg.dec
+  System76PayloadPkg/System76PayloadPkg.dec
 
 [LibraryClasses]
   DebugLib
@@ -44,15 +44,15 @@
   gUplPciSegmentInfoHobGuid
 
 [Pcd.IA32,Pcd.X64,Pcd.RISCV64,Pcd.AARCH64]
-  gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemSize
-  gUefiPayloadPkgTokenSpaceGuid.PcdSystemMemoryUefiRegionSize
-  gUefiPayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable
-  gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemBase
-  gUefiPayloadPkgTokenSpaceGuid.PcdPciReservedPMemBase
-  gUefiPayloadPkgTokenSpaceGuid.PcdPciReservedPMemLimit
-  gUefiPayloadPkgTokenSpaceGuid.PcdPciReservedPMemAbove4GBBase
-  gUefiPayloadPkgTokenSpaceGuid.PcdPciReservedPMemAbove4GBLimit
-  gUefiPayloadPkgTokenSpaceGuid.SizeOfIoSpace
+  gSystem76PayloadPkgTokenSpaceGuid.PcdPayloadFdMemSize
+  gSystem76PayloadPkgTokenSpaceGuid.PcdSystemMemoryUefiRegionSize
+  gSystem76PayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable
+  gSystem76PayloadPkgTokenSpaceGuid.PcdPayloadFdMemBase
+  gSystem76PayloadPkgTokenSpaceGuid.PcdPciReservedPMemBase
+  gSystem76PayloadPkgTokenSpaceGuid.PcdPciReservedPMemLimit
+  gSystem76PayloadPkgTokenSpaceGuid.PcdPciReservedPMemAbove4GBBase
+  gSystem76PayloadPkgTokenSpaceGuid.PcdPciReservedPMemAbove4GBLimit
+  gSystem76PayloadPkgTokenSpaceGuid.SizeOfIoSpace
 
 
 [BuildOptions]

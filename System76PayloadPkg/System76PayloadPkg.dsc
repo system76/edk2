@@ -16,16 +16,16 @@
 #
 ################################################################################
 [Defines]
-  PLATFORM_NAME                       = UefiPayloadPkg
-  PLATFORM_GUID                       = F71608AB-D63D-4491-B744-A99998C8CD96
+  PLATFORM_NAME                       = System76PayloadPkg
+  PLATFORM_GUID                       = f2ab419c-f77f-474c-b05c-667cf5546023
   PLATFORM_VERSION                    = 0.1
   DSC_SPECIFICATION                   = 0x00010005
   SUPPORTED_ARCHITECTURES             = IA32|X64|AARCH64
   BUILD_TARGETS                       = DEBUG|RELEASE|NOOPT
   SKUID_IDENTIFIER                    = DEFAULT
   BUILD_ARCH                          = Legacy
-  OUTPUT_DIRECTORY                    = Build/UefiPayloadPkg$(BUILD_ARCH)
-  FLASH_DEFINITION                    = UefiPayloadPkg/UefiPayloadPkg.fdf
+  OUTPUT_DIRECTORY                    = Build/System76PayloadPkg$(BUILD_ARCH)
+  FLASH_DEFINITION                    = System76PayloadPkg/System76PayloadPkg.fdf
   PCD_DYNAMIC_AS_DYNAMICEX            = TRUE
 
   DEFINE SOURCE_DEBUG_ENABLE          = FALSE
@@ -238,12 +238,12 @@
   PciExpressLib|MdePkg/Library/BasePciExpressLib/BasePciExpressLib.inf
 !endif
   PciSegmentLib|MdePkg/Library/PciSegmentLibSegmentInfo/BasePciSegmentLibSegmentInfo.inf
-  PciSegmentInfoLib|UefiPayloadPkg/Library/PciSegmentInfoLibAcpiBoardInfo/PciSegmentInfoLibAcpiBoardInfo.inf
+  PciSegmentInfoLib|System76PayloadPkg/Library/PciSegmentInfoLibAcpiBoardInfo/PciSegmentInfoLibAcpiBoardInfo.inf
   PeCoffLib|MdePkg/Library/BasePeCoffLib/BasePeCoffLib.inf
   PeCoffGetEntryPointLib|MdePkg/Library/BasePeCoffGetEntryPointLib/BasePeCoffGetEntryPointLib.inf
   CacheMaintenanceLib|MdePkg/Library/BaseCacheMaintenanceLib/BaseCacheMaintenanceLib.inf
   SafeIntLib|MdePkg/Library/BaseSafeIntLib/BaseSafeIntLib.inf
-  DxeHobListLib|UefiPayloadPkg/Library/DxeHobListLib/DxeHobListLib.inf
+  DxeHobListLib|System76PayloadPkg/Library/DxeHobListLib/DxeHobListLib.inf
 !if $(CRYPTO_PROTOCOL_SUPPORT) == TRUE
   BaseCryptLib|CryptoPkg/Library/BaseCryptLibOnProtocolPpi/DxeCryptLib.inf
   TlsLib|CryptoPkg/Library/BaseCryptLibOnProtocolPpi/DxeCryptLib.inf
@@ -254,8 +254,8 @@
   IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
   OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLib.inf
   RngLib|MdePkg/Library/BaseRngLib/BaseRngLib.inf
-  HobLib|UefiPayloadPkg/Library/DxeHobLib/DxeHobLib.inf
-  CustomFdtNodeParserLib|UefiPayloadPkg/Library/CustomFdtNodeParserNullLib/CustomFdtNodeParserNullLib.inf
+  HobLib|System76PayloadPkg/Library/DxeHobLib/DxeHobLib.inf
+  CustomFdtNodeParserLib|System76PayloadPkg/Library/CustomFdtNodeParserNullLib/CustomFdtNodeParserNullLib.inf
 
   #
   # UEFI & PI
@@ -289,25 +289,25 @@
   BootLogoLib|MdeModulePkg/Library/BootLogoLib/BootLogoLib.inf
   CustomizedDisplayLib|MdeModulePkg/Library/CustomizedDisplayLib/CustomizedDisplayLib.inf
   FrameBufferBltLib|MdeModulePkg/Library/FrameBufferBltLib/FrameBufferBltLib.inf
-  ResetSystemLib|UefiPayloadPkg/Library/ResetSystemLib/ResetSystemLib.inf
+  ResetSystemLib|System76PayloadPkg/Library/ResetSystemLib/ResetSystemLib.inf
 !if $(USE_CBMEM_FOR_CONSOLE) == TRUE
-  SerialPortLib|UefiPayloadPkg/Library/CbSerialPortLib/CbSerialPortLib.inf
+  SerialPortLib|System76PayloadPkg/Library/CbSerialPortLib/CbSerialPortLib.inf
   PlatformHookLib|MdeModulePkg/Library/BasePlatformHookLibNull/BasePlatformHookLibNull.inf
 !else
   !if $(MULTIPLE_DEBUG_PORT_SUPPORT) == TRUE
-    SerialPortLib|UefiPayloadPkg/Library/BaseSerialPortLibHob/DxeBaseSerialPortLibHob.inf
+    SerialPortLib|System76PayloadPkg/Library/BaseSerialPortLibHob/DxeBaseSerialPortLibHob.inf
   !else
     SerialPortLib|MdeModulePkg/Library/BaseSerialPortLib16550/BaseSerialPortLib16550.inf
   !endif
-  PlatformHookLib|UefiPayloadPkg/Library/PlatformHookLib/PlatformHookLib.inf
+  PlatformHookLib|System76PayloadPkg/Library/PlatformHookLib/PlatformHookLib.inf
 !endif
-  PlatformBootManagerLib|UefiPayloadPkg/Library/PlatformBootManagerLib/PlatformBootManagerLib.inf
+  PlatformBootManagerLib|System76PayloadPkg/Library/PlatformBootManagerLib/PlatformBootManagerLib.inf
   IoApicLib|PcAtChipsetPkg/Library/BaseIoApicLib/BaseIoApicLib.inf
 
   #
   # Misc
   #
-  DebugPrintErrorLevelLib|UefiPayloadPkg/Library/DebugPrintErrorLevelLibHob/DebugPrintErrorLevelLibHob.inf
+  DebugPrintErrorLevelLib|System76PayloadPkg/Library/DebugPrintErrorLevelLibHob/DebugPrintErrorLevelLibHob.inf
   PerformanceLib|MdePkg/Library/BasePerformanceLibNull/BasePerformanceLibNull.inf
   ImagePropertiesRecordLib|MdeModulePkg/Library/ImagePropertiesRecordLib/ImagePropertiesRecordLib.inf
 !if $(SOURCE_DEBUG_ENABLE) == TRUE
@@ -317,12 +317,12 @@
   PeCoffExtraActionLib|MdePkg/Library/BasePeCoffExtraActionLibNull/BasePeCoffExtraActionLibNull.inf
   DebugAgentLib|MdeModulePkg/Library/DebugAgentLibNull/DebugAgentLibNull.inf
 !endif
-  PlatformSupportLib|UefiPayloadPkg/Library/PlatformSupportLibNull/PlatformSupportLibNull.inf
+  PlatformSupportLib|System76PayloadPkg/Library/PlatformSupportLibNull/PlatformSupportLibNull.inf
 !if $(UNIVERSAL_PAYLOAD) == FALSE
   !if $(BOOTLOADER) == "COREBOOT"
-    BlParseLib|UefiPayloadPkg/Library/CbParseLib/CbParseLib.inf
+    BlParseLib|System76PayloadPkg/Library/CbParseLib/CbParseLib.inf
   !else
-    BlParseLib|UefiPayloadPkg/Library/SblParseLib/SblParseLib.inf
+    BlParseLib|System76PayloadPkg/Library/SblParseLib/SblParseLib.inf
   !endif
 !endif
 
@@ -347,7 +347,7 @@
 !if $(VARIABLE_SUPPORT) == "EMU"
   TpmMeasurementLib|MdeModulePkg/Library/TpmMeasurementLibNull/TpmMeasurementLibNull.inf
 !elseif $(VARIABLE_SUPPORT) == "SMMSTORE"
-  SmmStoreLib|UefiPayloadPkg/Library/SmmStoreLib/SmmStoreLib.inf
+  SmmStoreLib|System76PayloadPkg/Library/SmmStoreLib/SmmStoreLib.inf
   TpmMeasurementLib|MdeModulePkg/Library/TpmMeasurementLibNull/TpmMeasurementLibNull.inf
 !elseif $(VARIABLE_SUPPORT) == "SPI"
   PlatformSecureLib|SecurityPkg/Library/PlatformSecureLibNull/PlatformSecureLibNull.inf
@@ -365,7 +365,7 @@
   FdtLib|MdePkg/Library/BaseFdtLib/BaseFdtLib.inf
   SmmRelocationLib|UefiCpuPkg/Library/SmmRelocationLib/SmmRelocationLib.inf
   HobPrintLib|MdeModulePkg/Library/HobPrintLib/HobPrintLib.inf
-  BuildFdtLib|UefiPayloadPkg/Library/BuildFdtLib/BuildFdtLib.inf
+  BuildFdtLib|System76PayloadPkg/Library/BuildFdtLib/BuildFdtLib.inf
   MmSaveStateLib|UefiCpuPkg/Library/MmSaveStateLib/IntelMmSaveStateLib.inf
   SmmCpuSyncLib|UefiCpuPkg/Library/SmmCpuSyncLib/SmmCpuSyncLib.inf
 
@@ -387,7 +387,7 @@
 !if $(CPU_TIMER_LIB_ENABLE) == TRUE && $(UNIVERSAL_PAYLOAD) == TRUE
   TimerLib|UefiCpuPkg/Library/CpuTimerLib/BaseCpuTimerLib.inf
 !else
-  TimerLib|UefiPayloadPkg/Library/AcpiTimerLib/AcpiTimerLib.inf
+  TimerLib|System76PayloadPkg/Library/AcpiTimerLib/AcpiTimerLib.inf
 !endif
   CpuExceptionHandlerLib|UefiCpuPkg/Library/CpuExceptionHandlerLib/DxeCpuExceptionHandlerLib.inf
   CpuPageTableLib|UefiCpuPkg/Library/CpuPageTableLib/CpuPageTableLib.inf
@@ -396,7 +396,7 @@
   Tpm12CommandLib|SecurityPkg/Library/Tpm12CommandLib/Tpm12CommandLib.inf
   Tpm2CommandLib|SecurityPkg/Library/Tpm2CommandLib/Tpm2CommandLib.inf
   Tcg2PhysicalPresenceLib|OvmfPkg/Library/Tcg2PhysicalPresenceLibQemu/DxeTcg2PhysicalPresenceLib.inf
-  Tcg2PhysicalPresencePlatformLib|UefiPayloadPkg/Library/Tcg2PhysicalPresencePlatformLibUefipayload/DxeTcg2PhysicalPresencePlatformLib.inf
+  Tcg2PhysicalPresencePlatformLib|System76PayloadPkg/Library/Tcg2PhysicalPresencePlatformLibUefipayload/DxeTcg2PhysicalPresencePlatformLib.inf
   Tcg2PpVendorLib|SecurityPkg/Library/Tcg2PpVendorLibNull/Tcg2PpVendorLibNull.inf
   TpmMeasurementLib|SecurityPkg/Library/DxeTpmMeasurementLib/DxeTpmMeasurementLib.inf
 !else
@@ -454,16 +454,16 @@
   VirtioLib|OvmfPkg/Library/VirtioLib/VirtioLib.inf
 
 [LibraryClasses.common.SEC]
-  HobLib|UefiPayloadPkg/Library/PayloadEntryHobLib/HobLib.inf
+  HobLib|System76PayloadPkg/Library/PayloadEntryHobLib/HobLib.inf
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
-  DxeHobListLib|UefiPayloadPkg/Library/DxeHobListLibNull/DxeHobListLibNull.inf
+  DxeHobListLib|System76PayloadPkg/Library/DxeHobListLibNull/DxeHobListLibNull.inf
   DebugLib|MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
 !if $(MULTIPLE_DEBUG_PORT_SUPPORT) == TRUE
-  SerialPortLib|UefiPayloadPkg/Library/BaseSerialPortLibHob/BaseSerialPortLibHob.inf
+  SerialPortLib|System76PayloadPkg/Library/BaseSerialPortLibHob/BaseSerialPortLibHob.inf
 !endif
 
 [LibraryClasses.common.DXE_CORE]
-  DxeHobListLib|UefiPayloadPkg/Library/DxeHobListLibNull/DxeHobListLibNull.inf
+  DxeHobListLib|System76PayloadPkg/Library/DxeHobListLibNull/DxeHobListLibNull.inf
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
   HobLib|MdePkg/Library/DxeCoreHobLib/DxeCoreHobLib.inf
   MemoryAllocationLib|MdeModulePkg/Library/DxeCoreMemoryAllocationLib/DxeCoreMemoryAllocationLib.inf
@@ -555,8 +555,8 @@
 !endif
 !endif
 !if $(VARIABLE_SUPPORT) == "SPI"
-  SpiFlashLib|UefiPayloadPkg/Library/SpiFlashLib/SpiFlashLib.inf
-  FlashDeviceLib|UefiPayloadPkg/Library/FlashDeviceLib/FlashDeviceLib.inf
+  SpiFlashLib|System76PayloadPkg/Library/SpiFlashLib/SpiFlashLib.inf
+  FlashDeviceLib|System76PayloadPkg/Library/FlashDeviceLib/FlashDeviceLib.inf
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/SmmCryptLib.inf
 !endif
 
@@ -591,10 +591,10 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdVpdBaseAddress|0x0
   gEfiMdeModulePkgTokenSpaceGuid.PcdStatusCodeUseMemory|FALSE
   gEfiMdeModulePkgTokenSpaceGuid.PcdUse1GPageTable|TRUE
-  gUefiPayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable|$(HAND_OFF_FDT_ENABLE)
+  gSystem76PayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable|$(HAND_OFF_FDT_ENABLE)
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdBootManagerMenuFile|{ 0x21, 0xaa, 0x2c, 0x46, 0x14, 0x76, 0x03, 0x45, 0x83, 0x6e, 0x8a, 0xb6, 0xf4, 0x66, 0x23, 0x31 }
-  gUefiPayloadPkgTokenSpaceGuid.PcdPcdDriverFile|{ 0x57, 0x72, 0xcf, 0x80, 0xab, 0x87, 0xf9, 0x47, 0xa3, 0xfe, 0xD5, 0x0B, 0x76, 0xd8, 0x95, 0x41 }
+  gSystem76PayloadPkgTokenSpaceGuid.PcdPcdDriverFile|{ 0x57, 0x72, 0xcf, 0x80, 0xab, 0x87, 0xf9, 0x47, 0xa3, 0xfe, 0xD5, 0x0B, 0x76, 0xd8, 0x95, 0x41 }
 
 !if $(SOURCE_DEBUG_ENABLE)
   gEfiSourceLevelDebugPkgTokenSpaceGuid.PcdDebugLoadImageMethod|0x2
@@ -606,7 +606,7 @@
 !endif
   gEfiMdeModulePkgTokenSpaceGuid.PcdSdMmcGenericTimeoutValue|$(SD_MMC_TIMEOUT)
 
-  gUefiPayloadPkgTokenSpaceGuid.PcdBootManagerEscape|$(BOOT_MANAGER_ESCAPE)
+  gSystem76PayloadPkgTokenSpaceGuid.PcdBootManagerEscape|$(BOOT_MANAGER_ESCAPE)
 
   gEfiMdePkgTokenSpaceGuid.PcdMaximumUnicodeStringLength|1800000
 
@@ -693,14 +693,14 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdSmbiosEntryPointProvideMethod|0x2
 
   # AARCH64 use PL011 Serial Port device instead of UniversalPayload Serial
-  gUefiPayloadPkgTokenSpaceGuid.PcdUseUniversalPayloadSerialPort|FALSE
+  gSystem76PayloadPkgTokenSpaceGuid.PcdUseUniversalPayloadSerialPort|FALSE
 
 [PcdsPatchableInModule.IA32, PcdsPatchableInModule.X64]
 !if $(NETWORK_DRIVER_ENABLE) == TRUE
   gEfiNetworkPkgTokenSpaceGuid.PcdAllowHttpConnections|TRUE
 !endif
-  gUefiPayloadPkgTokenSpaceGuid.SizeOfIoSpace|16
-  gUefiPayloadPkgTokenSpaceGuid.PcdFDTPageSize|8
+  gSystem76PayloadPkgTokenSpaceGuid.SizeOfIoSpace|16
+  gSystem76PayloadPkgTokenSpaceGuid.PcdFDTPageSize|8
   #
   # The following parameters are set by Library/PlatformHookLib
   #
@@ -741,11 +741,11 @@
 
   gUefiCpuPkgTokenSpaceGuid.PcdCpuMaxLogicalProcessorNumber|$(MAX_LOGICAL_PROCESSORS)
   gUefiCpuPkgTokenSpaceGuid.PcdCpuNumberOfReservedVariableMtrrs|0
-  gUefiPayloadPkgTokenSpaceGuid.PcdBootloaderParameter|0
+  gSystem76PayloadPkgTokenSpaceGuid.PcdBootloaderParameter|0
 
 [PcdsPatchableInModule.AARCH64]
-  gUefiPayloadPkgTokenSpaceGuid.SizeOfIoSpace|16
-  gUefiPayloadPkgTokenSpaceGuid.PcdFDTPageSize|8
+  gSystem76PayloadPkgTokenSpaceGuid.SizeOfIoSpace|16
+  gSystem76PayloadPkgTokenSpaceGuid.PcdFDTPageSize|8
 
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialUseMmio|TRUE
   gEfiMdeModulePkgTokenSpaceGuid.PcdSerialRegisterBase|0x9000000
@@ -882,43 +882,43 @@
   [Components.IA32]
   !if $(UNIVERSAL_PAYLOAD) == TRUE
     !if $(UNIVERSAL_PAYLOAD_FORMAT) == "ELF"
-      UefiPayloadPkg/UefiPayloadEntry/UniversalPayloadEntry.inf
+      System76PayloadPkg/UefiPayloadEntry/UniversalPayloadEntry.inf
     !elseif $(UNIVERSAL_PAYLOAD_FORMAT) == "FIT"
-      UefiPayloadPkg/UefiPayloadEntry/FitUniversalPayloadEntry.inf {
+      System76PayloadPkg/UefiPayloadEntry/FitUniversalPayloadEntry.inf {
         <LibraryClasses>
-          !if gUefiPayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable == TRUE
+          !if gSystem76PayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable == TRUE
             FdtLib|MdePkg/Library/BaseFdtLib/BaseFdtLib.inf
-            CustomFdtNodeParserLib|UefiPayloadPkg/Library/CustomFdtNodeParserLib/CustomFdtNodeParserLib.inf
-            NULL|UefiPayloadPkg/Library/FdtParserLib/FdtParseLib.inf
+            CustomFdtNodeParserLib|System76PayloadPkg/Library/CustomFdtNodeParserLib/CustomFdtNodeParserLib.inf
+            NULL|System76PayloadPkg/Library/FdtParserLib/FdtParseLib.inf
           !endif
-          NULL|UefiPayloadPkg/Library/HobParseLib/HobParseLib.inf
+          NULL|System76PayloadPkg/Library/HobParseLib/HobParseLib.inf
       }
     !else
-      UefiPayloadPkg/UefiPayloadEntry/UefiPayloadEntry.inf
+      System76PayloadPkg/UefiPayloadEntry/UefiPayloadEntry.inf
     !endif
   !else
-    UefiPayloadPkg/UefiPayloadEntry/UefiPayloadEntry.inf
+    System76PayloadPkg/UefiPayloadEntry/UefiPayloadEntry.inf
   !endif
 !else
   [Components.X64, Components.AARCH64]
   !if $(UNIVERSAL_PAYLOAD) == TRUE
     !if $(UNIVERSAL_PAYLOAD_FORMAT) == "ELF"
-      UefiPayloadPkg/UefiPayloadEntry/UniversalPayloadEntry.inf
+      System76PayloadPkg/UefiPayloadEntry/UniversalPayloadEntry.inf
     !elseif $(UNIVERSAL_PAYLOAD_FORMAT) == "FIT"
-      UefiPayloadPkg/UefiPayloadEntry/FitUniversalPayloadEntry.inf {
+      System76PayloadPkg/UefiPayloadEntry/FitUniversalPayloadEntry.inf {
         <LibraryClasses>
-          !if gUefiPayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable == TRUE
+          !if gSystem76PayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable == TRUE
             FdtLib|MdePkg/Library/BaseFdtLib/BaseFdtLib.inf
-            CustomFdtNodeParserLib|UefiPayloadPkg/Library/CustomFdtNodeParserLib/CustomFdtNodeParserLib.inf
-            NULL|UefiPayloadPkg/Library/FdtParserLib/FdtParseLib.inf
+            CustomFdtNodeParserLib|System76PayloadPkg/Library/CustomFdtNodeParserLib/CustomFdtNodeParserLib.inf
+            NULL|System76PayloadPkg/Library/FdtParserLib/FdtParseLib.inf
           !endif
-          NULL|UefiPayloadPkg/Library/HobParseLib/HobParseLib.inf
+          NULL|System76PayloadPkg/Library/HobParseLib/HobParseLib.inf
       }
     !else
-      UefiPayloadPkg/UefiPayloadEntry/UefiPayloadEntry.inf
+      System76PayloadPkg/UefiPayloadEntry/UefiPayloadEntry.inf
     !endif
   !else
-    UefiPayloadPkg/UefiPayloadEntry/UefiPayloadEntry.inf
+    System76PayloadPkg/UefiPayloadEntry/UefiPayloadEntry.inf
   !endif
 !endif
 
@@ -939,7 +939,7 @@
     <LibraryClasses>
       !if $(MULTIPLE_DEBUG_PORT_SUPPORT) == TRUE
         DebugLib|MdePkg/Library/BaseDebugLibSerialPort/BaseDebugLibSerialPort.inf
-        SerialPortLib|UefiPayloadPkg/Library/BaseSerialPortLibHob/DxeBaseSerialPortLibHob.inf
+        SerialPortLib|System76PayloadPkg/Library/BaseSerialPortLibHob/DxeBaseSerialPortLibHob.inf
       !endif
       NULL|MdeModulePkg/Library/LzmaCustomDecompressLib/LzmaCustomDecompressLib.inf
   }
@@ -1008,7 +1008,7 @@
   MdeModulePkg/Universal/PlatformDriOverrideDxe/PlatformDriOverrideDxe.inf
   MdeModulePkg/Universal/EbcDxe/EbcDxe.inf
 
-  UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
+  System76PayloadPkg/BlSupportDxe/BlSupportDxe.inf
 
   #
   # SMBIOS Support
@@ -1030,7 +1030,7 @@
   MdeModulePkg/Bus/Pci/PciBusDxe/PciBusDxe.inf
   MdeModulePkg/Bus/Pci/PciHostBridgeDxe/PciHostBridgeDxe.inf {
     <LibraryClasses>
-      PciHostBridgeLib|UefiPayloadPkg/Library/PciHostBridgeLib/PciHostBridgeLib.inf
+      PciHostBridgeLib|System76PayloadPkg/Library/PciHostBridgeLib/PciHostBridgeLib.inf
   }
 
   #
@@ -1067,7 +1067,7 @@
   # Support for loading Option ROMs from PCI-Express devices
   #
 !if $(LOAD_OPTION_ROMS) == TRUE
-  UefiPayloadPkg/PciPlatformDxe/PciPlatformDxe.inf
+  System76PayloadPkg/PciPlatformDxe/PciPlatformDxe.inf
 !endif
 
   #
@@ -1106,7 +1106,7 @@
 !if $(DISABLE_SERIAL_TERMINAL) == FALSE
   MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
 !endif
-  UefiPayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
+  System76PayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
 !if $(PERFORMANCE_MEASUREMENT_ENABLE)
   MdeModulePkg/Universal/Acpi/FirmwarePerformanceDataTableDxe/FirmwarePerformanceDxe.inf
 !endif
@@ -1114,12 +1114,12 @@
   # SMM Support
   #
 !if $(SMM_SUPPORT) == TRUE
-  UefiPayloadPkg/SmmAccessDxe/SmmAccessDxe.inf
-  UefiPayloadPkg/SmmControlRuntimeDxe/SmmControlRuntimeDxe.inf
-  UefiPayloadPkg/BlSupportSmm/BlSupportSmm.inf
+  System76PayloadPkg/SmmAccessDxe/SmmAccessDxe.inf
+  System76PayloadPkg/SmmControlRuntimeDxe/SmmControlRuntimeDxe.inf
+  System76PayloadPkg/BlSupportSmm/BlSupportSmm.inf
   MdeModulePkg/Core/PiSmmCore/PiSmmIpl.inf
   MdeModulePkg/Core/PiSmmCore/PiSmmCore.inf
-  UefiPayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
+  System76PayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
   UefiCpuPkg/PiSmmCpuDxeSmm/PiSmmCpuDxeSmm.inf
   UefiCpuPkg/CpuIo2Smm/CpuIo2Smm.inf
 !if $(PERFORMANCE_MEASUREMENT_ENABLE)
@@ -1130,7 +1130,7 @@
 !if $(VARIABLE_SUPPORT) == "EMU"
   MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
 !elseif $(VARIABLE_SUPPORT) == "SMMSTORE"
-  UefiPayloadPkg/SmmStoreFvb/SmmStoreFvbRuntimeDxe.inf
+  System76PayloadPkg/SmmStoreFvb/SmmStoreFvbRuntimeDxe.inf
   MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteDxe.inf
   MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf {
     <LibraryClasses>
@@ -1146,7 +1146,7 @@
       NULL|MdeModulePkg/Library/VarCheckPolicyLib/VarCheckPolicyLib.inf
   }
 
-  UefiPayloadPkg/FvbRuntimeDxe/FvbSmm.inf
+  System76PayloadPkg/FvbRuntimeDxe/FvbSmm.inf
   MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteSmm.inf
   MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmmRuntimeDxe.inf
 !endif

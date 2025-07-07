@@ -24,8 +24,8 @@ DEFINE NUM_BLOCKS  = 0x800
 
 ################################################################################
 [FD.UefiPayload]
-BaseAddress   = $(FD_BASE) | gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemBase
-Size          = $(FD_SIZE) | gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemSize
+BaseAddress   = $(FD_BASE) | gSystem76PayloadPkgTokenSpaceGuid.PcdPayloadFdMemBase
+Size          = $(FD_SIZE) | gSystem76PayloadPkgTokenSpaceGuid.PcdPayloadFdMemSize
 ErasePolarity = 1
 BlockSize     = $(FD_BLOCK_SIZE)
 NumBlocks     = $(NUM_BLOCKS)
@@ -55,7 +55,7 @@ READ_LOCK_CAP      = TRUE
 READ_LOCK_STATUS   = TRUE
 
 !if $(UNIVERSAL_PAYLOAD) == FALSE
-INF UefiPayloadPkg/UefiPayloadEntry/UefiPayloadEntry.inf
+INF System76PayloadPkg/UefiPayloadEntry/UefiPayloadEntry.inf
 !endif
 FILE FV_IMAGE = 4E35FD93-9C72-4c15-8C4B-E77F1DB2D793 {
     SECTION FV_IMAGE = DXEFV
@@ -143,7 +143,7 @@ APRIORI DXE {
   INF  MdeModulePkg/Universal/PCD/Dxe/Pcd.inf
   INF  MdeModulePkg/Universal/ReportStatusCodeRouter/RuntimeDxe/ReportStatusCodeRouterRuntimeDxe.inf
   INF  MdeModulePkg/Universal/StatusCodeHandler/RuntimeDxe/StatusCodeHandlerRuntimeDxe.inf
-  INF  UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
+  INF  System76PayloadPkg/BlSupportDxe/BlSupportDxe.inf
 }
 
 #
@@ -208,14 +208,14 @@ INF MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf
 # SMM Support
 #
 !if $(SMM_SUPPORT) == TRUE
-  INF UefiPayloadPkg/SmmAccessDxe/SmmAccessDxe.inf
-  INF UefiPayloadPkg/SmmControlRuntimeDxe/SmmControlRuntimeDxe.inf
-  INF UefiPayloadPkg/BlSupportSmm/BlSupportSmm.inf
+  INF System76PayloadPkg/SmmAccessDxe/SmmAccessDxe.inf
+  INF System76PayloadPkg/SmmControlRuntimeDxe/SmmControlRuntimeDxe.inf
+  INF System76PayloadPkg/BlSupportSmm/BlSupportSmm.inf
   INF MdeModulePkg/Core/PiSmmCore/PiSmmIpl.inf
   INF MdeModulePkg/Core/PiSmmCore/PiSmmCore.inf
   INF UefiCpuPkg/CpuIo2Smm/CpuIo2Smm.inf
   INF UefiCpuPkg/PiSmmCpuDxeSmm/PiSmmCpuDxeSmm.inf
-  INF UefiPayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
+  INF System76PayloadPkg/PchSmiDispatchSmm/PchSmiDispatchSmm.inf
 !if $(PERFORMANCE_MEASUREMENT_ENABLE)
   INF  MdeModulePkg/Universal/Acpi/FirmwarePerformanceDataTableSmm/FirmwarePerformanceSmm.inf
 !endif
@@ -224,11 +224,11 @@ INF MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf
 !if $(VARIABLE_SUPPORT) == "EMU"
   INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
 !elseif $(VARIABLE_SUPPORT) == "SMMSTORE"
-  INF UefiPayloadPkg/SmmStoreFvb/SmmStoreFvbRuntimeDxe.inf
+  INF System76PayloadPkg/SmmStoreFvb/SmmStoreFvbRuntimeDxe.inf
   INF MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteDxe.inf
   INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableRuntimeDxe.inf
 !elseif $(VARIABLE_SUPPORT) == "SPI"
-  INF UefiPayloadPkg/FvbRuntimeDxe/FvbSmm.inf
+  INF System76PayloadPkg/FvbRuntimeDxe/FvbSmm.inf
   INF MdeModulePkg/Universal/FaultTolerantWriteDxe/FaultTolerantWriteSmm.inf
   INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmm.inf
   INF MdeModulePkg/Universal/Variable/RuntimeDxe/VariableSmmRuntimeDxe.inf
@@ -252,7 +252,7 @@ INF MdeModulePkg/Universal/SetupBrowserDxe/SetupBrowserDxe.inf
 INF MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
 INF MdeModulePkg/Universal/PlatformDriOverrideDxe/PlatformDriOverrideDxe.inf
 INF MdeModulePkg/Universal/EbcDxe/EbcDxe.inf
-INF UefiPayloadPkg/BlSupportDxe/BlSupportDxe.inf
+INF System76PayloadPkg/BlSupportDxe/BlSupportDxe.inf
 
 INF MdeModulePkg/Universal/SmbiosDxe/SmbiosDxe.inf
 !if $(BOOTSPLASH_IMAGE)
@@ -290,10 +290,10 @@ INF MdeModulePkg/Universal/Console/GraphicsConsoleDxe/GraphicsConsoleDxe.inf
 !if $(DISABLE_SERIAL_TERMINAL) == FALSE
 INF MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
 !endif
-INF UefiPayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
+INF System76PayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
 
 !if $(LOAD_OPTION_ROMS) == TRUE
-INF UefiPayloadPkg/PciPlatformDxe/PciPlatformDxe.inf
+INF System76PayloadPkg/PciPlatformDxe/PciPlatformDxe.inf
 !endif
 
 #

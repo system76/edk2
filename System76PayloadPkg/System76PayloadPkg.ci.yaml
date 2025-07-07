@@ -1,12 +1,12 @@
 ## @file
-# Core CI configuration for UefiPayloadPkg
+# Core CI configuration for System76PayloadPkg
 #
 # Copyright (c) 2021, Intel Corporation. All rights reserved.<BR>
 # SPDX-License-Identifier: BSD-2-Clause-Patent
 ##
 {
     "PrEval": {
-        "DscPath": "UefiPayloadPkg.dsc",
+        "DscPath": "System76PayloadPkg.dsc",
     },
     ## options defined .pytool/Plugin/LicenseCheck
     "LicenseCheck": {
@@ -31,7 +31,7 @@
     },
     ## options defined .pytool/Plugin/CompilerPlugin
     "CompilerPlugin": {
-        "DscPath": "UefiPayloadPkg.dsc"
+        "DscPath": "System76PayloadPkg.dsc"
     },
 
     ## options defined .pytool/Plugin/HostUnitTestCompilerPlugin

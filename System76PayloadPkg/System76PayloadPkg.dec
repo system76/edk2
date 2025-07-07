@@ -10,8 +10,8 @@
 
 [Defines]
   DEC_SPECIFICATION              = 0x00010005
-  PACKAGE_NAME                   = UefiPayloadPkg
-  PACKAGE_GUID                   = E0FC9D50-415E-4946-B686-9A130D5859E7
+  PACKAGE_NAME                   = System76PayloadPkg
+  PACKAGE_GUID                   = 4bf05172-82bf-4e27-9665-9823af63d7aa
   PACKAGE_VERSION                = 0.1
 
 [Includes]
@@ -22,7 +22,7 @@
   #
   ## Defines the token space for the UEFI Payload Package PCDs.
   #
-  gUefiPayloadPkgTokenSpaceGuid  = {0x1d127ea, 0xf6f1, 0x4ef6, {0x94, 0x15, 0x8a, 0x0, 0x0, 0x93, 0xf8, 0x9d}}
+  gSystem76PayloadPkgTokenSpaceGuid  = { 0xa1873e7c, 0xe225, 0x4af9, { 0x80, 0xaa, 0xfd, 0x32, 0x5e, 0x0a, 0xed, 0xb6 } }
 
   ## Include/Guid/UniversalPayloadBase.h
   gUniversalPayloadBaseGuid = { 0x03d4c61d, 0x2713, 0x4ec5, {0xa1, 0xcc, 0x88, 0x3b, 0xe9, 0xdc, 0x18, 0xe5 } }
@@ -68,47 +68,47 @@
 ################################################################################
 [PcdsFixedAtBuild, PcdsPatchableInModule]
 ## Indicates the base address of the payload binary in memory
-gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemBase|0|UINT32|0x10000001
+gSystem76PayloadPkgTokenSpaceGuid.PcdPayloadFdMemBase|0|UINT32|0x10000001
 ## Provides the size of the payload binary in memory
-gUefiPayloadPkgTokenSpaceGuid.PcdPayloadFdMemSize|0|UINT32|0x10000002
+gSystem76PayloadPkgTokenSpaceGuid.PcdPayloadFdMemSize|0|UINT32|0x10000002
 ## Save bootloader parameter
-gUefiPayloadPkgTokenSpaceGuid.PcdBootloaderParameter|0|UINT64|0x10000004
+gSystem76PayloadPkgTokenSpaceGuid.PcdBootloaderParameter|0|UINT64|0x10000004
 
 ## Used to help reduce fragmentation in the EFI memory map
-gUefiPayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiACPIReclaimMemory|0x19|UINT32|0x10000012
-gUefiPayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiACPIMemoryNVS|0x04|UINT32|0x10000013
-gUefiPayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiReservedMemoryType|0x08|UINT32|0x00000014
-gUefiPayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiRuntimeServicesData|0x100|UINT32|0x00000015
-gUefiPayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiRuntimeServicesCode|0x100|UINT32|0x00000016
+gSystem76PayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiACPIReclaimMemory|0x19|UINT32|0x10000012
+gSystem76PayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiACPIMemoryNVS|0x04|UINT32|0x10000013
+gSystem76PayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiReservedMemoryType|0x08|UINT32|0x00000014
+gSystem76PayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiRuntimeServicesData|0x100|UINT32|0x00000015
+gSystem76PayloadPkgTokenSpaceGuid.PcdMemoryTypeEfiRuntimeServicesCode|0x100|UINT32|0x00000016
 
 # Size of the region used by UEFI in permanent memory
-gUefiPayloadPkgTokenSpaceGuid.PcdSystemMemoryUefiRegionSize|0x04000000|UINT32|0x00000017
+gSystem76PayloadPkgTokenSpaceGuid.PcdSystemMemoryUefiRegionSize|0x04000000|UINT32|0x00000017
 
-gUefiPayloadPkgTokenSpaceGuid.PcdPcdDriverFile|{ 0x57, 0x72, 0xcf, 0x80, 0xab, 0x87, 0xf9, 0x47, 0xa3, 0xfe, 0xD5, 0x0B, 0x76, 0xd8, 0x95, 0x41 }|VOID*|0x00000018
+gSystem76PayloadPkgTokenSpaceGuid.PcdPcdDriverFile|{ 0x57, 0x72, 0xcf, 0x80, 0xab, 0x87, 0xf9, 0x47, 0xa3, 0xfe, 0xD5, 0x0B, 0x76, 0xd8, 0x95, 0x41 }|VOID*|0x00000018
 
 # Boot Manager Key
-gUefiPayloadPkgTokenSpaceGuid.PcdBootManagerEscape|FALSE|BOOLEAN|0x00000020
+gSystem76PayloadPkgTokenSpaceGuid.PcdBootManagerEscape|FALSE|BOOLEAN|0x00000020
 
 ## FFS filename to find the default variable initial data file.
 # @Prompt FFS Name of variable initial data file
- gUefiPayloadPkgTokenSpaceGuid.PcdNvsDataFile |{ 0x1a, 0xf1, 0xb1, 0xae, 0x42, 0xcc, 0xcf, 0x4e, 0xac, 0x60, 0xdb, 0xab, 0xf6, 0xca, 0x69, 0xe6 }|VOID*|0x00000025
+ gSystem76PayloadPkgTokenSpaceGuid.PcdNvsDataFile |{ 0x1a, 0xf1, 0xb1, 0xae, 0x42, 0xcc, 0xcf, 0x4e, 0xac, 0x60, 0xdb, 0xab, 0xf6, 0xca, 0x69, 0xe6 }|VOID*|0x00000025
 
 
 ## Indicates if Universal payload support FDT
 #-  PcdHandOffFdtEnable is TRUE, HandOffData is FDT
 #-  PcdHandOffFdtEnable is FALSE, HandOffData is HOB
-gUefiPayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable|FALSE|BOOLEAN|0x00000026
+gSystem76PayloadPkgTokenSpaceGuid.PcdHandOffFdtEnable|FALSE|BOOLEAN|0x00000026
 
 
-gUefiPayloadPkgTokenSpaceGuid.PcdPciReservedPMemBase         |0xFFFFFFFF |UINT32|0x00000027
-gUefiPayloadPkgTokenSpaceGuid.PcdPciReservedPMemLimit        |0x00000000 |UINT32|0x00000028
-gUefiPayloadPkgTokenSpaceGuid.PcdPciReservedPMemAbove4GBBase |0xFFFFFFFFFFFFFFFF |UINT64|0x00000029
-gUefiPayloadPkgTokenSpaceGuid.PcdPciReservedPMemAbove4GBLimit|0x0000000000000000 |UINT64|0x0000002A
+gSystem76PayloadPkgTokenSpaceGuid.PcdPciReservedPMemBase         |0xFFFFFFFF |UINT32|0x00000027
+gSystem76PayloadPkgTokenSpaceGuid.PcdPciReservedPMemLimit        |0x00000000 |UINT32|0x00000028
+gSystem76PayloadPkgTokenSpaceGuid.PcdPciReservedPMemAbove4GBBase |0xFFFFFFFFFFFFFFFF |UINT64|0x00000029
+gSystem76PayloadPkgTokenSpaceGuid.PcdPciReservedPMemAbove4GBLimit|0x0000000000000000 |UINT64|0x0000002A
 
-gUefiPayloadPkgTokenSpaceGuid.SizeOfIoSpace|0|UINT8|0x0000002B
-gUefiPayloadPkgTokenSpaceGuid.PcdFDTPageSize|8|UINT8|0x0000002C
+gSystem76PayloadPkgTokenSpaceGuid.SizeOfIoSpace|0|UINT8|0x0000002B
+gSystem76PayloadPkgTokenSpaceGuid.PcdFDTPageSize|8|UINT8|0x0000002C
 
 ## Indicates if Universal Payload Serial Port feature is used
 #-  PcdUseUniversalPayloadSerialPort is TRUE, Serial Port parameters will be updated
 #-  PcdUseUniversalPayloadSerialPort is FALSE, Serial Port parameters are fixed
-gUefiPayloadPkgTokenSpaceGuid.PcdUseUniversalPayloadSerialPort|TRUE|BOOLEAN|0x0000002D
+gSystem76PayloadPkgTokenSpaceGuid.PcdUseUniversalPayloadSerialPort|TRUE|BOOLEAN|0x0000002D

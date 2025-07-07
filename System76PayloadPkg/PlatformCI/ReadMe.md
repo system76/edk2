@@ -1,20 +1,20 @@
-# UefiPayloadPkg - Platform CI
+# System76PayloadPkg - Platform CI
 
-This ReadMe.md describes the Azure DevOps based Platform CI for UefiPayloadPkg and how
+This ReadMe.md describes the Azure DevOps based Platform CI for System76PayloadPkg and how
 to use the same Pytools based build infrastructure locally.
 
 ## Supported Configuration Details
 
-This solution for building UefiPayloadPkg has only been validated with Windows 11
+This solution for building System76PayloadPkg has only been validated with Windows 11
 with VS2019 + CLANG/LLVM. Different firmware builds are
 supported and are described below.
 
-| Configuration name      | Architectures      | DSC File            |Additional Flags |
-| :----                   | :-----             | :----               | :----           |
-| IA32                    | IA32               | UefiPayloadPkg.dsc  | None            |
-| X64                     | X64                | UefiPayloadPkg.dsc  | None            |
+| Configuration name      | Architectures      | DSC File                |Additional Flags |
+| :----                   | :-----             | :----                   | :----           |
+| IA32                    | IA32               | System76PayloadPkg.dsc  | None            |
+| X64                     | X64                | System76PayloadPkg.dsc  | None            |
 
-More build configuration detail are in [UPL ReadMe](https://github.com/tianocore/edk2/blob/master/UefiPayloadPkg/Readme.md)
+More build configuration detail are in [UPL ReadMe](https://github.com/tianocore/edk2/blob/master/System76PayloadPkg/Readme.md)
 
 ## EDK2 Developer environment
 
@@ -27,7 +27,7 @@ Note: edksetup, Submodule initialization and manual installation of NASM, iASL, 
 the required cross-compiler toolchains are **not** required, this is handled by the
 Pytools build system.
 
-## Building with Pytools for UefiPayloadPkg
+## Building with Pytools for System76PayloadPkg
 
 If you are unfamiliar with Pytools, it is recommended to first read through
 the generic set of edk2 [Build Instructions](https://github.com/tianocore/tianocore.github.io/wiki/Build-Instructions).
@@ -60,13 +60,13 @@ the generic set of edk2 [Build Instructions](https://github.com/tianocore/tianoc
 4. Initialize & Update Submodules - only when submodules updated
 
     ``` bash
-    stuart_setup -c UefiPayloadPkg/PlatformCI/PlatformBuild.py TOOL_CHAIN_TAG=<TOOL_CHAIN_TAG> -a <TARGET_ARCH>
+    stuart_setup -c System76PayloadPkg/PlatformCI/PlatformBuild.py TOOL_CHAIN_TAG=<TOOL_CHAIN_TAG> -a <TARGET_ARCH>
     ```
 
 5. Initialize & Update Dependencies - only as needed when ext_deps change
 
     ``` bash
-    stuart_update -c UefiPayloadPkg/PlatformCI/PlatformBuild.py TOOL_CHAIN_TAG=<TOOL_CHAIN_TAG> -a <TARGET_ARCH>
+    stuart_update -c System76PayloadPkg/PlatformCI/PlatformBuild.py TOOL_CHAIN_TAG=<TOOL_CHAIN_TAG> -a <TARGET_ARCH>
     ```
 
 6. Compile the basetools if necessary - only when basetools C source files change
@@ -78,10 +78,10 @@ the generic set of edk2 [Build Instructions](https://github.com/tianocore/tianoc
 7. Compile Firmware
 
     ``` bash
-    stuart_build -c UefiPayloadPkg/PlatformCI/PlatformBuild.py TOOL_CHAIN_TAG=<TOOL_CHAIN_TAG> -a <TARGET_ARCH>
+    stuart_build -c System76PayloadPkg/PlatformCI/PlatformBuild.py TOOL_CHAIN_TAG=<TOOL_CHAIN_TAG> -a <TARGET_ARCH>
     ```
 
-    - use `stuart_build -c UefiPayloadPkg/PlatformCI/PlatformBuild.py -h` option to see additional
+    - use `stuart_build -c System76PayloadPkg/PlatformCI/PlatformBuild.py -h` option to see additional
     options like `--clean`
 
 ### Notes
@@ -99,7 +99,7 @@ To pass build defines through _stuart_build_, prepend `BLD_*_`to the define name
 command-line. _stuart_build_ currently requires values to be assigned, so add an`=1` suffix for bare defines.
 For example, to enable the IP6 Network Stack, the stuart_build command-line would be:
 
-`stuart_build -c UefiPayloadPkg/PlatformCI/PlatformBuild.py BLD_*_NETWORK_DRIVER_ENABLE=1`
+`stuart_build -c System76PayloadPkg/PlatformCI/PlatformBuild.py BLD_*_NETWORK_DRIVER_ENABLE=1`
 
 ## References
 

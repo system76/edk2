@@ -1,5 +1,5 @@
 # @file
-# Script to Build UefiPayloadPkg UEFI firmware
+# Script to Build System76PayloadPkg UEFI firmware
 #
 # Copyright (c) Microsoft Corporation.
 # Copyright (c) 2025 Intel Corporation
@@ -18,7 +18,7 @@ from edk2toolext.invocables.edk2_update import UpdateSettingsManager
 from edk2toolext.invocables.edk2_pr_eval import PrEvalSettingsManager
 from edk2toollib.utility_functions import RunCmd
 from edk2toollib.utility_functions import GetHostInfo
-sys.path.append("./UefiPayloadPkg")
+sys.path.append("./System76PayloadPkg")
 from UniversalPayloadBuild import UniversalPayloadFullBuild, InitArgumentParser
 
 # ####################################################################################### #
@@ -30,7 +30,7 @@ class CommonPlatform():
     ''' Common settings for this platform.  Define static data here and use
         for the different parts of stuart
     '''
-    PackagesSupported = ("UefiPayloadPkg",)
+    PackagesSupported = ("System76PayloadPkg",)
     ArchSupported = ("X64", "IA32")
     TargetsSupported = ("DEBUG", "RELEASE", "NOOPT")
     Scopes = ('uefipayloadpkg', 'edk2-build')
@@ -130,7 +130,7 @@ class SettingsManager(UpdateSettingsManager, SetupSettingsManager, PrEvalSetting
 
         The tuple should be (<workspace relative path to dsc file>, <input dictionary of dsc key value pairs>)
         '''
-        return (os.path.join("UefiPayloadPkg", "UefiPayloadPkg.dsc"), {})
+        return (os.path.join("System76PayloadPkg", "System76PayloadPkg.dsc"), {})
 
     # ####################################################################################### #
     #                         Actual Configuration for Platform Build                         #
@@ -154,7 +154,7 @@ class PlatformBuilder(UefiBuilder, BuildSettingsManager):
         shell_environment.GetBuildVars().SetValue(
             "TARGET_ARCH", args.build_arch.upper(), "From CmdLine")
         shell_environment.GetBuildVars().SetValue(
-            "ACTIVE_PLATFORM", "UefiPayloadPkg/UefiPayloadPkg.dsc", "From CmdLine")
+            "ACTIVE_PLATFORM", "System76PayloadPkg/System76PayloadPkg.dsc", "From CmdLine")
         self.args = args
 
 
@@ -178,8 +178,8 @@ class PlatformBuilder(UefiBuilder, BuildSettingsManager):
         # this helps in CI so we don't overwrite the build log since running
         # uses the stuart_build command.
         if(shell_environment.GetBuildVars().GetValue("MAKE_STARTUP_NSH", "FALSE") == "TRUE"):
-            return "UefiPayloadPkg_With_Run"
-        return "UefiPayloadPkg"
+            return "System76PayloadPkg_With_Run"
+        return "System76PayloadPkg"
 
     def GetLoggingLevel(self, loggerType):
         ''' Get the logging level for a given type
@@ -192,7 +192,7 @@ class PlatformBuilder(UefiBuilder, BuildSettingsManager):
 
     def SetPlatformEnv(self):
         logging.debug("PlatformBuilder SetPlatformEnv")
-        self.env.SetValue("PRODUCT_NAME", "UefiPayloadPkg", "Platform Hardcoded")
+        self.env.SetValue("PRODUCT_NAME", "System76PayloadPkg", "Platform Hardcoded")
         self.env.SetValue("TOOL_CHAIN_TAG", "VS2022", "Default Toolchain")
 
         # Add support for using the correct Platform Headers, tools, and Libs based on architecture
