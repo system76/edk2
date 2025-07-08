@@ -15,7 +15,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #define PRODUCT_IDENTIFICATION_LENGTH  16
 
 CONST UINT16  mBmUsbLangId    = 0x0409; // English
-CHAR16        mBmUefiPrefix[] = L"UEFI ";
 
 CHAR16  mBootDescGenericManufacturer[] = L"Generic";
 CHAR16  mBootDescSd[]                  = L"SD Device";
@@ -280,7 +279,6 @@ BmGetEmmcTypeDescription (
   @param    ManufacturerName           Manufacturer name string.
   @param    ProductName                Product name from CID.
   @param    ProductNameLength          Length of ProductName.
-  @param    SerialNumber               Serial number from CID.
   @param    DeviceType                 Device type string (e.g. SD or an eMMC partition).
 
   @return  The description string.
@@ -290,7 +288,6 @@ BmGetSdMmcDescription (
   IN CHAR16  *ManufacturerName,
   IN UINT8   *ProductName,
   IN UINT8   ProductNameLength,
-  IN UINT8   SerialNumber[4],
   IN CHAR16  *DeviceType
   )
 {
@@ -300,8 +297,6 @@ BmGetSdMmcDescription (
   DescSize = StrSize (ManufacturerName) - sizeof (CHAR16)             // "Samsung"
              + sizeof (CHAR16)                                        // " "
              + ProductNameLength * sizeof (CHAR16)                    // "BJTD4R"
-             + sizeof (CHAR16)                                        // " "
-             + sizeof (UINT32) * 2 * sizeof (CHAR16)                  // "00000000"
              + sizeof (CHAR16)                                        // " "
              + StrSize (DeviceType);                                  // "eMMC User Data\0"
 
@@ -315,14 +310,10 @@ BmGetSdMmcDescription (
   UnicodeSPrint (
     Desc,
     DescSize,
-    L"%s %.*a %02x%02x%02x%02x %s",
+    L"%s %.*a %s",
     ManufacturerName,
     ProductNameLength,
     ProductName,
-    SerialNumber[0],
-    SerialNumber[1],
-    SerialNumber[2],
-    SerialNumber[3],
     DeviceType
     );
 
@@ -350,9 +341,7 @@ BmGetDescriptionFromDiskInfo (
   SD_CID                    SdCid;
   EMMC_CID                  EmmcCid;
   CHAR16                    *Description;
-  UINTN                     Length;
   CONST UINTN               ModelNameLength    = 40;
-  CONST UINTN               SerialNumberLength = 20;
   CHAR8                     *StrPtr;
   UINT8                     Temp;
   EFI_DEVICE_PATH_PROTOCOL  *DevicePath;
@@ -378,24 +367,15 @@ BmGetDescriptionFromDiskInfo (
                              &BufferSize
                              );
     if (!EFI_ERROR (Status)) {
-      Description = AllocateZeroPool ((ModelNameLength + SerialNumberLength + 2) * sizeof (CHAR16));
+      Description = AllocateZeroPool ((ModelNameLength + 1) * sizeof (CHAR16));
       ASSERT (Description != NULL);
       for (Index = 0; Index + 1 < ModelNameLength; Index += 2) {
         Description[Index]     = (CHAR16)IdentifyData.ModelName[Index + 1];
         Description[Index + 1] = (CHAR16)IdentifyData.ModelName[Index];
       }
 
-      Length                = Index;
-      Description[Length++] = L' ';
-
-      for (Index = 0; Index + 1 < SerialNumberLength; Index += 2) {
-        Description[Length + Index]     = (CHAR16)IdentifyData.SerialNo[Index + 1];
-        Description[Length + Index + 1] = (CHAR16)IdentifyData.SerialNo[Index];
-      }
-
-      Length               += Index;
-      Description[Length++] = L'\0';
-      ASSERT (Length == ModelNameLength + SerialNumberLength + 2);
+      Description[Index] = L'\0';
+      ASSERT (Index == ModelNameLength);
 
       BmEliminateExtraSpaces (Description);
     }
@@ -459,7 +439,6 @@ BmGetDescriptionFromDiskInfo (
                       BmGetSdMmcManufacturerName (SdCid.ManufacturerId, FALSE),
                       SdCid.ProductName,
                       ARRAY_SIZE (SdCid.ProductName),
-                      SdCid.ProductSerialNumber,
                       mBootDescSd
                       );
     } else if (DevicePathSubType (DevicePath) == MSG_EMMC_DP) {
@@ -480,7 +459,6 @@ BmGetDescriptionFromDiskInfo (
                       BmGetSdMmcManufacturerName (EmmcCid.ManufacturerId, TRUE),
                       EmmcCid.ProductName,
                       ARRAY_SIZE (EmmcCid.ProductName),
-                      EmmcCid.ProductSerialNumber,
                       Description
                       );
     } else {
@@ -510,7 +488,6 @@ BmGetUsbDescription (
   CHAR16                     NullChar;
   CHAR16                     *Manufacturer;
   CHAR16                     *Product;
-  CHAR16                     *SerialNumber;
   CHAR16                     *Description;
   EFI_USB_DEVICE_DESCRIPTOR  DevDesc;
   UINTN                      DescMaxSize;
@@ -551,34 +528,19 @@ BmGetUsbDescription (
     Product = &NullChar;
   }
 
-  Status = UsbIo->UsbGetStringDescriptor (
-                    UsbIo,
-                    mBmUsbLangId,
-                    DevDesc.StrSerialNumber,
-                    &SerialNumber
-                    );
-  if (EFI_ERROR (Status)) {
-    SerialNumber = &NullChar;
-  }
-
   if ((Manufacturer == &NullChar) &&
-      (Product == &NullChar) &&
-      (SerialNumber == &NullChar)
+      (Product == &NullChar)
       )
   {
     return NULL;
   }
 
-  DescMaxSize = StrSize (Manufacturer) + StrSize (Product) + StrSize (SerialNumber);
+  DescMaxSize = StrSize (Manufacturer) + StrSize (Product);
   Description = AllocateZeroPool (DescMaxSize);
   ASSERT (Description != NULL);
   StrCatS (Description, DescMaxSize/sizeof (CHAR16), Manufacturer);
   StrCatS (Description, DescMaxSize/sizeof (CHAR16), L" ");
-
   StrCatS (Description, DescMaxSize/sizeof (CHAR16), Product);
-  StrCatS (Description, DescMaxSize/sizeof (CHAR16), L" ");
-
-  StrCatS (Description, DescMaxSize/sizeof (CHAR16), SerialNumber);
 
   if (Manufacturer != &NullChar) {
     FreePool (Manufacturer);
@@ -586,10 +548,6 @@ BmGetUsbDescription (
 
   if (Product != &NullChar) {
     FreePool (Product);
-  }
-
-  if (SerialNumber != &NullChar) {
-    FreePool (SerialNumber);
   }
 
   BmEliminateExtraSpaces (Description);
@@ -880,7 +838,6 @@ BmGetNvmeDescription (
 
   Description = AllocateZeroPool (
                   (ARRAY_SIZE (ControllerData.Mn) + 1
-                   + ARRAY_SIZE (ControllerData.Sn) + 1
                    + MAXIMUM_VALUE_CHARACTERS + 1
                   ) * sizeof (CHAR16)
                   );
@@ -890,19 +847,6 @@ BmGetNvmeDescription (
       *(Char++) = (CHAR16)ControllerData.Mn[Index];
     }
 
-    *(Char++) = L' ';
-    for (Index = 0; Index < ARRAY_SIZE (ControllerData.Sn); Index++) {
-      *(Char++) = (CHAR16)ControllerData.Sn[Index];
-    }
-
-    *(Char++) = L' ';
-    UnicodeValueToStringS (
-      Char,
-      sizeof (CHAR16) * (MAXIMUM_VALUE_CHARACTERS + 1),
-      0,
-      DevicePath.NvmeNamespace->NamespaceId,
-      0
-      );
     BmEliminateExtraSpaces (Description);
   }
 
@@ -1038,7 +982,6 @@ BmGetBootDescription (
   BM_BOOT_DESCRIPTION_ENTRY  *Entry;
   CHAR16                     *Description;
   CHAR16                     *DefaultDescription;
-  CHAR16                     *Temp;
   UINTN                      Index;
 
   //
@@ -1048,16 +991,6 @@ BmGetBootDescription (
   for (Index = 0; Index < ARRAY_SIZE (mBmBootDescriptionHandlers); Index++) {
     DefaultDescription = mBmBootDescriptionHandlers[Index](Handle);
     if (DefaultDescription != NULL) {
-      //
-      // Avoid description confusion between UEFI & Legacy boot option by adding "UEFI " prefix
-      // ONLY for core provided boot description handler.
-      //
-      Temp = AllocatePool (StrSize (DefaultDescription) + sizeof (mBmUefiPrefix));
-      ASSERT (Temp != NULL);
-      StrCpyS (Temp, (StrSize (DefaultDescription) + sizeof (mBmUefiPrefix)) / sizeof (CHAR16), mBmUefiPrefix);
-      StrCatS (Temp, (StrSize (DefaultDescription) + sizeof (mBmUefiPrefix)) / sizeof (CHAR16), DefaultDescription);
-      FreePool (DefaultDescription);
-      DefaultDescription = Temp;
       break;
     }
   }
