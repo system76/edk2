@@ -2043,6 +2043,24 @@ EfiBootManagerBoot (
       //
       BmReportLoadFailure (EFI_SW_DXE_BS_EC_BOOT_OPTION_LOAD_ERROR, Status);
       BootOption->Status = Status;
+
+      if (gST->ConOut != NULL) {
+        gST->ConOut->ClearScreen (gST->ConOut);
+        AsciiPrint (
+            "Boot failed: %s\n"
+            "Press any key to continue...\n",
+            BootOption->Description
+        );
+      }
+      if (gST->ConIn != NULL) {
+        EFI_INPUT_KEY Key;
+        UINTN Index;
+
+        Status = gBS->WaitForEvent (1, &gST->ConIn->WaitForKey, &Index);
+        ASSERT_EFI_ERROR (Status);
+        ASSERT (Index == 0);
+        while (!EFI_ERROR (gST->ConIn->ReadKeyStroke (gST->ConIn, &Key))) {}
+      }
       return;
     }
   }
