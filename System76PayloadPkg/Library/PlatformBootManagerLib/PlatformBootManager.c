@@ -205,10 +205,8 @@ PlatformBootManagerUnableToBoot (
       gST->ConOut->ClearScreen (gST->ConOut);
     }
     AsciiPrint (
-      "%a: No bootable option or device was found.\n"
-      "%a: Press any key to enter the Boot Manager Menu.\n",
-      gEfiCallerBaseName,
-      gEfiCallerBaseName
+      "No bootable option or device was found.\n"
+      "Press any key to enter firmware settings.\n"
       );
     Status = gBS->WaitForEvent (1, &gST->ConIn->WaitForKey, &Index);
     ASSERT_EFI_ERROR (Status);
