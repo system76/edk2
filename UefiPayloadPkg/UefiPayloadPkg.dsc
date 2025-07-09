@@ -611,13 +611,11 @@
   #
   # PCI Support
   #
-  #MdeModulePkg/Bus/Pci/PciBusDxe/PciBusDxe.inf
-  #MdeModulePkg/Bus/Pci/PciHostBridgeDxe/PciHostBridgeDxe.inf {
-  #  <LibraryClasses>
-  #    PciHostBridgeLib|UefiPayloadPkg/Library/PciHostBridgeLib/PciHostBridgeLib.inf
-  #}
-  UefiPayloadPkg/PciRootBridgeNoEnumerationDxe/PciRootBridgeNoEnumeration.inf
-  UefiPayloadPkg/PciBusNoEnumerationDxe/PciBusNoEnumeration.inf
+  MdeModulePkg/Bus/Pci/PciBusDxe/PciBusDxe.inf
+  MdeModulePkg/Bus/Pci/PciHostBridgeDxe/PciHostBridgeDxe.inf {
+    <LibraryClasses>
+      PciHostBridgeLib|UefiPayloadPkg/Library/PciHostBridgeLib/PciHostBridgeLib.inf
+  }
 
   #
   # SCSI/ATA/IDE/DISK Support
