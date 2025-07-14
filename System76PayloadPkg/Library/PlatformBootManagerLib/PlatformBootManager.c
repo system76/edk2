@@ -10,6 +10,14 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "PlatformBootManager.h"
 #include "PlatformConsole.h"
 
+// GUID for System76 security driver
+EFI_GUID SYSTEM76_SECURITY_PROTOCOL_GUID = {0x764247c4, 0xa859, 0x4a6b, {0xb5, 0x00, 0xed, 0x5d, 0x7a, 0x70, 0x7d, 0xd4}};
+
+typedef struct {
+  // Run System76 security driver, will return true if we should boot immediately
+  BOOLEAN (EFIAPI *Run)(VOID);
+} SYSTEM76_SECURITY_PROTOCOL;
+
 /**
   Signal EndOfDxe event and install SMM Ready to lock protocol.
 
@@ -118,6 +126,7 @@ PlatformBootManagerAfterConsole (
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL  White;
   EDKII_PLATFORM_LOGO_PROTOCOL   *PlatformLogo;
   EFI_STATUS                     Status;
+  SYSTEM76_SECURITY_PROTOCOL     *System76Security;
 
   Black.Blue = Black.Green = Black.Red = Black.Reserved = 0;
   White.Blue = White.Green = White.Red = White.Reserved = 0xFF;
@@ -149,6 +158,16 @@ PlatformBootManagerAfterConsole (
   // Process TPM PPI request
   //
   Tcg2PhysicalPresenceLibProcessRequest (NULL);
+
+  // If System76 security driver is installed
+  Status = gBS->LocateProtocol (&SYSTEM76_SECURITY_PROTOCOL_GUID, NULL, (VOID **) &System76Security);
+  if (!EFI_ERROR (Status)) {
+      // Run System76 security driver
+      if (System76Security->Run ()) {
+          // Skip boot timeout if requested
+          PcdSet16S (PcdPlatformBootTimeOut, 0);
+      }
+  }
 }
 
 /**
