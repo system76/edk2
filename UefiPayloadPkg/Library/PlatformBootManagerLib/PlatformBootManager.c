@@ -257,9 +257,6 @@ PlatformBootManagerAfterConsole (
       0
       );
 
-  // Inject boot logo into BGRT table
-  AddBGRT();
-
   // If System76 security driver is installed
   Status = gBS->LocateProtocol (&SYSTEM76_SECURITY_PROTOCOL_GUID, NULL, (VOID **) &system76_security);
   if (!EFI_ERROR(Status)) {
