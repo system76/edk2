@@ -218,7 +218,8 @@ PlatformBootManagerAfterConsole (
 {
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL  Black;
   EFI_GRAPHICS_OUTPUT_BLT_PIXEL  White;
-  EFI_STATUS Status;
+  EDKII_PLATFORM_LOGO_PROTOCOL   *PlatformLogo;
+  EFI_STATUS                     Status;
   SYSTEM76_SECURITY_PROTOCOL * system76_security;
 
   if (mUniversalPayloadPlatformBootManagerOverrideInstance != NULL){
@@ -228,8 +229,12 @@ PlatformBootManagerAfterConsole (
   Black.Blue = Black.Green = Black.Red = Black.Reserved = 0;
   White.Blue = White.Green = White.Red = White.Reserved = 0xFF;
 
-  gST->ConOut->ClearScreen (gST->ConOut);
-  BootLogoEnableLogo ();
+  Status = gBS->LocateProtocol (&gEdkiiPlatformLogoProtocolGuid, NULL, (VOID **)&PlatformLogo);
+
+  if (!EFI_ERROR (Status)) {
+    gST->ConOut->ClearScreen (gST->ConOut);
+    BootLogoEnableLogo ();
+  }
 
   // FIXME: USB devices are not being detected unless we wait a bit.
   gBS->Stall (100 * 1000);
@@ -256,9 +261,6 @@ PlatformBootManagerAfterConsole (
       0,
       0
       );
-
-  // Inject boot logo into BGRT table
-  AddBGRT();
 
   // If System76 security driver is installed
   Status = gBS->LocateProtocol (&SYSTEM76_SECURITY_PROTOCOL_GUID, NULL, (VOID **) &system76_security);
