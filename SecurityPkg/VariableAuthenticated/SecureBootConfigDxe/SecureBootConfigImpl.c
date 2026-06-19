@@ -4494,6 +4494,80 @@ error:
 }
 
 /**
+  Clear PK after user confirmation to enter UEFI Setup Mode.
+
+  @param[in]  Private     Module private data.
+  @param[in]  IfrNvData   Current form configuration.
+
+  @retval EFI_SUCCESS       PK cleared and Setup Mode entered.
+  @retval EFI_ABORTED       User cancelled the operation.
+  @retval EFI_DEVICE_ERROR  PK could not be cleared.
+**/
+STATIC
+EFI_STATUS
+ConfirmEnterSetupMode (
+  IN SECUREBOOT_CONFIG_PRIVATE_DATA  *Private,
+  IN SECUREBOOT_CONFIGURATION        *IfrNvData
+  )
+{
+  EFI_STATUS               Status;
+  EFI_HII_POPUP_PROTOCOL   *HiiPopup;
+  EFI_HII_POPUP_SELECTION  UserSelection;
+
+  //
+  // Use EFI_HII_POPUP_PROTOCOL (produced by the active display engine) so the
+  // confirmation matches the rest of the setup UI — a graphical dialog under
+  // the LVGL display engine, the standard HII popup in text mode — instead of
+  // the legacy console CreatePopUp overlay.
+  //
+  Status = gBS->LocateProtocol (&gEfiHiiPopupProtocolGuid, NULL, (VOID **)&HiiPopup);
+  if (EFI_ERROR (Status)) {
+    return Status;
+  }
+
+  UserSelection = EfiHiiPopupSelectionNo;
+  Status        = HiiPopup->CreatePopup (
+                              HiiPopup,
+                              EfiHiiPopupStyleWarning,
+                              EfiHiiPopupTypeYesNo,
+                              Private->HiiHandle,
+                              STRING_TOKEN (STR_ENTER_SETUP_MODE_POPUP),
+                              &UserSelection
+                              );
+  if (EFI_ERROR (Status) || (UserSelection != EfiHiiPopupSelectionYes)) {
+    return EFI_ABORTED;
+  }
+
+  Status = DeletePlatformKey ();
+  if (EFI_ERROR (Status)) {
+    HiiPopup->CreatePopup (
+                HiiPopup,
+                EfiHiiPopupStyleError,
+                EfiHiiPopupTypeOk,
+                Private->HiiHandle,
+                STRING_TOKEN (STR_ENTER_SETUP_MODE_FAIL_POPUP),
+                NULL
+                );
+    return Status;
+  }
+
+  SecureBootExtractConfigFromVariable (Private, IfrNvData);
+  IfrNvData->HasPk    = FALSE;
+  IfrNvData->DeletePk = FALSE;
+
+  HiiPopup->CreatePopup (
+              HiiPopup,
+              EfiHiiPopupStyleInfo,
+              EfiHiiPopupTypeOk,
+              Private->HiiHandle,
+              STRING_TOKEN (STR_ENTER_SETUP_MODE_DONE_POPUP),
+              NULL
+              );
+
+  return EFI_SUCCESS;
+}
+
+/**
   This function is called to provide results data to the driver.
 
   @param[in]  This               Points to the EFI_HII_CONFIG_ACCESS_PROTOCOL.
@@ -5123,6 +5197,15 @@ SecureBootCallback (
 
         if (SetupMode != NULL) {
           FreePool (SetupMode);
+        }
+
+        break;
+      case KEY_ENTER_SETUP_MODE:
+        Status = ConfirmEnterSetupMode (Private, IfrNvData);
+        if (!EFI_ERROR (Status)) {
+          *ActionRequest = EFI_BROWSER_ACTION_REQUEST_SUBMIT;
+        } else if (Status != EFI_ABORTED) {
+          Status = EFI_SUCCESS;
         }
 
         break;
