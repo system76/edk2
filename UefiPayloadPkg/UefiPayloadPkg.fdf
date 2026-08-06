@@ -352,18 +352,33 @@ INF MdeModulePkg/Universal/Console/TerminalDxe/TerminalDxe.inf
 
 !if $(USE_PLATFORM_GOP) == TRUE
 !if "X64" in $(ARCH)
-INF UefiPayloadPkg/PlatformGopPolicy/PlatformGopPolicy.inf
+  !ifdef $(FIRMWARE_OPEN_GOP_POLICY)
+    INF  RuleOverride=BINARY USE = X64 $(FIRMWARE_OPEN_GOP_POLICY)
+  !else
+    INF UefiPayloadPkg/PlatformGopPolicy/PlatformGopPolicy.inf
+  !endif
 !endif
+
 FILE DRIVER = FF0C8745-3270-4439-B74F-3E45F8C77064 {
   SECTION DXE_DEPEX_EXP = {gPlatformGOPPolicyGuid}
-  SECTION PE32 = UefiPayloadPkg/IntelGopDriver.efi
+  SECTION PE32 = IntelGopDriver.efi
   SECTION UI = "IntelGopDriver"
 }
 
-FILE FREEFORM = 878AC2CC-5343-46F2-B563-51F89DAF56BA {
-  SECTION RAW = UefiPayloadPkg/vbt.bin
+# System76 uses GUID defined in edk2-platforms
+# MrChromebox uses GUID from proprietary BIOS
+!ifdef $(FIRMWARE_OPEN_GOP_POLICY)
+FILE FREEFORM = 56752DA9-DE6B-4895-8819-1945B6B76C22 {
+  SECTION RAW = vbt.rom
   SECTION UI = "IntelGopVbt"
 }
+!else
+FILE FREEFORM = 878AC2CC-5343-46F2-B563-51F89DAF56BA {
+  SECTION RAW = vbt.rom
+  SECTION UI = "IntelGopVbt"
+}
+!endif
+
 !else
 INF UefiPayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
 !endif

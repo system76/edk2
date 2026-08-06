@@ -1423,7 +1423,11 @@
 !endif
 
 !if $(USE_PLATFORM_GOP) == TRUE
-  UefiPayloadPkg/PlatformGopPolicy/PlatformGopPolicy.inf
+  !ifdef $(FIRMWARE_OPEN_GOP_POLICY)
+    $(FIRMWARE_OPEN_GOP_POLICY)
+  !else
+    UefiPayloadPkg/PlatformGopPolicy/PlatformGopPolicy.inf
+  !endif
 !else
   UefiPayloadPkg/GraphicsOutputDxe/GraphicsOutputDxe.inf
 !endif
