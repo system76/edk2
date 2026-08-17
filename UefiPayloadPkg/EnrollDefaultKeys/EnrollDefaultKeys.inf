@@ -46,6 +46,10 @@
   gMicrosoftKek2023Guid
   gMicrosoftDbOpRomUefi2023Guid
   gMicrosoftPkOem2023Guid
+  gSystem76VendorGuid
+  gSystem76DbGuid
+  gSystem76KekGuid
+  gSystem76PkGuid
 
 [LibraryClasses]
   BaseMemoryLib
@@ -62,6 +66,7 @@
 
 [Pcd]
   gUefiPayloadPkgTokenSpaceGuid.PcdSecureBootDefaultEnable
+  gUefiPayloadPkgTokenSpaceGuid.PcdSecureBootUseSystem76Pk
 
 [Depex]
   TRUE

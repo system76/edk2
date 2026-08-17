@@ -287,6 +287,24 @@ INF MdeModulePkg/Universal/ResetSystemRuntimeDxe/ResetSystemRuntimeDxe.inf
       SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/pk_microsoft_oem_2023.der
       SECTION UI = "Microsoft Corporation OEM PK 2023"
     }
+
+    #
+    # System76 keys
+    #
+    FILE FREEFORM = 76d929cd-1066-4150-95f7-96669808d3ca {
+      SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/db_system76.crt
+      SECTION UI = "System76 DB"
+    }
+
+    FILE FREEFORM = 76d094e3-6bd8-43cc-a329-517ba78b2127 {
+      SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/kek_system76.crt
+      SECTION UI = "System76 KEK"
+    }
+
+    FILE FREEFORM = 769f7850-cdeb-48f3-999a-b6c414e0d88f {
+      SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/pk_system76.crt
+      SECTION UI = "System76 PK"
+    }
   !endif
 !endif
 
@@ -623,6 +641,24 @@ FILE FREEFORM = cce7d8e7-aae8-4697-b5c0-ef35a92a059f {
 FILE FREEFORM = 701649dd-8739-40b9-bbdb-9ca434fdcd3b {
   SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/pk_microsoft_oem_2023.der
   SECTION UI = "Microsoft Corporation OEM PK 2023"
+}
+
+#
+# System76 keys
+#
+FILE FREEFORM = 76d929cd-1066-4150-95f7-96669808d3ca {
+  SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/db_system76.crt
+  SECTION UI = "System76 DB"
+}
+
+FILE FREEFORM = 76d094e3-6bd8-43cc-a329-517ba78b2127 {
+  SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/kek_system76.crt
+  SECTION UI = "System76 KEK"
+}
+
+FILE FREEFORM = 769f7850-cdeb-48f3-999a-b6c414e0d88f {
+  SECTION RAW = UefiPayloadPkg/EnrollDefaultKeys/keys/pk_system76.crt
+  SECTION UI = "System76 PK"
 }
 
 !endif

@@ -403,28 +403,46 @@ ProvisionKeyDefaults (
   UINTN       KekMicrosoft2023Size;
   UINT8       *DbMicrosoftOpRomUefi2023 = NULL;
   UINTN       DbMicrosoftOpRomUefi2023Size;
-  UINT8       *PkMicrosoftOem2023       = NULL;
-  UINTN       PkMicrosoftOem2023Size;
+  // System76 keys
+  UINT8 *DbSystem76 = NULL;
+  UINTN DbSystem76Size;
+  UINT8 *KekSystem76 = NULL;
+  UINTN KekSystem76Size;
+  // Platform Key
+  UINT8 *PlatformKey = NULL;
+  UINTN PlatformKeySize;
+  EFI_GUID PkGuid;
+  EFI_GUID PkVendorGuid;
 
-  Status = GetSectionFromAnyFv (&gMicrosoftPkOem2023Guid, EFI_SECTION_RAW, 0, (void **)&PkMicrosoftOem2023, &PkMicrosoftOem2023Size);
+  if (FixedPcdGetBool (PcdSecureBootUseSystem76Pk)) {
+    PkGuid = gSystem76PkGuid;
+    PkVendorGuid = gSystem76VendorGuid;
+  } else {
+    PkGuid = gMicrosoftPkOem2023Guid;
+    PkVendorGuid = gMicrosoftVendorGuid;
+  }
+
+  Status = GetSectionFromAnyFv (&PkGuid, EFI_SECTION_RAW, 0, (void **)&PlatformKey, &PlatformKeySize);
   if (!EFI_ERROR (Status)) {
     ProvisionSigListDefault (
       EFI_PK_DEFAULT_VARIABLE_NAME,
       &gEfiCertX509Guid,
-      PkMicrosoftOem2023, PkMicrosoftOem2023Size, &gMicrosoftVendorGuid,
+      PlatformKey, PlatformKeySize, &PkVendorGuid,
       NULL
       );
-    FreePool (PkMicrosoftOem2023);
+    FreePool (PlatformKey);
   }
 
   Status  = GetSectionFromAnyFv (&gMicrosoftKek2011Guid, EFI_SECTION_RAW, 0, (void **)&KekMicrosoft2011, &KekMicrosoft2011Size);
   Status |= GetSectionFromAnyFv (&gMicrosoftKek2023Guid, EFI_SECTION_RAW, 0, (void **)&KekMicrosoft2023, &KekMicrosoft2023Size);
+  Status |= GetSectionFromAnyFv (&gSystem76KekGuid, EFI_SECTION_RAW, 0, (void **)&KekSystem76, &KekSystem76Size);
   if (!EFI_ERROR (Status)) {
     ProvisionSigListDefault (
       EFI_KEK_DEFAULT_VARIABLE_NAME,
       &gEfiCertX509Guid,
       KekMicrosoft2011, KekMicrosoft2011Size, &gMicrosoftVendorGuid,
       KekMicrosoft2023, KekMicrosoft2023Size, &gMicrosoftVendorGuid,
+      KekSystem76,      KekSystem76Size,      &gSystem76VendorGuid,
       NULL
       );
   }
@@ -437,11 +455,16 @@ ProvisionKeyDefaults (
     FreePool (KekMicrosoft2023);
   }
 
+  if (KekSystem76 != NULL) {
+    FreePool (KekSystem76);
+  }
+
   Status  = GetSectionFromAnyFv (&gMicrosoftDbUefi2011Guid, EFI_SECTION_RAW, 0, (void **)&DbMicrosoftUefi2011, &DbMicrosoftUefi2011Size);
   Status |= GetSectionFromAnyFv (&gMicrosoftDbUefi2023Guid, EFI_SECTION_RAW, 0, (void **)&DbMicrosoftUefi2023, &DbMicrosoftUefi2023Size);
   Status |= GetSectionFromAnyFv (&gMicrosoftDbWin2011Guid, EFI_SECTION_RAW, 0, (void **)&DbMicrosoftWin2011, &DbMicrosoftWin2011Size);
   Status |= GetSectionFromAnyFv (&gMicrosoftDbWinUefi2023Guid, EFI_SECTION_RAW, 0, (void **)&DbMicrosoftWinuefi2023, &DbMicrosoftWinuefi2023Size);
   Status |= GetSectionFromAnyFv (&gMicrosoftDbOpRomUefi2023Guid, EFI_SECTION_RAW, 0, (void **)&DbMicrosoftOpRomUefi2023, &DbMicrosoftOpRomUefi2023Size);
+  Status |= GetSectionFromAnyFv (&gSystem76DbGuid, EFI_SECTION_RAW, 0, (void **)&DbSystem76, &DbSystem76Size);
   if (!EFI_ERROR (Status)) {
     ProvisionSigListDefault (
       EFI_DB_DEFAULT_VARIABLE_NAME,
@@ -451,6 +474,7 @@ ProvisionKeyDefaults (
       DbMicrosoftWin2011,       DbMicrosoftWin2011Size,       &gMicrosoftVendorGuid,
       DbMicrosoftWinuefi2023,   DbMicrosoftWinuefi2023Size,   &gMicrosoftVendorGuid,
       DbMicrosoftOpRomUefi2023, DbMicrosoftOpRomUefi2023Size, &gMicrosoftVendorGuid,
+      DbSystem76,               DbSystem76Size,               &gSystem76VendorGuid,
       NULL
       );
   }
@@ -473,6 +497,10 @@ ProvisionKeyDefaults (
 
   if (DbMicrosoftOpRomUefi2023 != NULL) {
     FreePool (DbMicrosoftOpRomUefi2023);
+  }
+
+  if (DbSystem76 != NULL) {
+    FreePool (DbSystem76);
   }
 
   Status = GetSectionFromAnyFv (&gMicrosoftDbxUpdateGuid, EFI_SECTION_RAW, 0, (void **)&DbxMicrosoftUpdate, &DbxMicrosoftUpdateSize);
@@ -679,8 +707,16 @@ EnrollDefaultKeys (
   UINTN KekMicrosoft2023Size;
   UINT8 *DbMicrosoftOpRomUefi2023 = 0;
   UINTN DbMicrosoftOpRomUefi2023Size;
-  UINT8 *PkMicrosoftOem2023 = 0;
-  UINTN PkMicrosoftOem2023Size;
+  // System76 keys
+  UINT8 *DbSystem76 = NULL;
+  UINTN DbSystem76Size;
+  UINT8 *KekSystem76 = NULL;
+  UINTN KekSystem76Size;
+  // Platform Key
+  UINT8 *PlatformKey;
+  UINTN PlatformKeySize;
+  EFI_GUID PkGuid;
+  EFI_GUID PkVendorGuid;
 
   Status = gBS->LocateProtocol (&gEfiVariableWriteArchProtocolGuid, NULL, (VOID **)&Protocol);
   if (EFI_ERROR (Status)) {
@@ -751,7 +787,22 @@ EnrollDefaultKeys (
   ASSERT_EFI_ERROR(Status);
   Status = GetSectionFromAnyFv(&gMicrosoftDbOpRomUefi2023Guid, EFI_SECTION_RAW, 0, (void **)&DbMicrosoftOpRomUefi2023, &DbMicrosoftOpRomUefi2023Size);
   ASSERT_EFI_ERROR(Status);
-  Status = GetSectionFromAnyFv(&gMicrosoftPkOem2023Guid, EFI_SECTION_RAW, 0, (void **)&PkMicrosoftOem2023, &PkMicrosoftOem2023Size);
+  // System76 keys
+  Status = GetSectionFromAnyFv(&gSystem76DbGuid, EFI_SECTION_RAW, 0, (void **)&DbSystem76, &DbSystem76Size);
+  ASSERT_EFI_ERROR(Status);
+  Status = GetSectionFromAnyFv(&gSystem76KekGuid, EFI_SECTION_RAW, 0, (void **)&KekSystem76, &KekSystem76Size);
+  ASSERT_EFI_ERROR(Status);
+
+  // Platform Key
+  if (FixedPcdGetBool (PcdSecureBootUseSystem76Pk)) {
+    PkGuid = gSystem76PkGuid;
+    PkVendorGuid = gSystem76VendorGuid;
+  } else {
+    PkGuid = gMicrosoftPkOem2023Guid;
+    PkVendorGuid = gMicrosoftVendorGuid;
+  }
+
+  Status = GetSectionFromAnyFv(&PkGuid, EFI_SECTION_RAW, 0, (void **)&PlatformKey, &PlatformKeySize);
   ASSERT_EFI_ERROR(Status);
 
   Status = gRT->SetVariable (EFI_IMAGE_SECURITY_DATABASE1, &gEfiImageSecurityDatabaseGuid,
@@ -771,6 +822,7 @@ EnrollDefaultKeys (
     DbMicrosoftWin2011,       DbMicrosoftWin2011Size,       &gMicrosoftVendorGuid,
     DbMicrosoftWinuefi2023,   DbMicrosoftWinuefi2023Size,   &gMicrosoftVendorGuid,
     DbMicrosoftOpRomUefi2023, DbMicrosoftOpRomUefi2023Size, &gMicrosoftVendorGuid,
+    DbSystem76,               DbSystem76Size,               &gSystem76VendorGuid,
     NULL);
   ASSERT_EFI_ERROR (Status);
 
@@ -780,6 +832,7 @@ EnrollDefaultKeys (
     &gEfiCertX509Guid,
     KekMicrosoft2011, KekMicrosoft2011Size, &gMicrosoftVendorGuid,
     KekMicrosoft2023, KekMicrosoft2023Size, &gMicrosoftVendorGuid,
+    KekSystem76,      KekSystem76Size,      &gSystem76VendorGuid,
     NULL);
   ASSERT_EFI_ERROR (Status);
 
@@ -787,7 +840,7 @@ EnrollDefaultKeys (
     EFI_PLATFORM_KEY_NAME,
     &gEfiGlobalVariableGuid,
     &gEfiCertX509Guid,
-    PkMicrosoftOem2023, PkMicrosoftOem2023Size, &gMicrosoftVendorGuid,
+    PlatformKey, PlatformKeySize, &PkVendorGuid,
     NULL);
   ASSERT_EFI_ERROR (Status);
 
@@ -799,7 +852,9 @@ EnrollDefaultKeys (
   FreePool(KekMicrosoft2011);
   FreePool(KekMicrosoft2023);
   FreePool(DbMicrosoftOpRomUefi2023);
-  FreePool(PkMicrosoftOem2023);
+  FreePool (DbSystem76);
+  FreePool (KekSystem76);
+  FreePool (PlatformKey);
 
   Settings.CustomMode = STANDARD_SECURE_BOOT_MODE;
   Status = gRT->SetVariable (EFI_CUSTOM_MODE_NAME, &gEfiCustomModeEnableGuid,
