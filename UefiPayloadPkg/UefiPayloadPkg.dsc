@@ -119,6 +119,8 @@
 
   # Send logs to System76 EC
   DEFINE SYSTEM76_EC_LOGGING          = FALSE
+  # Use System76 Firmware Setup for UI
+  DEFINE SYSTEM76_SETUP               = TRUE
 
   #
   #  typedef struct {
@@ -1238,12 +1240,21 @@
   MdeModulePkg/Logo/LogoDxe.inf
 !endif
   UefiPayloadPkg/CfrSetupMenuDxe/CfrSetupMenuDxe.inf
-  MdeModulePkg/Application/UiApp/UiApp.inf {
-    <LibraryClasses>
-      NULL|MdeModulePkg/Library/BootManagerUiLib/BootManagerUiLib.inf
-      NULL|MdeModulePkg/Library/BootMaintenanceManagerUiLib/BootMaintenanceManagerUiLib.inf
-      NULL|MdeModulePkg/Library/DeviceManagerUiLib/DeviceManagerUiLib.inf
-  }
+  !if $(SYSTEM76_SETUP) == TRUE
+    UefiPayloadPkg/Application/System76Setup/System76Setup.inf {
+      <LibraryClasses>
+        NULL|MdeModulePkg/Library/BootManagerUiLib/BootManagerUiLib.inf
+        NULL|MdeModulePkg/Library/BootMaintenanceManagerUiLib/BootMaintenanceManagerUiLib.inf
+        NULL|MdeModulePkg/Library/DeviceManagerUiLib/DeviceManagerUiLib.inf
+    }
+  !else
+    MdeModulePkg/Application/UiApp/UiApp.inf {
+      <LibraryClasses>
+        NULL|MdeModulePkg/Library/BootManagerUiLib/BootManagerUiLib.inf
+        NULL|MdeModulePkg/Library/BootMaintenanceManagerUiLib/BootMaintenanceManagerUiLib.inf
+        NULL|MdeModulePkg/Library/DeviceManagerUiLib/DeviceManagerUiLib.inf
+    }
+  !endif
   MdeModulePkg/Application/BootManagerMenuApp/BootManagerMenuApp.inf
 !if $(CAPSULE_SUPPORT) == TRUE
   # Build FmpDxe meant for the inclusion into an update capsule as an embedded driver.

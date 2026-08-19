@@ -1,0 +1,73 @@
+## @file
+#  System76 Firmware Setup
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#  SPDX-FileCopyrightText: Copyright (c) 2011 - 2018, Intel Corporation. All rights reserved.<BR>
+#  SPDX-FileCopyrightText: 2026 System76, Inc.
+##
+
+[Defines]
+  INF_VERSION                    = 1.5
+  BASE_NAME                      = System76Setup
+  MODULE_UNI_FILE                = System76Setup.uni
+  FILE_GUID                      = 462CAA21-7614-4503-836E-8AB6F4662331
+  MODULE_TYPE                    = UEFI_APPLICATION
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = InitializeUserInterface
+
+[Sources]
+  FrontPage.h
+  String.h
+  Ui.h
+  FrontPageVfr.Vfr
+  FrontPageStrings.uni
+  FrontPage.c
+  String.c
+  FrontPageCustomizedUi.c
+  FrontPageCustomizedUiSupport.c
+  FrontPageCustomizedUi.h
+  FrontPageCustomizedUiSupport.h
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+
+[LibraryClasses]
+  DevicePathLib
+  BaseLib
+  UefiRuntimeServicesTableLib
+  ReportStatusCodeLib
+  MemoryAllocationLib
+  UefiLib
+  UefiBootServicesTableLib
+  BaseMemoryLib
+  DebugLib
+  PrintLib
+  HiiLib
+  UefiApplicationEntryPoint
+  PcdLib
+  UefiHiiServicesLib
+  UefiBootManagerLib
+
+[Guids]
+  gEfiIfrTianoGuid                              ## CONSUMES ## GUID (Extended IFR Guid Opcode)
+  gEfiIfrFrontPageGuid                          ## CONSUMES ## GUID
+
+[Protocols]
+  gEfiSmbiosProtocolGuid                        ## CONSUMES
+  gEfiHiiConfigAccessProtocolGuid               ## CONSUMES
+
+[FeaturePcd]
+
+[Pcd]
+  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultPlatformLangCodes  ## CONSUMES
+  gEfiMdeModulePkgTokenSpaceGuid.PcdConOutRow                       ## PRODUCES
+  gEfiMdeModulePkgTokenSpaceGuid.PcdConOutColumn                    ## PRODUCES
+  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution       ## PRODUCES
+  gEfiMdeModulePkgTokenSpaceGuid.PcdVideoVerticalResolution         ## PRODUCES
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSetupConOutColumn               ## CONSUMES ## SOMETIMES_PRODUCES
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSetupConOutRow                  ## CONSUMES ## SOMETIMES_PRODUCES
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSetupVideoHorizontalResolution  ## CONSUMES
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSetupVideoVerticalResolution    ## CONSUMES
+  gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString           ## CONSUMES
+  gEfiMdeModulePkgTokenSpaceGuid.PcdTestKeyUsed                     ## CONSUMES

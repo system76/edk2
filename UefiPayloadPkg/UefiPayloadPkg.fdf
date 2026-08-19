@@ -117,7 +117,11 @@ READ_LOCK_CAP      = TRUE
 READ_LOCK_STATUS   = TRUE
 
 INF MdeModulePkg/Universal/BdsDxe/BdsDxe.inf
-INF RuleOverride = UI MdeModulePkg/Application/UiApp/UiApp.inf
+!if $(SYSTEM76_SETUP) == TRUE
+  INF UefiPayloadPkg/Application/System76Setup/System76Setup.inf
+!else
+  INF RuleOverride = UI MdeModulePkg/Application/UiApp/UiApp.inf
+!endif
 INF MdeModulePkg/Application/BootManagerMenuApp/BootManagerMenuApp.inf
 !endif
 
@@ -498,7 +502,11 @@ INF  MdeModulePkg/Universal/Acpi/BootGraphicsResourceTableDxe/BootGraphicsResour
 !if $(UNIVERSAL_PAYLOAD) == FALSE
 INF MdeModulePkg/Universal/BdsDxe/BdsDxe.inf
 INF UefiPayloadPkg/CfrSetupMenuDxe/CfrSetupMenuDxe.inf
-INF RuleOverride = UI MdeModulePkg/Application/UiApp/UiApp.inf
+!if $(SYSTEM76_SETUP) == TRUE
+  INF UefiPayloadPkg/Application/System76Setup/System76Setup.inf
+!else
+  INF RuleOverride = UI MdeModulePkg/Application/UiApp/UiApp.inf
+!endif
 INF MdeModulePkg/Application/BootManagerMenuApp/BootManagerMenuApp.inf
 #
 # UEFI network modules
@@ -780,9 +788,11 @@ FILE FREEFORM = 769f7850-cdeb-48f3-999a-b6c414e0d88f {
     RAW RAW                |.raw
   }
 
+!if $(SYSTEM76_SETUP) == FALSE
 [Rule.Common.UEFI_APPLICATION.UI]
   FILE APPLICATION = $(NAMED_GUID) {
     PE32      PE32                     $(INF_OUTPUT)/$(MODULE_NAME).efi
     UI        STRING="Enter Setup"
     VERSION   STRING="$(INF_VERSION)" Optional BUILD_NUM=$(BUILD_NUMBER)
   }
+!endif

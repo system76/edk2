@@ -1,0 +1,7 @@
+// /** @file
+// SPDX-License-Identifier: BSD-2-Clause-Patent
+// SPDX-FileCopyrightText: 2026 System76, Inc.
+// **/
+
+#string STR_MODULE_ABSTRACT #language en-US "System76 Firmware Setup"
+#string STR_MODULE_DESCRIPTION #language en-US "System76 Firmware Setup"
