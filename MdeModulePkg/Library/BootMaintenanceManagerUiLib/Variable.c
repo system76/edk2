@@ -633,6 +633,7 @@ Var_UpdateBootOrder (
   BOpt_FreeMenu (&BootOptionMenu);
   BOpt_GetBootOptions (CallbackData);
 
+  DEBUG ((DEBUG_INFO, "Updated BootOrder: %r\n", Status));
   return Status;
 }
 

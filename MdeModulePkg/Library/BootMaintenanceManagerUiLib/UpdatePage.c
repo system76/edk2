@@ -111,40 +111,6 @@ UpdatePageEnd (
   IN BMM_CALLBACK_DATA  *CallbackData
   )
 {
-  //
-  // Create the "Apply changes" and "Discard changes" tags.
-  //
-  if (CallbackData->BmmAskSaveOrNot) {
-    HiiCreateSubTitleOpCode (
-      mStartOpCodeHandle,
-      STRING_TOKEN (STR_NULL_STRING),
-      0,
-      0,
-      0
-      );
-
-    HiiCreateActionOpCode (
-      mStartOpCodeHandle,
-      KEY_VALUE_SAVE_AND_EXIT,
-      STRING_TOKEN (STR_SAVE_AND_EXIT),
-      STRING_TOKEN (STR_NULL_STRING),
-      EFI_IFR_FLAG_CALLBACK,
-      0
-      );
-  }
-
-  //
-  // Ensure user can return to the main page.
-  //
-  HiiCreateActionOpCode (
-    mStartOpCodeHandle,
-    KEY_VALUE_NO_SAVE_AND_EXIT,
-    STRING_TOKEN (STR_NO_SAVE_AND_EXIT),
-    STRING_TOKEN (STR_NULL_STRING),
-    EFI_IFR_FLAG_CALLBACK,
-    0
-    );
-
   HiiUpdateForm (
     CallbackData->BmmHiiHandle,
     &mBootMaintGuid,
@@ -654,7 +620,7 @@ UpdateOrderPage (
       VarOffset,                                   // Offset in Buffer Storage
       STRING_TOKEN (STR_CHANGE_ORDER),             // Question prompt text
       STRING_TOKEN (STR_CHANGE_ORDER),             // Question help text
-      0,                                           // Question flag
+      EFI_IFR_FLAG_CALLBACK,                       // Question flag
       0,                                           // Ordered list flag, e.g. EFI_IFR_UNIQUE_SET
       EFI_IFR_TYPE_NUM_SIZE_32,                    // Data type of Question value
       100,                                         // Maximum container
@@ -1157,10 +1123,5 @@ UpdatePageId (
     NewPageId = FORM_MAIN_ID;
   } else if ((NewPageId >= TERMINAL_OPTION_OFFSET) && (NewPageId < CONSOLE_OPTION_OFFSET)) {
     NewPageId = FORM_CON_COM_SETUP_ID;
-  }
-
-  if ((NewPageId > 0) && (NewPageId < MAXIMUM_FORM_ID)) {
-    Private->BmmPreviousPageId = Private->BmmCurrentPageId;
-    Private->BmmCurrentPageId  = NewPageId;
   }
 }

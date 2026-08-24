@@ -733,6 +733,7 @@ BootMaintExtractConfig (
     *Progress = Request + StrLen (Request);
   }
 
+  DEBUG ((DEBUG_INFO, "%a complete: %r\n", __FUNCTION__, Status));
   return Status;
 }
 
@@ -1085,6 +1086,7 @@ BootMaintRouteConfig (
   //
   CopyMem (OldBmmData, NewBmmData, sizeof (BMM_FAKE_NV_DATA));
 
+  DEBUG ((DEBUG_INFO, "%a complete: %r\n", __FUNCTION__, Status));
   return EFI_SUCCESS;
 
 Exit:
@@ -1145,6 +1147,8 @@ BootMaintCallback (
   Private = BMM_CALLBACK_DATA_FROM_THIS (This);
 
   if (Action == EFI_BROWSER_ACTION_FORM_OPEN) {
+    DEBUG ((DEBUG_INFO, "EFI_BROWSER_ACTION_FORM_OPEN: 0x%0X\n", QuestionId));
+
     if (QuestionId == KEY_VALUE_TRIGGER_FORM_OPEN_ACTION) {
       if (!mFirstEnterBMMForm) {
         //
@@ -1156,7 +1160,8 @@ BootMaintCallback (
         // 1. Update the menus (including legacy munu) show in BootMiantenanceManager page.
         // 2. Re-scan the BootOption menus (including the legacy boot option).
         //
-        CustomizeMenus ();
+        UpdatePageId (Private, FORM_BOOT_CHG_ID);
+        UpdatePageBody (FORM_BOOT_CHG_ID, Private);
         EfiBootManagerRefreshAllBootOption ();
         BOpt_GetBootOptions (Private);
         mFirstEnterBMMForm = TRUE;
@@ -1172,6 +1177,8 @@ BootMaintCallback (
   HiiGetBrowserData (&mBootMaintGuid, mBootMaintStorageName, sizeof (BMM_FAKE_NV_DATA), (UINT8 *)CurrentFakeNVMap);
 
   if (Action == EFI_BROWSER_ACTION_CHANGING) {
+    DEBUG ((DEBUG_INFO, "EFI_BROWSER_ACTION_CHANGING: 0x%0X\n", QuestionId));
+
     if (Value == NULL) {
       return EFI_INVALID_PARAMETER;
     }
@@ -1257,6 +1264,8 @@ BootMaintCallback (
       ChooseFile (NULL, L".efi", BootFromFile, &File);
     }
   } else if (Action == EFI_BROWSER_ACTION_CHANGED) {
+    DEBUG ((DEBUG_INFO, "EFI_BROWSER_ACTION_CHANGED: 0x%0X\n", QuestionId));
+
     if ((Value == NULL) || (ActionRequest == NULL)) {
       return EFI_INVALID_PARAMETER;
     }
@@ -1294,6 +1303,11 @@ BootMaintCallback (
       CurrentFakeNVMap->BootOptionChanged = TRUE;
     } else if ((QuestionId == KEY_VALUE_DRIVER_DESCRIPTION) || (QuestionId == KEY_VALUE_DRIVER_OPTION)) {
       CurrentFakeNVMap->DriverOptionChanged = TRUE;
+    }
+
+    if (QuestionId == BOOT_OPTION_ORDER_QUESTION_ID) {
+        // Save BootOrder on list update
+        *ActionRequest = EFI_BROWSER_ACTION_REQUEST_FORM_APPLY;
     }
 
     if ((QuestionId >= BOOT_OPTION_DEL_QUESTION_ID) && (QuestionId < BOOT_OPTION_DEL_QUESTION_ID + MAX_MENU_NUMBER)) {
@@ -1362,6 +1376,7 @@ BootMaintCallback (
   //
   HiiSetBrowserData (&mBootMaintGuid, mBootMaintStorageName, sizeof (BMM_FAKE_NV_DATA), (UINT8 *)CurrentFakeNVMap, NULL);
 
+  DEBUG ((DEBUG_INFO, "%a complete: %r\n", __FUNCTION__, EFI_SUCCESS));
   return EFI_SUCCESS;
 }
 
@@ -1734,6 +1749,28 @@ BmmInitialBootModeInfo (
   mBmmModeInitialized = TRUE;
 }
 
+STATIC
+EFI_STATUS
+UnregisterHotKeys(VOID)
+{
+  EFI_STATUS Status;
+  EFI_INPUT_KEY HotKey;
+  EDKII_FORM_BROWSER_EXTENSION2_PROTOCOL *FormBrowserEx2;
+
+  Status = gBS->LocateProtocol (&gEdkiiFormBrowserEx2ProtocolGuid, NULL, (VOID **) &FormBrowserEx2);
+  if (!EFI_ERROR (Status)) {
+    HotKey.UnicodeChar = CHAR_NULL;
+
+    HotKey.ScanCode = SCAN_F9;
+    FormBrowserEx2->RegisterHotKey(&HotKey, BROWSER_ACTION_UNREGISTER, 0, NULL);
+
+    HotKey.ScanCode = SCAN_F10;
+    FormBrowserEx2->RegisterHotKey(&HotKey, BROWSER_ACTION_UNREGISTER, 0, NULL);
+  }
+
+  return Status;
+}
+
 /**
 
   Install Boot Maintenance Manager Menu driver.
@@ -1809,8 +1846,8 @@ BootMaintenanceManagerUiLibConstructor (
 
   mBmmCallbackInfo->MenuEntry = (BM_MENU_ENTRY *)Ptr;
 
-  mBmmCallbackInfo->BmmPreviousPageId = FORM_MAIN_ID;
-  mBmmCallbackInfo->BmmCurrentPageId  = FORM_MAIN_ID;
+  mBmmCallbackInfo->BmmPreviousPageId = FORM_BOOT_CHG_ID;
+  mBmmCallbackInfo->BmmCurrentPageId  = FORM_BOOT_CHG_ID;
 
   InitAllMenu (mBmmCallbackInfo);
 
@@ -1821,6 +1858,11 @@ BootMaintenanceManagerUiLibConstructor (
   InitializeBmmConfig (mBmmCallbackInfo);
 
   BmmInitialBootModeInfo ();
+
+  //
+  // Remove the F9 and F10 hotkeys
+  //
+  UnregisterHotKeys();
 
   return EFI_SUCCESS;
 }
