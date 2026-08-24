@@ -22,23 +22,14 @@ extern EFI_FORM_BROWSER2_PROTOCOL  *gFormBrowser2;
 #define SMBIOS_TYPE4_CPU_SOCKET_POPULATED  BIT6
 
 //
-// This is the VFR compiler generated header file which defines the
-// string identifiers.
-//
-#define PRINTABLE_LANGUAGE_NAME_STRING_ID  0x0001
-
-//
 // These are defined as the same with vfr file
 //
-#define FRONT_PAGE_FORM_ID  0x1000
+#define FRONT_PAGE_FORMSET_GUID { 0xc20db9c2, 0xea2c, 0x460b, { 0xb7, 0x3c, 0x70, 0x37, 0x14, 0x12, 0x63, 0xbb } }
+
+#define FRONT_PAGE_FORM_ID 0x7600
 
 #define LABEL_FRONTPAGE_INFORMATION  0x1000
 #define LABEL_END                    0xffff
-
-#define FRONT_PAGE_FORMSET_GUID \
-  { \
-    0x9e0c30bc, 0x3f06, 0x4ba6, {0x82, 0x88, 0x9, 0x17, 0x9b, 0x85, 0x5d, 0xbe} \
-  }
 
 #define FRONT_PAGE_CALLBACK_DATA_SIGNATURE  SIGNATURE_32 ('F', 'P', 'C', 'B')
 
@@ -50,7 +41,6 @@ typedef struct {
   //
   EFI_HII_HANDLE                    HiiHandle;
   EFI_HANDLE                        DriverHandle;
-  EFI_STRING_ID                     *LanguageToken;
 
   //
   // Produced protocols

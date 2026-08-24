@@ -60,7 +60,6 @@
 [FeaturePcd]
 
 [Pcd]
-  gEfiMdePkgTokenSpaceGuid.PcdUefiVariableDefaultPlatformLangCodes  ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutRow                       ## PRODUCES
   gEfiMdeModulePkgTokenSpaceGuid.PcdConOutColumn                    ## PRODUCES
   gEfiMdeModulePkgTokenSpaceGuid.PcdVideoHorizontalResolution       ## PRODUCES
@@ -69,5 +68,3 @@
   gEfiMdeModulePkgTokenSpaceGuid.PcdSetupConOutRow                  ## CONSUMES ## SOMETIMES_PRODUCES
   gEfiMdeModulePkgTokenSpaceGuid.PcdSetupVideoHorizontalResolution  ## CONSUMES
   gEfiMdeModulePkgTokenSpaceGuid.PcdSetupVideoVerticalResolution    ## CONSUMES
-  gEfiMdeModulePkgTokenSpaceGuid.PcdFirmwareVersionString           ## CONSUMES
-  gEfiMdeModulePkgTokenSpaceGuid.PcdTestKeyUsed                     ## CONSUMES
