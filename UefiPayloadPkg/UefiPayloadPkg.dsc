@@ -1312,7 +1312,7 @@
 !if $(VARIABLE_SUPPORT) == "EMU" || $(VARIABLE_SUPPORT) == "SMMSTORE" || $(VARIABLE_SUPPORT) == "SPI"
   UefiPayloadPkg/UserAuthPkg/UserAuthenticationDxe/UserAuthenticationDxe.inf
 !endif
-  MdeModulePkg/Universal/TimeDateSettingsDxe/TimeDateSettingsDxe.inf
+  #MdeModulePkg/Universal/TimeDateSettingsDxe/TimeDateSettingsDxe.inf
   MdeModulePkg/Universal/PlatformDriOverrideDxe/PlatformDriOverrideDxe.inf
   MdeModulePkg/Universal/EbcDxe/EbcDxe.inf
 
