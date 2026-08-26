@@ -650,9 +650,6 @@ CreateDeviceManagerForm (
             //
             if (!AddNetworkMenu) {
               AddNetworkMenu = TRUE;
-              // Add an empty line before each entry
-              HiiCreateSubTitleOpCode (StartOpCodeHandle, STRING_TOKEN (STR_EMPTY_STRING), 0, 0, 0);
-
               HiiCreateGotoOpCode (
                 StartOpCodeHandle,
                 NETWORK_DEVICE_LIST_FORM_ID,
@@ -667,9 +664,6 @@ CreateDeviceManagerForm (
             // In network device list form, same mac address device only show one menu.
             //
             while (AddItemCount > 0) {
-              // Add an empty line before each entry
-              HiiCreateSubTitleOpCode (StartOpCodeHandle, STRING_TOKEN (STR_EMPTY_STRING), 0, 0, 0);
-
               HiiCreateGotoOpCode (
                 StartOpCodeHandle,
                 NETWORK_DEVICE_FORM_ID,
@@ -690,9 +684,6 @@ CreateDeviceManagerForm (
               DevicePathId =  HiiSetString (HiiHandle, 0, DevicePathStr, NULL);
               FreePool (DevicePathStr);
             }
-
-            // Add an empty line before each entry
-            HiiCreateSubTitleOpCode (StartOpCodeHandle, STRING_TOKEN (STR_EMPTY_STRING), 0, 0, 0);
 
             HiiCreateGotoExOpCode (
               StartOpCodeHandle,
@@ -717,9 +708,6 @@ CreateDeviceManagerForm (
               DevicePathId =  HiiSetString (HiiHandle, 0, DevicePathStr, NULL);
               FreePool (DevicePathStr);
             }
-
-            // Add an empty line before each entry
-            HiiCreateSubTitleOpCode (StartOpCodeHandle, STRING_TOKEN (STR_EMPTY_STRING), 0, 0, 0);
 
             HiiCreateGotoExOpCode (
               StartOpCodeHandle,
