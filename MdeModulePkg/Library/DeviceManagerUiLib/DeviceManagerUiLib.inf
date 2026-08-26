@@ -26,6 +26,7 @@
   DeviceManagerVfr.Vfr
   DeviceManagerStrings.uni
   DeviceManager.c
+  SystemInfo.c
 
 [Packages]
   MdePkg/MdePkg.dec
@@ -47,6 +48,8 @@
   gEfiHiiPlatformSetupFormsetGuid               ## CONSUMES ## GUID (Indicate the formset class guid to be displayed)
   gEfiIfrTianoGuid                              ## CONSUMES ## GUID (Extended IFR Guid Opcode)
   gEfiIfrFrontPageGuid                          ## CONSUMES ## GUID (Indicate the formset in this library need to dispaly in which page)
+  gEfiAcpiTableGuid                             ## CONSUMES ## GUID
 
 [Protocols]
   gEfiHiiConfigAccessProtocolGuid               ## CONSUMES
+  gEfiPciRootBridgeIoProtocolGuid               ## CONSUMES

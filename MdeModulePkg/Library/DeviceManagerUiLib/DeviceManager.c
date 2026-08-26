@@ -855,6 +855,7 @@ DeviceManagerCallback (
     //
     if (QuestionId == 0x1212) {
       CreateDeviceManagerForm (DEVICE_MANAGER_FORM_ID);
+      FirmwareConfigurationInformation ();
     }
 
     return EFI_SUCCESS;

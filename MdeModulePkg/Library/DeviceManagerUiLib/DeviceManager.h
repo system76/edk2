@@ -81,6 +81,8 @@ typedef struct {
   UINT8                             VideoBios;
 } DEVICE_MANAGER_CALLBACK_DATA;
 
+extern DEVICE_MANAGER_CALLBACK_DATA gDeviceManagerPrivate;
+
 typedef struct {
   EFI_STRING_ID      PromptId;
   EFI_QUESTION_ID    QuestionId;
@@ -184,3 +186,6 @@ DeviceManagerCallback (
   IN  EFI_IFR_TYPE_VALUE                    *Value,
   OUT EFI_BROWSER_ACTION_REQUEST            *ActionRequest
   );
+
+
+VOID FirmwareConfigurationInformation (VOID);

@@ -26,7 +26,6 @@ formset
 
   form formid = DEVICE_MANAGER_FORM_ID,
     title  = STRING_TOKEN(STR_EDKII_MENU_TITLE);
-    subtitle text = STRING_TOKEN(STR_DEVICES_LIST);
 
     //
     // Add this invisable text in order to indicate enter Device Manager form.
@@ -43,8 +42,11 @@ formset
     label LABEL_END;
 
     subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
-    subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
-    subtitle text = STRING_TOKEN(STR_EXIT_STRING);
+    subtitle text = STRING_TOKEN(STR_VIRTUALIZATION);
+    subtitle text = STRING_TOKEN(STR_VIRTUALIZATION_STATUS);
+    subtitle text = STRING_TOKEN(STR_IOMMU_STATUS);
+    subtitle text = STRING_TOKEN(STR_TPM_STATUS);
+    subtitle text = STRING_TOKEN(STR_ME_STATUS);
   endform;
 
   form formid = NETWORK_DEVICE_LIST_FORM_ID,
@@ -53,9 +55,6 @@ formset
 
     label LABEL_NETWORK_DEVICE_LIST_ID;
     label LABEL_END;
-
-    subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
-    subtitle text = STRING_TOKEN(STR_EXIT_STRING);
   endform;
 
   form formid = NETWORK_DEVICE_FORM_ID,
@@ -64,8 +63,5 @@ formset
 
     label LABEL_NETWORK_DEVICE_ID;
     label LABEL_END;
-
-    subtitle text = STRING_TOKEN(STR_EMPTY_STRING);
-    subtitle text = STRING_TOKEN(STR_EXIT_STRING);
   endform;
 endformset;
