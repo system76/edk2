@@ -1309,9 +1309,10 @@
 !else
   MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
 !endif
-!if $(VARIABLE_SUPPORT) == "EMU" || $(VARIABLE_SUPPORT) == "SMMSTORE" || $(VARIABLE_SUPPORT) == "SPI"
-  UefiPayloadPkg/UserAuthPkg/UserAuthenticationDxe/UserAuthenticationDxe.inf
-!endif
+# TODO: redox_uefi and firmware-setup must support EFI_IFR_PASSWORD
+#!if $(VARIABLE_SUPPORT) == "EMU" || $(VARIABLE_SUPPORT) == "SMMSTORE" || $(VARIABLE_SUPPORT) == "SPI"
+#  UefiPayloadPkg/UserAuthPkg/UserAuthenticationDxe/UserAuthenticationDxe.inf
+#!endif
   #MdeModulePkg/Universal/TimeDateSettingsDxe/TimeDateSettingsDxe.inf
   MdeModulePkg/Universal/PlatformDriOverrideDxe/PlatformDriOverrideDxe.inf
   MdeModulePkg/Universal/EbcDxe/EbcDxe.inf
