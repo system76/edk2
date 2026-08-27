@@ -25,24 +25,10 @@ formset
   form formid = SECUREBOOT_CONFIGURATION_FORM_ID,
     title = STRING_TOKEN(STR_SECUREBOOT_TITLE);
 
-    subtitle text = STRING_TOKEN(STR_NULL);
-
-    grayoutif ideqval SECUREBOOT_CONFIGURATION.PhysicalPresent == 1 OR NOT ideqval SECUREBOOT_CONFIGURATION.PhysicalPresent == 1;
-    text
-      help   = STRING_TOKEN(STR_SECURE_BOOT_STATE_HELP),
-      text   = STRING_TOKEN(STR_SECURE_BOOT_STATE_PROMPT),
-      text   = STRING_TOKEN(STR_SECURE_BOOT_STATE_CONTENT);
-    endif;
-
-    //
+    // FIXME: firmware-setup doesn't handle EFI_IFR_TEXT.
+    subtitle text = STRING_TOKEN(STR_SECURE_BOOT_STATE_PROMPT);
     // Display of enrolled key provenance: Default vs Custom
-    //
-    grayoutif ideqval SECUREBOOT_CONFIGURATION.PhysicalPresent == 1 OR NOT ideqval SECUREBOOT_CONFIGURATION.PhysicalPresent == 1;
-    text
-      help   = STRING_TOKEN(STR_SECURE_BOOT_KEYS_HELP),
-      text   = STRING_TOKEN(STR_SECURE_BOOT_KEYS_PROMPT),
-      text   = STRING_TOKEN(STR_SECURE_BOOT_KEYS_CONTENT);
-    endif;
+    subtitle text = STRING_TOKEN(STR_SECURE_BOOT_KEYS_PROMPT);
 
     subtitle text = STRING_TOKEN(STR_NULL);
 
@@ -61,6 +47,8 @@ formset
     //
     // Display of Oneof: 'Secure Boot Mode'
     //
+    // XXX: Needed for "Secure Boot status" string to update.
+    suppressif TRUE;
     oneof name = SecureBootMode,
           questionid = KEY_SECURE_BOOT_MODE,
           prompt = STRING_TOKEN(STR_SECURE_BOOT_MODE_PROMPT),
@@ -69,11 +57,12 @@ formset
           option text = STRING_TOKEN(STR_STANDARD_MODE),    value = SECURE_BOOT_MODE_STANDARD, flags = DEFAULT;
           option text = STRING_TOKEN(STR_CUSTOM_MODE),      value = SECURE_BOOT_MODE_CUSTOM,   flags = 0;
     endoneof;
+    endif;
 
     //
     // Display of 'Current Secure Boot Mode'
     //
-    suppressif questionref(SecureBootMode) == SECURE_BOOT_MODE_STANDARD;
+    //suppressif questionref(SecureBootMode) == SECURE_BOOT_MODE_STANDARD;
     grayoutif ideqval SECUREBOOT_CONFIGURATION.HasPk == 0 OR NOT ideqval SECUREBOOT_CONFIGURATION.PhysicalPresent == 1;
     text
       help   = STRING_TOKEN(STR_ENTER_SETUP_MODE_HELP),
@@ -82,14 +71,14 @@ formset
       key    = KEY_ENTER_SETUP_MODE;
     endif;
 
-    grayoutif NOT ideqval SECUREBOOT_CONFIGURATION.PhysicalPresent == 1;
-    goto FORMID_SECURE_BOOT_OPTION_FORM,
-         prompt = STRING_TOKEN(STR_SECURE_BOOT_OPTION),
-         help   = STRING_TOKEN(STR_SECURE_BOOT_OPTION_HELP),
-         flags  = INTERACTIVE,
-         key    = KEY_SECURE_BOOT_OPTION;
-    endif;
-    endif;
+    //grayoutif NOT ideqval SECUREBOOT_CONFIGURATION.PhysicalPresent == 1;
+    //goto FORMID_SECURE_BOOT_OPTION_FORM,
+    //     prompt = STRING_TOKEN(STR_SECURE_BOOT_OPTION),
+    //     help   = STRING_TOKEN(STR_SECURE_BOOT_OPTION_HELP),
+    //     flags  = INTERACTIVE,
+    //     key    = KEY_SECURE_BOOT_OPTION;
+    //endif;
+    //endif;
 
     text
       help   = STRING_TOKEN(STR_SECURE_RESET_TO_DEFAULTS_HELP),

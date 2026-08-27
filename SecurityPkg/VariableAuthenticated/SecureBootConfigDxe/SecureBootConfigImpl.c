@@ -3417,7 +3417,7 @@ UpdateSecureBootKeysString (
   //
   GetVariable2 (EFI_SETUP_MODE_NAME, &gEfiGlobalVariableGuid, (VOID **)&SetupMode, NULL);
   if ((SetupMode == NULL) || (*SetupMode == SETUP_MODE)) {
-    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_KEYS_CONTENT), L"None (Setup Mode)", NULL);
+    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_KEYS_PROMPT), L"Secure Boot Keys: None (Setup Mode)", NULL);
     if (SetupMode != NULL) {
       FreePool (SetupMode);
     }
@@ -3430,11 +3430,11 @@ UpdateSecureBootKeysString (
   Custom = SecureBootKeysAreCustom (&Determined);
 
   if (!Determined) {
-    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_KEYS_CONTENT), L"Unknown", NULL);
+    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_KEYS_PROMPT), L"Secure Boot Keys: Unknown", NULL);
   } else if (Custom) {
-    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_KEYS_CONTENT), L"Custom", NULL);
+    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_KEYS_PROMPT), L"Secure Boot Keys: Custom", NULL);
   } else {
-    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_KEYS_CONTENT), L"Default", NULL);
+    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_KEYS_PROMPT), L"Secure Boot Keys: Default", NULL);
   }
 }
 
@@ -3466,9 +3466,9 @@ UpdateSecureBootString (
   }
 
   if (*SecureBoot == SECURE_BOOT_MODE_ENABLE) {
-    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_STATE_CONTENT), L"Enabled", NULL);
+    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_STATE_PROMPT), L"Secure Boot state: Enabled", NULL);
   } else {
-    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_STATE_CONTENT), L"Disabled", NULL);
+    HiiSetString (Private->HiiHandle, STRING_TOKEN (STR_SECURE_BOOT_STATE_PROMPT), L"Secure Boot state: Disabled", NULL);
   }
 
   //
