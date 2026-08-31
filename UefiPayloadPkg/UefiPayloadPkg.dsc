@@ -1319,6 +1319,9 @@
   LvglPkg/LvglSetupDxe/LvglSetupDxe.inf
 !else
   MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
+  !ifdef $(FIRMWARE_OPEN_FIRMWARE_SETUP)
+    $(FIRMWARE_OPEN_FIRMWARE_SETUP)
+  !endif
 !endif
 # TODO: redox_uefi and firmware-setup must support EFI_IFR_PASSWORD
 #!if $(VARIABLE_SUPPORT) == "EMU" || $(VARIABLE_SUPPORT) == "SMMSTORE" || $(VARIABLE_SUPPORT) == "SPI"

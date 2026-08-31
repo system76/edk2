@@ -329,7 +329,10 @@ INF MdeModulePkg/Universal/SetupBrowserDxe/SetupBrowserDxe.inf
 INF LvglPkg/LvglDisplayEngineDxe/LvglDisplayEngineDxe.inf
 INF LvglPkg/LvglSetupDxe/LvglSetupDxe.inf
 !else
-INF MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
+  INF MdeModulePkg/Universal/DisplayEngineDxe/DisplayEngineDxe.inf
+  !ifdef $(FIRMWARE_OPEN_FIRMWARE_SETUP)
+    INF  RuleOverride=BINARY USE = X64 $(FIRMWARE_OPEN_FIRMWARE_SETUP)
+  !endif
 !endif
 #INF MdeModulePkg/Universal/TimeDateSettingsDxe/TimeDateSettingsDxe.inf
 INF MdeModulePkg/Universal/EbcDxe/EbcDxe.inf
