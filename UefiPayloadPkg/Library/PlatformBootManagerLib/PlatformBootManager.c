@@ -15,7 +15,7 @@ EFI_GUID SYSTEM76_SECURITY_PROTOCOL_GUID = { 0x764247c4, 0xa859, 0x4a6b, { 0xb5,
 
 typedef struct {
   // Run System76 security driver, will return true if we should boot immediately
-  BOOLEAN (EFIAPI *Run)();
+  BOOLEAN (EFIAPI *Run)(VOID);
 } SYSTEM76_SECURITY_PROTOCOL;
 
 /**
