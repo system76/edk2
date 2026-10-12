@@ -86,6 +86,16 @@ SerialPortWrite (
     return NumberOfBytes;
 }
 
+UINTN
+EFIAPI
+SerialPortRead (
+  OUT UINT8  *Buffer,
+  IN  UINTN  NumberOfBytes
+  )
+{
+  return 0;
+}
+
 BOOLEAN
 EFIAPI
 SerialPortPoll (
